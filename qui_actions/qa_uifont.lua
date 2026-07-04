@@ -45,34 +45,6 @@ local _font_picker_dialog = nil
 local _font_main_dialog = nil
 
 -- ============================================================
--- Configuration - Read/write from _G.__QUICKUI_CONFIG
--- ============================================================
-
-local function getUIFontOverride(key)
-    local config = _G.__QUICKUI_CONFIG
-    if config and config.qa_common_ui_font_overrides then
-        return config.qa_common_ui_font_overrides[key]
-    end
-    return nil
-end
-
-local function setUIFontOverride(key, font_name)
-    local config = _G.__QUICKUI_CONFIG
-    if not config then return end
-    if not config.qa_common_ui_font_overrides then
-        config.qa_common_ui_font_overrides = {}
-    end
-    if font_name then
-        config.qa_common_ui_font_overrides[key] = font_name
-    else
-        config.qa_common_ui_font_overrides[key] = nil
-    end
-    Utils.saveConfig()
-    UIFont.applyUIFontChanges()
-    UIManager:setDirty("all", "full")
-end
-
--- ============================================================
 -- Font List
 -- ============================================================
 
@@ -302,7 +274,8 @@ function UIFont.showFontPickerForUIKey(ui_key, ui_label, on_select, on_cancel)
     end
 
     local all_fonts = UIFont.getAvailableFonts()
-    local current = getUIFontOverride(ui_key) or ""
+    local overrides = Utils.getTable("qa_common_ui_font_overrides")
+    local current = overrides[ui_key] or ""
 
     local buttons = {}
 
@@ -452,13 +425,17 @@ function UIFont.showUIFontSwitcher()
                     item.label,
                     function(new_font)
                         if new_font then
-                            setUIFontOverride(item.key, new_font)
+                            local overrides = Utils.getTable("qa_common_ui_font_overrides")
+                            overrides[item.key] = new_font
+                            Utils.set("qa_common_ui_font_overrides", overrides)
                             UIManager:show(Notification:new{
                                 text = string.format(_("%s set to: %s"), item.label, new_font),
                                 timeout = 2,
                             })
                         else
-                            setUIFontOverride(item.key, nil)
+                            local overrides = Utils.getTable("qa_common_ui_font_overrides")
+                            overrides[item.key] = nil
+                            Utils.set("qa_common_ui_font_overrides", overrides)
                             UIManager:show(Notification:new{
                                 text = string.format(_("%s reset to default"), item.label),
                                 timeout = 2,
