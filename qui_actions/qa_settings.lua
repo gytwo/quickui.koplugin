@@ -2908,5 +2908,27 @@ end
 
 QA.showMenu = showMenu
 
+-- ============================================================
+-- Show Interface Filter directly
+-- ============================================================
+function QA.showInterfaceFilter()
+    closeSettingsDialog()
+    local root_items = QA.buildRootMenuItems()
+    local filter_item = nil
+    for _, item in ipairs(root_items) do
+        if item.text == _("Interface Filter") then
+            filter_item = item
+            break
+        end
+    end
+    if filter_item and filter_item.sub_item_table then
+        showMenu(filter_item.sub_item_table, _("Interface Filter"), nil, nil, root_items)
+    else
+        UIManager:show(InfoMessage:new{
+            text = _("Interface Filter not available"),
+            timeout = 2,
+        })
+    end
+end
 
 return QA
