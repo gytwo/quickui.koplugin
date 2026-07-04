@@ -1539,3 +1539,9 @@ msgstr "显示滑块数值"
 
 msgid "Warmth Slider"
 msgstr "色温滑块"
+
+msgid "System Icon Override"
+msgstr "系统图标替换"
+
+msgid "Interface Filter"
+msgstr "界面过滤"
