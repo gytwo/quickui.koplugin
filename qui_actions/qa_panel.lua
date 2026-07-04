@@ -46,49 +46,9 @@ local settings_mod = require("qui_actions/qa_settings")
 local PLUGIN_STORE = _G.__QUICKUI_PLUGIN_STORE or {}
 _G.__QUICKUI_PLUGIN_STORE = PLUGIN_STORE
 
-local function getPlugin()
-    return PLUGIN_STORE.plugin_ref
-end
-
 local QA = {}
 local _qs_refs = nil
 
-
--- ============================================================
--- Configuration - Read from _G.__QUICKUI_CONFIG
--- ============================================================
-
-local function getBool(key)
-    local config = _G.__QUICKUI_CONFIG
-    if config and config[key] ~= nil then
-        return config[key] == true
-    end
-    return false
-end
-
-local function getString(key)
-    local config = _G.__QUICKUI_CONFIG
-    if config and config[key] ~= nil then
-        return config[key]
-    end
-    return ""
-end
-
-local function getNumber(key)
-    local config = _G.__QUICKUI_CONFIG
-    if config and config[key] ~= nil then
-        return config[key]
-    end
-    return 0
-end
-
-local function getQASlots()
-    local config = _G.__QUICKUI_CONFIG
-    if config and config.qa_panel_slots then
-        return config.qa_panel_slots
-    end
-    return {}
-end
 
 -- ============================================================
 -- Initialization
@@ -191,15 +151,15 @@ function QA.buildPanel(touch_menu)
     local padding = Screen:scaleBySize(28)
     local inner_w = panel_w - padding * 2
     local base_btn_size = Screen:scaleBySize(60)
-    local button_scale = getNumber("qa_panel_button_size_pct") / 100
+    local button_scale = Utils.getNumber("qa_panel_button_size_pct") / 100
     if button_scale <= 0 then button_scale = 1 end
     local btn_size = math.floor(base_btn_size * button_scale)
     local icon_size = math.floor(btn_size * 0.52)
-    local label_fs = math.max(6, math.floor(15 * (getNumber("qa_panel_label_scale_pct") / 100)))
+    local label_fs = math.max(6, math.floor(15 * (Utils.getNumber("qa_panel_label_scale_pct") / 100)))
     local label_face = Utils.getFontFace("cfont", label_fs)
     local medium_face = Utils.getFontFace("ffont", Utils.scaleBySize(14))
     local border_sz = 1
-    local shape = getString("qa_panel_shape")
+    local shape = Utils.getString("qa_panel_shape")
     if shape == "" then shape = "round" end
     local is_bare = (shape == "bare")
 
@@ -234,7 +194,7 @@ function QA.buildPanel(touch_menu)
             corner_r = math.floor(btn_size / 4)
         end
 
-        local bg = getString("qa_panel_bg")
+        local bg = Utils.getString("qa_panel_bg")
         if bg == "" then bg = "flat" end
         local current_border = 0
         local bg_color = nil
@@ -316,7 +276,7 @@ function QA.buildPanel(touch_menu)
             },
         }
 
-        if getBool("qa_panel_button_hold_edit") then
+        if Utils.getBool("qa_panel_button_hold_edit") then
             table.insert(zones, {
                 id = "btn_hold_" .. action_id,
                 ges = "hold",
@@ -352,7 +312,7 @@ function QA.buildPanel(touch_menu)
         btn_wrapper.onShow = function() end
 
         local vg = VerticalGroup:new{ align = "center", btn_wrapper }
-        if getBool("qa_panel_labels") then
+        if Utils.getBool("qa_panel_labels") then
             local lbl_w = btn_size + Screen:scaleBySize(6)
             table.insert(vg, VerticalSpan:new{ width = Screen:scaleBySize(2) })
             table.insert(vg, CenterContainer:new{
@@ -371,7 +331,7 @@ function QA.buildPanel(touch_menu)
         return vg, btn_frame
     end
 
-    local context_filter_enabled = getBool("qa_common_context_filter")
+    local context_filter_enabled = Utils.getBool("qa_common_context_filter")
     local current_view = "filemanager"
     if context_filter_enabled then
         local RUI = require("apps/reader/readerui")
@@ -379,7 +339,7 @@ function QA.buildPanel(touch_menu)
         current_view = in_reader and "reader" or "filemanager"
     end
 
-    local slots = getQASlots()
+    local slots = Utils.getTable("qa_panel_slots")
     local visible_slots = {}
     for __, id in ipairs(slots) do
         local action = getAction(id)
@@ -455,7 +415,7 @@ function QA.buildPanel(touch_menu)
     }
 
     -- Frontlight slider
-    if getBool("qa_panel_frontlight") and Device:hasFrontlight() then
+    if Utils.getBool("qa_panel_frontlight") and Device:hasFrontlight() then
         local powerd = Device:getPowerDevice()
         local fl = {
             min = powerd.fl_min,
@@ -468,7 +428,7 @@ function QA.buildPanel(touch_menu)
         local slider_width = inner_w - 2 * small_btn_w - max_btn_w - 3 * slider_gap
 
         local fl_label = nil
-        if getBool("qa_panel_slider_show_value") then
+        if Utils.getBool("qa_panel_slider_show_value") then
             fl_label = TextWidget:new{
                 text = _("Frontlight") .. ": " .. tostring(fl.cur),
                 face = medium_face,
@@ -570,7 +530,7 @@ function QA.buildPanel(touch_menu)
     end
 
     -- Warmth slider
-    if getBool("qa_panel_warmth") and Device:hasNaturalLight() then
+    if Utils.getBool("qa_panel_warmth") and Device:hasNaturalLight() then
         local powerd = Device:getPowerDevice()
         local nl = {
             min = powerd.fl_warmth_min,
@@ -583,7 +543,7 @@ function QA.buildPanel(touch_menu)
         local warmth_slider_w = inner_w - 2 * small_btn_w - max_btn_w - 3 * slider_gap
 
         local nl_label = nil
-        if getBool("qa_panel_slider_show_value") then
+        if Utils.getBool("qa_panel_slider_show_value") then
             nl_label = TextWidget:new{
                 text = _("Warmth") .. ": " .. tostring(nl.cur),
                 face = medium_face,
@@ -673,7 +633,7 @@ function QA.buildPanel(touch_menu)
     }
 
     function ic:onHoldPanel()
-        if not getBool("qa_panel_settings_on_hold") then return false end
+        if not Utils.getBool("qa_panel_settings_on_hold") then return false end
         if settings_mod and settings_mod.showPanelSettings then
             settings_mod.showPanelSettings()
         end
@@ -698,7 +658,7 @@ function QA.patchTouchMenu()
             end
         end
         table.insert(menu.tab_item_table, 1, {
-            icon = getString("qa_common_tab_icon"),
+            icon = Utils.getString("qa_common_tab_icon"),
             remember = false,
             _qa_panel = true,
         })

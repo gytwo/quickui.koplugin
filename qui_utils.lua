@@ -215,6 +215,58 @@ function Utils.getDefaultSettings()
 end
 
 -- ============================================================
+-- Configuration Getters/Setters (统一接口)
+-- ============================================================
+
+function Utils.get(key, default)
+    local config = _G.__QUICKUI_CONFIG
+    if config and config[key] ~= nil then
+        return config[key]
+    end
+    return default
+end
+
+function Utils.getBool(key, default)
+    local val = Utils.get(key, default)
+    if type(val) == "boolean" then
+        return val
+    end
+    return default or false
+end
+
+function Utils.getNumber(key, default)
+    local val = Utils.get(key, default)
+    if type(val) == "number" then
+        return val
+    end
+    return default or 0
+end
+
+function Utils.getString(key, default)
+    local val = Utils.get(key, default)
+    if type(val) == "string" then
+        return val
+    end
+    return default or ""
+end
+
+function Utils.getTable(key)
+    local val = Utils.get(key, {})
+    if type(val) == "table" then
+        return val
+    end
+    return {}
+end
+
+function Utils.set(key, value)
+    local config = _G.__QUICKUI_CONFIG
+    if config then
+        config[key] = value
+        Utils.saveConfig()
+    end
+end
+
+-- ============================================================
 -- Refresh handler registry
 -- ============================================================
 

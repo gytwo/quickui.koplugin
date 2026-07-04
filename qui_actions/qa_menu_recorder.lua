@@ -29,9 +29,6 @@ local VerticalSpan = require("ui/widget/verticalspan")
 local PLUGIN_STORE = _G.__QUICKUI_PLUGIN_STORE or {}
 _G.__QUICKUI_PLUGIN_STORE = PLUGIN_STORE
 
-local function getPlugin()
-    return PLUGIN_STORE.plugin_ref
-end
 
 local MenuRecorder = {}
 
