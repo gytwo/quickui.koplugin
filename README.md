@@ -4,9 +4,6 @@
 
 > **Version**: v1.0.0 | **Author**: gytwo | **License**: AGPL-3.0 | **Compatible**: KOReader ≥ v2026.03
 
-![Qui-filemanager](pictures/Qui-filemanager.png)
-![Qui-reader](pictures/Qui-reader.png)
-
 ---
 
 ## 📖 Overview
@@ -21,6 +18,9 @@ QuickUI is a comprehensive KOReader enhancement plugin that integrates **four co
 | 📐 **Header & Footer** | Display time, page numbers, progress, chapter info, battery status at top/bottom of reading screen |
 
 > 💡 **Inspiration**: SimpleUI, ZenUI, ShortcutsToolbar
+
+![Qui-filemanager](pictures/Qui-filemanager.png)
+![Qui-reader](pictures/Qui-reader.png)
 
 ---
 
