@@ -40,55 +40,6 @@ For the full license text, see: [https://www.gnu.org/licenses/agpl-3.0.en.html](
 
 ---
 
-## 💡 Lightweight Alternative: Standalone Patches
-
-If QuickUI feels too feature-rich or you only need one specific function, here are two flexible alternatives:
-
-### Option 1: Disable Modules in QuickUI
-
-You can independently enable/disable the four feature modules in QuickUI's settings menu:
-
-| Feature | Settings Entry | Description |
-| :--- | :--- | :--- |
-| **Quick Actions** | `Settings → Plugin Management → QuickUI` | Uncheck **"Enable Quick Actions"** |
-| **Cover Visual Enhancements** | `Settings → Plugin Management → QuickUI` | Uncheck **"Enable Cover"** |
-| **Cloze Mode** | `Settings → Plugin Management → QuickUI` | Uncheck **"Enable Cloze Mode"** |
-| **Header & Footer** | `Settings → Plugin Management → QuickUI` | Uncheck **"Enable Header & Footer"** |
-
-> Disabling a module requires a **KOReader restart** to take effect.
-
-### Option 2: Use Standalone Patches (Complete QuickUI Replacement)
-
-If you prefer a lighter, single-function experience, you can use these standalone patches. They contain only one feature each, with leaner code and no plugin management overhead.
-
-These patches are by the same author as QuickUI and share the same functionality:
-
-| Module | Patch File | Description | Source |
-| :--- | :--- | :--- | :--- |
-| **Quick Actions** | `2-quickactions.lua` | Customizable quick action panel (same as QuickUI's panel) | [kopatches repo](https://github.com/gytwo/kopatches) |
-| **Cover Visual Enhancements** | `2-fm-cover.lua` | Comprehensive cover and folder cover visual overhaul | [kopatches repo](https://github.com/gytwo/kopatches) |
-| **Cloze Mode** | `2-reader-clozemode.lua` | Annotation masking for review and self-testing | [kopatches repo](https://github.com/gytwo/kopatches) |
-
-#### Standalone Patch Installation
-
-1. Download the corresponding `.lua` file from [gytwo/kopatches](https://github.com/gytwo/kopatches).
-2. Place it in KOReader's `patches` folder (typically `koreader/patches/`).
-3. Restart KOReader.
-
-> To uninstall: simply delete the `.lua` file. Optionally delete any auto-generated config files.
-
-#### How to Choose?
-
-| Scenario | Recommendation |
-| :--- | :--- |
-| Want **integrated management** of all features, like All-in-One | Use **QuickUI plugin** and disable modules as needed |
-| Only interested in **one specific feature**, prefer minimalism | Use the corresponding **standalone patch** |
-| Want to try out a feature | Try the standalone patch first, then migrate to QuickUI if desired |
-
-> 💡 **Tip**: QuickUI and standalone patches should **not be installed together**, as they may conflict. Choose one based on your needs.
-
----
-
 ## 🚀 Core Features
 
 ### 1. ⚡ Quick Actions
@@ -253,6 +204,55 @@ Supports five types of custom actions:
 | **Time Format** | 24-hour / 12-hour |
 | **Progress Decimals** | 0, 1, or 2 |
 | **PDF Support** | Show in PDF documents (disabled by default) |
+
+---
+
+## 💡 Lightweight Alternative: Standalone Patches
+
+If QuickUI feels too feature-rich or you only need one specific function, here are two flexible alternatives:
+
+### Option 1: Disable Modules in QuickUI
+
+You can independently enable/disable the four feature modules in QuickUI's settings menu:
+
+| Feature | Settings Entry | Description |
+| :--- | :--- | :--- |
+| **Quick Actions** | `Settings → Plugin Management → QuickUI` | Uncheck **"Enable Quick Actions"** |
+| **Cover Visual Enhancements** | `Settings → Plugin Management → QuickUI` | Uncheck **"Enable Cover"** |
+| **Cloze Mode** | `Settings → Plugin Management → QuickUI` | Uncheck **"Enable Cloze Mode"** |
+| **Header & Footer** | `Settings → Plugin Management → QuickUI` | Uncheck **"Enable Header & Footer"** |
+
+> Disabling a module requires a **KOReader restart** to take effect.
+
+### Option 2: Use Standalone Patches (Complete QuickUI Replacement)
+
+If you prefer a lighter, single-function experience, you can use these standalone patches. They contain only one feature each, with leaner code and no plugin management overhead.
+
+These patches are by the same author as QuickUI and share the same functionality:
+
+| Module | Patch File | Description | Source |
+| :--- | :--- | :--- | :--- |
+| **Quick Actions** | `2-quickactions.lua` | Customizable quick action panel (same as QuickUI's panel) | [kopatches repo](https://github.com/gytwo/kopatches) |
+| **Cover Visual Enhancements** | `2-fm-cover.lua` | Comprehensive cover and folder cover visual overhaul | [kopatches repo](https://github.com/gytwo/kopatches) |
+| **Cloze Mode** | `2-reader-clozemode.lua` | Annotation masking for review and self-testing | [kopatches repo](https://github.com/gytwo/kopatches) |
+
+#### Standalone Patch Installation
+
+1. Download the corresponding `.lua` file from [gytwo/kopatches](https://github.com/gytwo/kopatches).
+2. Place it in KOReader's `patches` folder (typically `koreader/patches/`).
+3. Restart KOReader.
+
+> To uninstall: simply delete the `.lua` file. Optionally delete any auto-generated config files.
+
+#### How to Choose?
+
+| Scenario | Recommendation |
+| :--- | :--- |
+| Want **integrated management** of all features, like All-in-One | Use **QuickUI plugin** and disable modules as needed |
+| Only interested in **one specific feature**, prefer minimalism | Use the corresponding **standalone patch** |
+| Want to try out a feature | Try the standalone patch first, then migrate to QuickUI if desired |
+
+> 💡 **Tip**: QuickUI and standalone patches should **not be installed together**, as they may conflict. Choose one based on your needs.
 
 ---
 
