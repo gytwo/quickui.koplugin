@@ -72,142 +72,6 @@ function QA.setBottombar(bb)
 end
 
 -- ============================================================
--- Configuration - Read from _G.__QUICKUI_CONFIG
--- ============================================================
-
-local function getPlugin()
-    return PLUGIN_STORE.plugin_ref
-end
-
-local function getBool(key, default)
-    local config = _G.__QUICKUI_CONFIG
-    if config and config[key] ~= nil then
-        return config[key]
-    end
-    return default or false
-end
-
-local function setBool(key, value)
-    local config = _G.__QUICKUI_CONFIG
-    if config then
-        config[key] = value
-        Utils.saveConfig()
-    end
-end
-
-local function getString(key, default)
-    local config = _G.__QUICKUI_CONFIG
-    if config and config[key] ~= nil then
-        return config[key]
-    end
-    return default or ""
-end
-
-local function setString(key, value)
-    local config = _G.__QUICKUI_CONFIG
-    if config then
-        config[key] = tostring(value)
-        Utils.saveConfig()
-    end
-end
-
-local function getNumber(key, default)
-    local config = _G.__QUICKUI_CONFIG
-    if config and type(config[key]) == "number" then
-        return config[key]
-    end
-    return default or 0
-end
-
-local function setNumber(key, value)
-    local config = _G.__QUICKUI_CONFIG
-    if config then
-        config[key] = tonumber(value) or 0
-        Utils.saveConfig()
-    end
-end
-
-local function getTable(key)
-    local config = _G.__QUICKUI_CONFIG
-    if config and config[key] ~= nil then
-        return config[key]
-    end
-    return {}
-end
-
-local function setTable(key, value)
-    local config = _G.__QUICKUI_CONFIG
-    if config then
-        config[key] = value
-        Utils.saveConfig()
-    end
-end
-
-local function getQASlots()
-    local config = _G.__QUICKUI_CONFIG
-    if config and config.qa_panel_slots then
-        return config.qa_panel_slots
-    end
-    return {}
-end
-
-local function saveQASlots(slots)
-    local config = _G.__QUICKUI_CONFIG
-    if config then
-        config.qa_panel_slots = slots
-        Utils.saveConfig()
-    end
-end
-
-local function getCustomList()
-    local config = _G.__QUICKUI_CONFIG
-    if config and config.qa_common_custom_list then
-        return config.qa_common_custom_list
-    end
-    return {}
-end
-
-local function setCustomList(value)
-    local config = _G.__QUICKUI_CONFIG
-    if config then
-        config.qa_common_custom_list = value
-        Utils.saveConfig()
-    end
-end
-
-local function getCustom()
-    local config = _G.__QUICKUI_CONFIG
-    if config and config.qa_common_custom then
-        return config.qa_common_custom
-    end
-    return {}
-end
-
-local function setCustom(value)
-    local config = _G.__QUICKUI_CONFIG
-    if config then
-        config.qa_common_custom = value
-        Utils.saveConfig()
-    end
-end
-
-local function getBuiltinOverrides()
-    local config = _G.__QUICKUI_CONFIG
-    if config and config.qa_common_builtin_overrides then
-        return config.qa_common_builtin_overrides
-    end
-    return {}
-end
-
-local function setBuiltinOverrides(value)
-    local config = _G.__QUICKUI_CONFIG
-    if config then
-        config.qa_common_builtin_overrides = value
-        Utils.saveConfig()
-    end
-end
-
--- ============================================================
 -- Forward to actions module
 -- ============================================================
 
@@ -462,9 +326,9 @@ function QA.showEditActionDialog(action_id, on_done, source)
         if source == "bottombar" then
             local bb = PLUGIN_STORE.bottombar
             if not bb then return nil, 0 end
-            list = bb.getTabs()
+            list = Utils.get("qa_bb_tabs", {})
         else
-            list = getQASlots()
+            list = Utils.getTable("qa_panel_slots")
         end
         for i, id in ipairs(list) do
             if id == action_id then
@@ -477,14 +341,14 @@ function QA.showEditActionDialog(action_id, on_done, source)
     -- Remove from current list
     local function removeFromList()
         if source == "bottombar" then
-            local tabs = PLUGIN_STORE.bottombar and PLUGIN_STORE.bottombar.getTabs() or {}
+            local tabs = Utils.get("qa_bb_tabs", {})
             local new_tabs = {}
             for __, id in ipairs(tabs) do
                 if id ~= action_id then
                     table.insert(new_tabs, id)
                 end
             end
-            setTable("qa_bb_tabs", new_tabs)
+            Utils.set("qa_bb_tabs", new_tabs)
             if PLUGIN_STORE.bottombar then PLUGIN_STORE.bottombar.refresh() end
         else
             actions.removeFromPanel(action_id, nil)
@@ -494,7 +358,7 @@ function QA.showEditActionDialog(action_id, on_done, source)
     -- Move left in current list
     local function moveLeft()
         if source == "bottombar" then
-            local tabs = PLUGIN_STORE.bottombar and PLUGIN_STORE.bottombar.getTabs() or {}
+            local tabs = Utils.get("qa_bb_tabs", {})
             local idx = nil
             for i, id in ipairs(tabs) do
                 if id == action_id then
@@ -504,11 +368,11 @@ function QA.showEditActionDialog(action_id, on_done, source)
             end
             if idx and idx > 1 then
                 tabs[idx], tabs[idx-1] = tabs[idx-1], tabs[idx]
-                setTable("qa_bb_tabs", tabs)
+                Utils.set("qa_bb_tabs", tabs)
                 if PLUGIN_STORE.bottombar then PLUGIN_STORE.bottombar.refresh() end
             end
         else
-            local slots = getQASlots()
+            local slots = Utils.getTable("qa_panel_slots")
             local idx = nil
             for i, id in ipairs(slots) do
                 if id == action_id then
@@ -518,7 +382,7 @@ function QA.showEditActionDialog(action_id, on_done, source)
             end
             if idx and idx > 1 then
                 slots[idx], slots[idx-1] = slots[idx-1], slots[idx]
-                saveQASlots(slots)
+                Utils.set("qa_panel_slots", slots)
             end
         end
     end
@@ -526,7 +390,7 @@ function QA.showEditActionDialog(action_id, on_done, source)
     -- Move right in current list
     local function moveRight()
         if source == "bottombar" then
-            local tabs = PLUGIN_STORE.bottombar and PLUGIN_STORE.bottombar.getTabs() or {}
+            local tabs = Utils.get("qa_bb_tabs", {})
             local idx = nil
             for i, id in ipairs(tabs) do
                 if id == action_id then
@@ -536,11 +400,11 @@ function QA.showEditActionDialog(action_id, on_done, source)
             end
             if idx and idx < #tabs then
                 tabs[idx], tabs[idx+1] = tabs[idx+1], tabs[idx]
-                setTable("qa_bb_tabs", tabs)
+                Utils.set("qa_bb_tabs", tabs)
                 if PLUGIN_STORE.bottombar then PLUGIN_STORE.bottombar.refresh() end
             end
         else
-            local slots = getQASlots()
+            local slots = Utils.getTable("qa_panel_slots")
             local idx = nil
             for i, id in ipairs(slots) do
                 if id == action_id then
@@ -550,7 +414,7 @@ function QA.showEditActionDialog(action_id, on_done, source)
             end
             if idx and idx < #slots then
                 slots[idx], slots[idx+1] = slots[idx+1], slots[idx]
-                saveQASlots(slots)
+                Utils.set("qa_panel_slots", slots)
             end
         end
     end
@@ -558,7 +422,7 @@ function QA.showEditActionDialog(action_id, on_done, source)
     -- Open sort dialog for current list
     local function openSortDialog()
         if source == "bottombar" then
-            local tabs = PLUGIN_STORE.bottombar and PLUGIN_STORE.bottombar.getTabs() or {}
+            local tabs = Utils.get("qa_bb_tabs", {})
             local sort_items = {}
             for i, id in ipairs(tabs) do
                 sort_items[#sort_items + 1] = { text = getLabelForAction(id), orig_item = id }
@@ -572,14 +436,14 @@ function QA.showEditActionDialog(action_id, on_done, source)
                     for j = 1, #sort_items do
                         new_tabs[#new_tabs + 1] = sort_items[j].orig_item
                     end
-                    setTable("qa_bb_tabs", new_tabs)
+                    Utils.set("qa_bb_tabs", new_tabs)
                     if PLUGIN_STORE.bottombar then PLUGIN_STORE.bottombar.refresh() end
                     if on_done then on_done() end
                 end,
             }
             UIManager:show(sort_dialog)
         else
-            local slots = getQASlots()
+            local slots = Utils.getTable("qa_panel_slots")
             local sort_items = {}
             for i, id in ipairs(slots) do
                 sort_items[#sort_items + 1] = { text = getLabelForAction(id), orig_item = id }
@@ -593,7 +457,7 @@ function QA.showEditActionDialog(action_id, on_done, source)
                     for j = 1, #sort_items do
                         new_slots[#new_slots + 1] = sort_items[j].orig_item
                     end
-                    saveQASlots(new_slots)
+                    Utils.set("qa_panel_slots", new_slots)
                     QA.refreshQuickPanel()
                     if on_done then on_done() end
                 end,
@@ -679,14 +543,14 @@ function QA.showEditActionDialog(action_id, on_done, source)
             end
             closeSettingsDialog()
 
-            local overrides = getBuiltinOverrides()
+            local overrides = Utils.getTable("qa_common_builtin_overrides")
             if not overrides[action_id] then
                 overrides[action_id] = {}
             end
             overrides[action_id].label = new_label
             overrides[action_id].icon = current_icon
             overrides[action_id].view = current_view
-            setBuiltinOverrides(overrides)
+            Utils.set("qa_common_builtin_overrides", overrides)
             if PLUGIN_STORE.bottombar then
                  PLUGIN_STORE.bottombar.refresh()
             end
@@ -761,7 +625,7 @@ end
 function QA.showCustomQADialog(qa_id, on_done, source)
     closeSettingsDialog()
 
-    local custom = getCustom()
+    local custom = Utils.getTable("qa_common_custom")
     local cfg = qa_id and custom[qa_id] or {}
     local chosen_icon = cfg.icon
     local dlg_title = qa_id and _("Edit Quick Action") or _("New Quick Action")
@@ -810,9 +674,9 @@ function QA.showCustomQADialog(qa_id, on_done, source)
         if source == "bottombar" then
             local bb = PLUGIN_STORE.bottombar
             if not bb then return nil, 0 end
-            list = bb.getTabs()
+            list = Utils.get("qa_bb_tabs", {})
         else
-            list = getQASlots()
+            list = Utils.getTable("qa_panel_slots")
         end
         for i, id in ipairs(list) do
             if id == qa_id then
@@ -825,31 +689,31 @@ function QA.showCustomQADialog(qa_id, on_done, source)
     -- Remove from current list
     local function removeFromList()
         if source == "bottombar" then
-            local tabs = PLUGIN_STORE.bottombar and PLUGIN_STORE.bottombar.getTabs() or {}
+            local tabs = Utils.get("qa_bb_tabs", {})
             local new_tabs = {}
             for __, id in ipairs(tabs) do
                 if id ~= qa_id then
                     table.insert(new_tabs, id)
                 end
             end
-            setTable("qa_bb_tabs", new_tabs)
+            Utils.set("qa_bb_tabs", new_tabs)
             if PLUGIN_STORE.bottombar then PLUGIN_STORE.bottombar.refresh() end
         else
-            local slots = getQASlots()
+            local slots = Utils.getTable("qa_panel_slots")
             local new_slots = {}
             for __, sid in ipairs(slots) do
                 if sid ~= qa_id then
                     table.insert(new_slots, sid)
                 end
             end
-            saveQASlots(new_slots)
+            Utils.set("qa_panel_slots", new_slots)
         end
     end
 
     -- Move left in current list
     local function moveLeft()
         if source == "bottombar" then
-            local tabs = PLUGIN_STORE.bottombar and PLUGIN_STORE.bottombar.getTabs() or {}
+            local tabs = Utils.get("qa_bb_tabs", {})
             local idx = nil
             for i, id in ipairs(tabs) do
                 if id == qa_id then
@@ -859,11 +723,11 @@ function QA.showCustomQADialog(qa_id, on_done, source)
             end
             if idx and idx > 1 then
                 tabs[idx], tabs[idx-1] = tabs[idx-1], tabs[idx]
-                setTable("qa_bb_tabs", tabs)
+                Utils.set("qa_bb_tabs", tabs)
                 if PLUGIN_STORE.bottombar then PLUGIN_STORE.bottombar.refresh() end
             end
         else
-            local slots = getQASlots()
+            local slots = Utils.getTable("qa_panel_slots")
             local idx = nil
             for i, id in ipairs(slots) do
                 if id == qa_id then
@@ -873,7 +737,7 @@ function QA.showCustomQADialog(qa_id, on_done, source)
             end
             if idx and idx > 1 then
                 slots[idx], slots[idx-1] = slots[idx-1], slots[idx]
-                saveQASlots(slots)
+                Utils.set("qa_panel_slots", slots)
             end
         end
     end
@@ -881,7 +745,7 @@ function QA.showCustomQADialog(qa_id, on_done, source)
     -- Move right in current list
     local function moveRight()
         if source == "bottombar" then
-            local tabs = PLUGIN_STORE.bottombar and PLUGIN_STORE.bottombar.getTabs() or {}
+            local tabs = Utils.get("qa_bb_tabs", {})
             local idx = nil
             for i, id in ipairs(tabs) do
                 if id == qa_id then
@@ -891,11 +755,11 @@ function QA.showCustomQADialog(qa_id, on_done, source)
             end
             if idx and idx < #tabs then
                 tabs[idx], tabs[idx+1] = tabs[idx+1], tabs[idx]
-                setTable("qa_bb_tabs", tabs)
+                Utils.set("qa_bb_tabs", tabs)
                 if PLUGIN_STORE.bottombar then PLUGIN_STORE.bottombar.refresh() end
             end
         else
-            local slots = getQASlots()
+            local slots = Utils.getTable("qa_panel_slots")
             local idx = nil
             for i, id in ipairs(slots) do
                 if id == qa_id then
@@ -905,7 +769,7 @@ function QA.showCustomQADialog(qa_id, on_done, source)
             end
             if idx and idx < #slots then
                 slots[idx], slots[idx+1] = slots[idx+1], slots[idx]
-                saveQASlots(slots)
+                Utils.set("qa_panel_slots", slots)
             end
         end
     end
@@ -913,7 +777,7 @@ function QA.showCustomQADialog(qa_id, on_done, source)
     -- Open sort dialog for current list
     local function openSortDialog()
         if source == "bottombar" then
-            local tabs = PLUGIN_STORE.bottombar and PLUGIN_STORE.bottombar.getTabs() or {}
+            local tabs = Utils.get("qa_bb_tabs", {})
             local sort_items = {}
             for i, id in ipairs(tabs) do
                 sort_items[#sort_items + 1] = { text = getLabelForAction(id), orig_item = id }
@@ -927,14 +791,14 @@ function QA.showCustomQADialog(qa_id, on_done, source)
                     for j = 1, #sort_items do
                         new_tabs[#new_tabs + 1] = sort_items[j].orig_item
                     end
-                    setTable("qa_bb_tabs", new_tabs)
+                    Utils.set("qa_bb_tabs", new_tabs)
                     if PLUGIN_STORE.bottombar then PLUGIN_STORE.bottombar.refresh() end
                     if on_done then on_done() end
                 end,
             }
             UIManager:show(sort_dialog)
         else
-            local slots = getQASlots()
+            local slots = Utils.getTable("qa_panel_slots")
             local sort_items = {}
             for i, id in ipairs(slots) do
                 sort_items[#sort_items + 1] = { text = getLabelForAction(id), orig_item = id }
@@ -948,7 +812,7 @@ function QA.showCustomQADialog(qa_id, on_done, source)
                     for j = 1, #sort_items do
                         new_slots[#new_slots + 1] = sort_items[j].orig_item
                     end
-                    saveQASlots(new_slots)
+                    Utils.set("qa_panel_slots", new_slots)
                     QA.refreshQuickPanel()
                     if on_done then on_done() end
                 end,
@@ -958,7 +822,7 @@ function QA.showCustomQADialog(qa_id, on_done, source)
     end
 
     local function commitQA(final_label, path, collections, icon, plugin_key, plugin_method, dispatcher_action, dispatcher_value, menu_path, user_view)
-        local list = getCustomList()
+        local list = Utils.getTable("qa_common_custom_list")
         local max_n = 0
         for __, id in ipairs(list) do
             local n = tonumber(id:match("^custom_qa_(%d+)$"))
@@ -966,8 +830,8 @@ function QA.showCustomQADialog(qa_id, on_done, source)
         end
         local final_id = qa_id or ("custom_qa_" .. (max_n + 1))
 
-        local custom_tbl = getCustom()
-        local custom_list = getCustomList()
+        local custom_tbl = Utils.getTable("qa_common_custom")
+        local custom_list = Utils.getTable("qa_common_custom_list")
 
         local action_type = nil
         local default_view = "common"
@@ -1027,14 +891,14 @@ function QA.showCustomQADialog(qa_id, on_done, source)
         end
 
         custom_tbl[final_id] = cfg_table
-        setCustom(custom_tbl)
+        Utils.set("qa_common_custom", custom_tbl)
         if PLUGIN_STORE.bottombar then
             PLUGIN_STORE.bottombar.refresh()
         end
 
-        local auto_add = getBool("qa_common_auto_add_to_panel")
+        local auto_add = Utils.getBool("qa_common_auto_add_to_panel")
         if source ~= "bottombar" and auto_add then
-            local slots = getQASlots()
+            local slots = Utils.getTable("qa_panel_slots")
             local already_exists = false
             for __, sid in ipairs(slots) do
                 if sid == final_id then
@@ -1045,7 +909,7 @@ function QA.showCustomQADialog(qa_id, on_done, source)
             if not already_exists then
                 if #slots < 66 then
                     slots[#slots + 1] = final_id
-                    saveQASlots(slots)
+                    Utils.set("qa_panel_slots", slots)
                 else
                     UIManager:show(InfoMessage:new{
                         text = string.format(_("Panel is full (max 66 buttons), cannot auto-add.")),
@@ -1057,7 +921,7 @@ function QA.showCustomQADialog(qa_id, on_done, source)
 
         if not qa_id then
             custom_list[#custom_list + 1] = final_id
-            setCustomList(custom_list)
+            Utils.set("qa_common_custom_list", custom_list)
         end
 
         if on_done then on_done() end
@@ -1364,17 +1228,17 @@ function QA.showCustomQADialog(qa_id, on_done, source)
                     ok_text = _("Delete"),
                     cancel_text = _("Cancel"),
                     ok_callback = function()
-                        local custom_tbl = getCustom()
+                        local custom_tbl = Utils.getTable("qa_common_custom")
                         custom_tbl[qa_id] = nil
-                        setCustom(custom_tbl)
-                        local list = getCustomList()
+                        Utils.set("qa_common_custom", custom_tbl)
+                        local list = Utils.getTable("qa_common_custom_list")
                         local new_list = {}
                         for __, id in ipairs(list) do
                             if id ~= qa_id then
                                 table.insert(new_list, id)
                             end
                         end
-                        setCustomList(new_list)
+                        Utils.set("qa_common_custom_list", new_list)
                         removeFromList()
                         if on_done then on_done() end
                     end,
@@ -1536,7 +1400,7 @@ end
 -- ============================================================
 
 function QA.showAddButtonMenu(touch_menu, on_back, filtered_actions)
-    local slots = getQASlots()
+    local slots = Utils.getTable("qa_panel_slots")
     local slot_set = {}
     for __, id in ipairs(slots) do
         slot_set[id] = true
@@ -1631,10 +1495,10 @@ function QA.showAddButtonMenu(touch_menu, on_back, filtered_actions)
         {
             text = _("Frontlight Slider"),
             checked_func = function()
-                return getBool("qa_panel_frontlight")
+                return Utils.getBool("qa_panel_frontlight")
             end,
             callback = function(touchmenu_instance)
-                setBool("qa_panel_frontlight", not getBool("qa_panel_frontlight"))
+                Utils.set("qa_panel_frontlight", not Utils.getBool("qa_panel_frontlight"))
                 if touchmenu_instance then
                     touchmenu_instance:updateItems()
                 end
@@ -1652,10 +1516,10 @@ function QA.showAddButtonMenu(touch_menu, on_back, filtered_actions)
             {
                 text = _("Warmth Slider"),
                 checked_func = function()
-                    return getBool("qa_panel_warmth")
+                    return Utils.getBool("qa_panel_warmth")
                 end,
                 callback = function(touchmenu_instance)
-                    setBool("qa_panel_warmth", not getBool("qa_panel_warmth"))
+                    Utils.set("qa_panel_warmth", not Utils.getBool("qa_panel_warmth"))
                     if touchmenu_instance then
                         touchmenu_instance:updateItems()
                     end
@@ -1673,10 +1537,10 @@ function QA.showAddButtonMenu(touch_menu, on_back, filtered_actions)
         {
             text = _("Show Slider Value"),
             checked_func = function()
-                return getBool("qa_panel_slider_show_value")
+                return Utils.getBool("qa_panel_slider_show_value")
             end,
             callback = function(touchmenu_instance)
-                setBool("qa_panel_slider_show_value", not getBool("qa_panel_slider_show_value"))
+                Utils.set("qa_panel_slider_show_value", not Utils.getBool("qa_panel_slider_show_value"))
                 if touchmenu_instance then
                     touchmenu_instance:updateItems()
                 end
@@ -1704,7 +1568,7 @@ function QA.showAddButtonMenu(touch_menu, on_back, filtered_actions)
             text = all_checked and "☑ " .. _("Deselect All") or "☐ " .. _("Select All"),
             callback = function(touchmenu_instance)
                 local is_all_checked = getAllChecked()
-                local current_slots = getQASlots()
+                local current_slots = Utils.getTable("qa_panel_slots")
                 local new_slots = {}
 
                 if is_all_checked then
@@ -1738,7 +1602,7 @@ function QA.showAddButtonMenu(touch_menu, on_back, filtered_actions)
                     end
                 end
 
-                saveQASlots(new_slots)
+                Utils.set("qa_panel_slots", new_slots)
                 if touchmenu_instance then
                     touchmenu_instance:updateItems()
                 end
@@ -1765,7 +1629,7 @@ function QA.showAddButtonMenu(touch_menu, on_back, filtered_actions)
             {
                 text = display_text,
                 callback = function(touchmenu_instance)
-                    local current_slots = getQASlots()
+                    local current_slots = Utils.getTable("qa_panel_slots")
                     local found = false
                     for j = 1, #current_slots do
                         if current_slots[j] == action.id then
@@ -1780,7 +1644,7 @@ function QA.showAddButtonMenu(touch_menu, on_back, filtered_actions)
                                 new_slots[#new_slots + 1] = current_slots[j]
                             end
                         end
-                        saveQASlots(new_slots)
+                        Utils.set("qa_panel_slots", new_slots)
                     else
                         if #current_slots >= 66 then
                             UIManager:show(Notification:new{
@@ -1790,7 +1654,7 @@ function QA.showAddButtonMenu(touch_menu, on_back, filtered_actions)
                             return
                         end
                         current_slots[#current_slots + 1] = action.id
-                        saveQASlots(current_slots)
+                        Utils.set("qa_panel_slots", current_slots)
                     end
                     if touchmenu_instance then
                         touchmenu_instance:updateItems()
@@ -1860,10 +1724,10 @@ local function getCustomItems(touch_menu)
         end
     end
 
-    local custom_list = getCustomList()
+    local custom_list = Utils.getTable("qa_common_custom_list")
     for i = 1, #custom_list do
         local id = custom_list[i]
-        local cfg = getCustom()[id]
+        local cfg = Utils.getTable("qa_common_custom")[id]
         if cfg then
             local symbol = getActionSymbol(id)
             local view_tag = " [" .. getActionViewFinal(id) .. "]"
@@ -1877,17 +1741,17 @@ local function getCustomItems(touch_menu)
                     end)
                 end,
                 on_delete = function()
-                    local custom_tbl = getCustom()
+                    local custom_tbl = Utils.getTable("qa_common_custom")
                     custom_tbl[id] = nil
-                    setCustom(custom_tbl)
-                    local list = getCustomList()
+                    Utils.set("qa_common_custom", custom_tbl)
+                    local list = Utils.getTable("qa_common_custom_list")
                     local new_list = {}
                     for __, lid in ipairs(list) do
                         if lid ~= id then
                             table.insert(new_list, lid)
                         end
                     end
-                    setCustomList(new_list)
+                    Utils.set("qa_common_custom_list", new_list)
                     QA.refreshQuickPanel()
                 end,
             }
@@ -1904,14 +1768,14 @@ end
 function QA.getQuickActionsSubmenu()
     local items = {}
 
-    local auto_add = getBool("qa_common_auto_add_to_panel")
+    local auto_add = Utils.getBool("qa_common_auto_add_to_panel")
     items[#items + 1] = {
         text = _("Auto-add to panel on save"),
         checked_func = function()
-            return getBool("qa_common_auto_add_to_panel")
+            return Utils.getBool("qa_common_auto_add_to_panel")
         end,
         callback = function(touchmenu_instance)
-            setBool("qa_common_auto_add_to_panel", not getBool("qa_common_auto_add_to_panel"))
+            Utils.set("qa_common_auto_add_to_panel", not Utils.getBool("qa_common_auto_add_to_panel"))
             if touchmenu_instance then
                 touchmenu_instance:updateItems()
             end
@@ -1971,7 +1835,7 @@ function QA.getPanelMenuItems()
     local items = {}
 
     items[#items + 1] = {
-        text = _("Tab Icon") .. ": " .. getString("qa_common_tab_icon", "star.empty"),
+        text = _("Tab Icon") .. ": " .. Utils.getString("qa_common_tab_icon", "star.empty"),
         close_on_click = true,
         callback = function()
             closeSettingsDialog()
@@ -1980,7 +1844,7 @@ function QA.getPanelMenuItems()
                     if file_path then
                         local filename_with_ext = file_path:match("([^/]+)$")
                         local filename = filename_with_ext:gsub("%.[^%.]+$", "")
-                        setString("qa_common_tab_icon", filename)
+                        Utils.set("qa_common_tab_icon", filename)
                         UIManager:show(ConfirmBox:new{
                             text = _("Restart required.\n\nRestart KOReader now?"),
                             ok_text = _("Restart"),
@@ -2001,7 +1865,7 @@ function QA.getPanelMenuItems()
         text = _("Arrange Buttons"),
         close_on_click = true,
         callback = function()
-            local slots = getQASlots()
+            local slots = Utils.getTable("qa_panel_slots")
             local sort_items = {}
             for i, id in ipairs(slots) do
                 sort_items[#sort_items + 1] = { text = getLabelForAction(id), orig_item = id }
@@ -2015,7 +1879,7 @@ function QA.getPanelMenuItems()
                     for j = 1, #sort_items do
                         new_slots[#new_slots + 1] = sort_items[j].orig_item
                     end
-                    saveQASlots(new_slots)
+                    Utils.set("qa_panel_slots", new_slots)
                     QA.refreshQuickPanel()
                 end,
             }
@@ -2040,10 +1904,10 @@ function QA.getPanelMenuItems()
                 text = _("Round"),
                 radio = true,
                 checked_func = function()
-                    return getString("qa_panel_shape", "round") == "round"
+                    return Utils.getString("qa_panel_shape", "round") == "round"
                 end,
                 callback = function(touchmenu_instance)
-                    setString("qa_panel_shape", "round")
+                    Utils.set("qa_panel_shape", "round")
                     if touchmenu_instance then
                         touchmenu_instance:updateItems()
                     end
@@ -2054,10 +1918,10 @@ function QA.getPanelMenuItems()
                 text = _("Rounded Square"),
                 radio = true,
                 checked_func = function()
-                    return getString("qa_panel_shape", "round") == "square_round"
+                    return Utils.getString("qa_panel_shape", "round") == "square_round"
                 end,
                 callback = function(touchmenu_instance)
-                    setString("qa_panel_shape", "square_round")
+                    Utils.set("qa_panel_shape", "square_round")
                     if touchmenu_instance then
                         touchmenu_instance:updateItems()
                     end
@@ -2068,10 +1932,10 @@ function QA.getPanelMenuItems()
                 text = _("Bare"),
                 radio = true,
                 checked_func = function()
-                    return getString("qa_panel_shape", "round") == "bare"
+                    return Utils.getString("qa_panel_shape", "round") == "bare"
                 end,
                 callback = function(touchmenu_instance)
-                    setString("qa_panel_shape", "bare")
+                    Utils.set("qa_panel_shape", "bare")
                     if touchmenu_instance then
                         touchmenu_instance:updateItems()
                     end
@@ -2084,17 +1948,17 @@ function QA.getPanelMenuItems()
     items[#items + 1] = {
         text = _("Button Background"),
         enabled = function()
-            return getString("qa_panel_shape", "round") ~= "bare"
+            return Utils.getString("qa_panel_shape", "round") ~= "bare"
         end,
         sub_item_table = {
             {
                 text = _("Transparent"),
                 radio = true,
                 checked_func = function()
-                    return getString("qa_panel_bg", "flat") == "transparent"
+                    return Utils.getString("qa_panel_bg", "flat") == "transparent"
                 end,
                 callback = function(touchmenu_instance)
-                    setString("qa_panel_bg", "transparent")
+                    Utils.set("qa_panel_bg", "transparent")
                     if touchmenu_instance then
                         touchmenu_instance:updateItems()
                     end
@@ -2105,10 +1969,10 @@ function QA.getPanelMenuItems()
                 text = _("Solid"),
                 radio = true,
                 checked_func = function()
-                    return getString("qa_panel_bg", "flat") == "solid"
+                    return Utils.getString("qa_panel_bg", "flat") == "solid"
                 end,
                 callback = function(touchmenu_instance)
-                    setString("qa_panel_bg", "solid")
+                    Utils.set("qa_panel_bg", "solid")
                     if touchmenu_instance then
                         touchmenu_instance:updateItems()
                     end
@@ -2119,10 +1983,10 @@ function QA.getPanelMenuItems()
                 text = _("Light Gray"),
                 radio = true,
                 checked_func = function()
-                    return getString("qa_panel_bg", "flat") == "flat"
+                    return Utils.getString("qa_panel_bg", "flat") == "flat"
                 end,
                 callback = function(touchmenu_instance)
-                    setString("qa_panel_bg", "flat")
+                    Utils.set("qa_panel_bg", "flat")
                     if touchmenu_instance then
                         touchmenu_instance:updateItems()
                     end
@@ -2135,10 +1999,10 @@ function QA.getPanelMenuItems()
     items[#items + 1] = {
         text = _("Show Labels"),
         checked_func = function()
-            return getBool("qa_panel_labels", false)
+            return Utils.getBool("qa_panel_labels", false)
         end,
         callback = function(touchmenu_instance)
-            setBool("qa_panel_labels", not getBool("qa_panel_labels", false))
+            Utils.set("qa_panel_labels", not Utils.getBool("qa_panel_labels", false))
             if touchmenu_instance then
                 touchmenu_instance:updateItems()
             end
@@ -2148,20 +2012,20 @@ function QA.getPanelMenuItems()
 
     items[#items + 1] = {
         text_func = function()
-            return _("Button Size") .. ": " .. getNumber("qa_panel_button_size_pct", 100) .. "%"
+            return _("Button Size") .. ": " .. Utils.getNumber("qa_panel_button_size_pct", 100) .. "%"
         end,
         close_on_click = true,
         callback = function(touchmenu_instance)
             closeSettingsDialog()
             local spin = SpinWidget:new{
                 title_text = _("Button Size"),
-                value = getNumber("qa_panel_button_size_pct", 100),
+                value = Utils.getNumber("qa_panel_button_size_pct", 100),
                 value_min = 60,
                 value_max = 150,
                 value_step = 5,
                 unit = "%",
                 callback = function(spin)
-                    setNumber("qa_panel_button_size_pct", spin.value)
+                    Utils.set("qa_panel_button_size_pct", spin.value)
                     if touchmenu_instance then
                         touchmenu_instance:updateItems()
                     end
@@ -2176,20 +2040,20 @@ function QA.getPanelMenuItems()
 
     items[#items + 1] = {
         text_func = function()
-            return _("Label Size") .. ": " .. getNumber("qa_panel_label_scale_pct", 90) .. "%"
+            return _("Label Size") .. ": " .. Utils.getNumber("qa_panel_label_scale_pct", 90) .. "%"
         end,
         close_on_click = true,
         callback = function(touchmenu_instance)
             closeSettingsDialog()
             local spin = SpinWidget:new{
                 title_text = _("Label Size"),
-                value = getNumber("qa_panel_label_scale_pct", 90),
+                value = Utils.getNumber("qa_panel_label_scale_pct", 90),
                 value_min = 50,
                 value_max = 200,
                 value_step = 10,
                 unit = "%",
                 callback = function(spin)
-                    setNumber("qa_panel_label_scale_pct", spin.value)
+                    Utils.set("qa_panel_label_scale_pct", spin.value)
                     if touchmenu_instance then
                         touchmenu_instance:updateItems()
                     end
@@ -2205,10 +2069,10 @@ function QA.getPanelMenuItems()
     items[#items + 1] = {
         text = _("Long-press button to edit"),
         checked_func = function()
-            return getBool("qa_panel_button_hold_edit", true)
+            return Utils.getBool("qa_panel_button_hold_edit", true)
         end,
         callback = function(touchmenu_instance)
-            setBool("qa_panel_button_hold_edit", not getBool("qa_panel_button_hold_edit", true))
+            Utils.set("qa_panel_button_hold_edit", not Utils.getBool("qa_panel_button_hold_edit", true))
             if touchmenu_instance then
                 touchmenu_instance:updateItems()
             end
@@ -2219,10 +2083,10 @@ function QA.getPanelMenuItems()
     items[#items + 1] = {
         text = _("Long-press tab to open settings"),
         checked_func = function()
-            return getBool("qa_panel_settings_on_hold", true)
+            return Utils.getBool("qa_panel_settings_on_hold", true)
         end,
         callback = function(touchmenu_instance)
-            setBool("qa_panel_settings_on_hold", not getBool("qa_panel_settings_on_hold", true))
+            Utils.set("qa_panel_settings_on_hold", not Utils.getBool("qa_panel_settings_on_hold", true))
             if touchmenu_instance then
                 touchmenu_instance:updateItems()
             end
@@ -2258,10 +2122,10 @@ function QA.getBottomBarMenuItems()
     items[#items + 1] = {
         text = _("Show in Reader"),
         checked_func = function()
-            return getBool("qa_bb_reader_enabled", true)
+            return Utils.getBool("qa_bb_reader_enabled", true)
         end,
         callback = function(touchmenu_instance)
-            setBool("qa_bb_reader_enabled", not getBool("qa_bb_reader_enabled", true))
+            Utils.set("qa_bb_reader_enabled", not Utils.getBool("qa_bb_reader_enabled", true))
             if touchmenu_instance then
                 touchmenu_instance:updateItems()
             end
@@ -2273,10 +2137,10 @@ function QA.getBottomBarMenuItems()
     items[#items + 1] = {
         text = _("Long press to edit"),
         checked_func = function()
-            return getBool("qa_bb_button_hold_edit", true)
+            return Utils.getBool("qa_bb_button_hold_edit", true)
         end,
         callback = function(touchmenu_instance)
-            setBool("qa_bb_button_hold_edit", not getBool("qa_bb_button_hold_edit", true))
+            Utils.set("qa_bb_button_hold_edit", not Utils.getBool("qa_bb_button_hold_edit", true))
             if touchmenu_instance then
                 touchmenu_instance:updateItems()
             end
@@ -2287,10 +2151,10 @@ function QA.getBottomBarMenuItems()
     items[#items + 1] = {
         text = _("Long press to open settings"),
         checked_func = function()
-            return getBool("qa_bb_settings_on_hold", true)
+            return Utils.getBool("qa_bb_settings_on_hold", true)
         end,
         callback = function(touchmenu_instance)
-            setBool("qa_bb_settings_on_hold", not getBool("qa_bb_settings_on_hold", true))
+            Utils.set("qa_bb_settings_on_hold", not Utils.getBool("qa_bb_settings_on_hold", true))
             if touchmenu_instance then
                 touchmenu_instance:updateItems()
             end
@@ -2308,10 +2172,10 @@ function QA.getBottomBarMenuItems()
                 text = _("Default"),
                 radio = true,
                 checked_func = function()
-                    return getString("qa_bb_style", "default") == "default"
+                    return Utils.getString("qa_bb_style", "default") == "default"
                 end,
                 callback = function(touchmenu_instance)
-                    setString("qa_bb_style", "default")
+                    Utils.set("qa_bb_style", "default")
                     if touchmenu_instance then
                         touchmenu_instance:updateItems()
                     end
@@ -2322,10 +2186,10 @@ function QA.getBottomBarMenuItems()
                 text = _("Framed"),
                 radio = true,
                 checked_func = function()
-                    return getString("qa_bb_style", "default") == "framed"
+                    return Utils.getString("qa_bb_style", "default") == "framed"
                 end,
                 callback = function(touchmenu_instance)
-                    setString("qa_bb_style", "framed")
+                    Utils.set("qa_bb_style", "framed")
                     if touchmenu_instance then
                         touchmenu_instance:updateItems()
                     end
@@ -2336,10 +2200,10 @@ function QA.getBottomBarMenuItems()
                 text = _("Bare"),
                 radio = true,
                 checked_func = function()
-                    return getString("qa_bb_style", "default") == "bare"
+                    return Utils.getString("qa_bb_style", "default") == "bare"
                 end,
                 callback = function(touchmenu_instance)
-                    setString("qa_bb_style", "bare")
+                    Utils.set("qa_bb_style", "bare")
                     if touchmenu_instance then
                         touchmenu_instance:updateItems()
                     end
@@ -2356,10 +2220,10 @@ function QA.getBottomBarMenuItems()
                 text = _("Transparent"),
                 radio = true,
                 checked_func = function()
-                    return getBool("qa_bb_transparent", false) == true
+                    return Utils.getBool("qa_bb_transparent", false) == true
                 end,
                 callback = function(touchmenu_instance)
-                    setBool("qa_bb_transparent", true)
+                    Utils.set("qa_bb_transparent", true)
                     if touchmenu_instance then
                         touchmenu_instance:updateItems()
                     end
@@ -2370,10 +2234,10 @@ function QA.getBottomBarMenuItems()
                 text = _("Solid"),
                 radio = true,
                 checked_func = function()
-                    return getBool("qa_bb_transparent", false) == false
+                    return Utils.getBool("qa_bb_transparent", false) == false
                 end,
                 callback = function(touchmenu_instance)
-                    setBool("qa_bb_transparent", false)
+                    Utils.set("qa_bb_transparent", false)
                     if touchmenu_instance then
                         touchmenu_instance:updateItems()
                     end
@@ -2394,7 +2258,7 @@ function QA.getBottomBarMenuItems()
                 })
                 return
             end
-            local tabs = bb.getTabs()
+            local tabs = Utils.get("qa_bb_tabs", {})
             if not tabs or #tabs == 0 then
                 UIManager:show(InfoMessage:new{
                     text = _("No tabs configured"),
@@ -2415,7 +2279,7 @@ function QA.getBottomBarMenuItems()
                     for j = 1, #sort_items do
                         new_tabs[#new_tabs + 1] = sort_items[j].orig_item
                     end
-                    setTable("qa_bb_tabs", new_tabs)
+                    Utils.set("qa_bb_tabs", new_tabs)
                     if bb then bb.refresh() end
                 end,
             }
@@ -2443,10 +2307,10 @@ function QA.getBottomBarMenuItems()
     items[#items + 1] = {
         text = _("Show Labels"),
         checked_func = function()
-            return getBool("qa_bb_labels", false)
+            return Utils.getBool("qa_bb_labels", false)
         end,
         callback = function(touchmenu_instance)
-            setBool("qa_bb_labels", not getBool("qa_bb_labels", false))
+            Utils.set("qa_bb_labels", not Utils.getBool("qa_bb_labels", false))
             if touchmenu_instance then
                 touchmenu_instance:updateItems()
             end
@@ -2456,20 +2320,20 @@ function QA.getBottomBarMenuItems()
 
     items[#items + 1] = {
         text_func = function()
-            return _("Bar Size") .. ": " .. getNumber("qa_bb_size_pct", 100) .. "%"
+            return _("Bar Size") .. ": " .. Utils.getNumber("qa_bb_size_pct", 100) .. "%"
         end,
         close_on_click = true,
         callback = function(touchmenu_instance)
             closeSettingsDialog()
             local spin = SpinWidget:new{
                 title_text = _("Bar Size"),
-                value = getNumber("qa_bb_size_pct", 100),
+                value = Utils.getNumber("qa_bb_size_pct", 100),
                 value_min = 50,
                 value_max = 150,
                 value_step = 10,
                 unit = "%",
                 callback = function(spin)
-                    setNumber("qa_bb_size_pct", spin.value)
+                    Utils.set("qa_bb_size_pct", spin.value)
                     if touchmenu_instance then
                         touchmenu_instance:updateItems()
                     end
@@ -2484,20 +2348,20 @@ function QA.getBottomBarMenuItems()
 
     items[#items + 1] = {
         text_func = function()
-            return _("Icon Size") .. ": " .. getNumber("qa_bb_icon_scale_pct", 100) .. "%"
+            return _("Icon Size") .. ": " .. Utils.getNumber("qa_bb_icon_scale_pct", 100) .. "%"
         end,
         close_on_click = true,
         callback = function(touchmenu_instance)
             closeSettingsDialog()
             local spin = SpinWidget:new{
                 title_text = _("Icon Size"),
-                value = getNumber("qa_bb_icon_scale_pct", 100),
+                value = Utils.getNumber("qa_bb_icon_scale_pct", 100),
                 value_min = 50,
                 value_max = 200,
                 value_step = 10,
                 unit = "%",
                 callback = function(spin)
-                    setNumber("qa_bb_icon_scale_pct", spin.value)
+                    Utils.set("qa_bb_icon_scale_pct", spin.value)
                     if touchmenu_instance then
                         touchmenu_instance:updateItems()
                     end
@@ -2512,20 +2376,20 @@ function QA.getBottomBarMenuItems()
 
     items[#items + 1] = {
         text_func = function()
-            return _("Label Size") .. ": " .. getNumber("qa_bb_label_scale_pct", 100) .. "%"
+            return _("Label Size") .. ": " .. Utils.getNumber("qa_bb_label_scale_pct", 100) .. "%"
         end,
         close_on_click = true,
         callback = function(touchmenu_instance)
             closeSettingsDialog()
             local spin = SpinWidget:new{
                 title_text = _("Label Size"),
-                value = getNumber("qa_bb_label_scale_pct", 100),
+                value = Utils.getNumber("qa_bb_label_scale_pct", 100),
                 value_min = 50,
                 value_max = 200,
                 value_step = 10,
                 unit = "%",
                 callback = function(spin)
-                    setNumber("qa_bb_label_scale_pct", spin.value)
+                    Utils.set("qa_bb_label_scale_pct", spin.value)
                     if touchmenu_instance then
                         touchmenu_instance:updateItems()
                     end
@@ -2574,7 +2438,7 @@ function QA.getInterfaceFilterMenuItems()
             checked_func = function()
                 local current_actions = actions.getAllAvailableActions()
                 for __, action in ipairs(current_actions) do
-                    if action.id and not (getCustom()[action.id] and getCustom()[action.id].action_type == "menu") then
+                    if action.id and not (Utils.getTable("qa_common_custom")[action.id] and Utils.getTable("qa_common_custom")[action.id].action_type == "menu") then
                         if action.view ~= target_view then
                             return false
                         end
@@ -2585,7 +2449,7 @@ function QA.getInterfaceFilterMenuItems()
             enabled = function()
                 local current_actions = actions.getAllAvailableActions()
                 for __, action in ipairs(current_actions) do
-                    if action.id and not (getCustom()[action.id] and getCustom()[action.id].action_type == "menu") then
+                    if action.id and not (Utils.getTable("qa_common_custom")[action.id] and Utils.getTable("qa_common_custom")[action.id].action_type == "menu") then
                         return true
                     end
                 end
@@ -2595,7 +2459,7 @@ function QA.getInterfaceFilterMenuItems()
                 local current_actions = actions.getAllAvailableActions()
                 local all_checked = true
                 for __, action in ipairs(current_actions) do
-                    if action.id and not (getCustom()[action.id] and getCustom()[action.id].action_type == "menu") then
+                    if action.id and not (Utils.getTable("qa_common_custom")[action.id] and Utils.getTable("qa_common_custom")[action.id].action_type == "menu") then
                         if action.view ~= target_view then
                             all_checked = false
                             break
@@ -2605,7 +2469,7 @@ function QA.getInterfaceFilterMenuItems()
 
                 for __, action in ipairs(current_actions) do
                     if not action.id then goto continue end
-                    if getCustom()[action.id] and getCustom()[action.id].action_type == "menu" then
+                    if Utils.getTable("qa_common_custom")[action.id] and Utils.getTable("qa_common_custom")[action.id].action_type == "menu" then
                         goto continue
                     end
                     local current = actions.getActionViewFinal(action.id)
@@ -2628,7 +2492,7 @@ function QA.getInterfaceFilterMenuItems()
 
                 for __, action in ipairs(all_actions) do
                     if not action.id then goto continue end
-                    local is_locked = (getCustom()[action.id] and getCustom()[action.id].action_type == "menu")
+                    local is_locked = (Utils.getTable("qa_common_custom")[action.id] and Utils.getTable("qa_common_custom")[action.id].action_type == "menu")
                     local action_id = action.id
                     table.insert(items, {
                         text_func = function()
@@ -2660,12 +2524,12 @@ function QA.getInterfaceFilterMenuItems()
         {
             text = _("Enable Interface Filter"),
             checked_func = function()
-                return getBool("qa_common_context_filter")
+                return Utils.getBool("qa_common_context_filter")
             end,
             callback = function(touchmenu_instance)
-                local p = getPlugin()
+                local p = PLUGIN_STORE.plugin_ref
                 if p then
-                    _G.__QUICKUI_CONFIG.qa_common_context_filter = not getBool("qa_common_context_filter")
+                    _G.__QUICKUI_CONFIG.qa_common_context_filter = not Utils.getBool("qa_common_context_filter")
                     Utils.saveConfig()
                     if touchmenu_instance then
                         touchmenu_instance:updateItems()
@@ -2708,7 +2572,7 @@ function QA.getInterfaceFilterMenuItems()
                     ok_text = _("Reset"),
                     cancel_text = _("Cancel"),
                     ok_callback = function()
-                        local p = getPlugin()
+                        local p = PLUGIN_STORE.plugin_ref
                         if p then
                             _G.__QUICKUI_CONFIG.qa_common_builtin_overrides = {}
                             local custom = _G.__QUICKUI_CONFIG.qa_common_custom or {}
@@ -2747,11 +2611,11 @@ function QA.buildRootMenuItems()
     table.insert(items, {
         text = _("Enable Panel"),
         checked_func = function()
-            return getBool("qa_panel_enabled")
+            return Utils.getBool("qa_panel_enabled")
         end,
         callback = function()
-            local new_val = not getBool("qa_panel_enabled")
-            setBool("qa_panel_enabled", new_val)
+            local new_val = not Utils.getBool("qa_panel_enabled")
+            Utils.set("qa_panel_enabled", new_val)
             local fm = require("apps/filemanager/filemanager").instance
             if fm and fm.menu and fm.menu.menu_container and fm.menu.menu_container[1] then
                 fm.menu.menu_container[1]:updateItems()
@@ -2774,11 +2638,11 @@ function QA.buildRootMenuItems()
     table.insert(items, {
         text = _("Enable Bottom Bar"),
         checked_func = function()
-            return getBool("qa_bb_enabled")
+            return Utils.getBool("qa_bb_enabled")
         end,
         callback = function()
-            local new_val = not getBool("qa_bb_enabled")
-            setBool("qa_bb_enabled", new_val)
+            local new_val = not Utils.getBool("qa_bb_enabled")
+            Utils.set("qa_bb_enabled", new_val)
             local bb = PLUGIN_STORE.bottombar
             if bb then
                 bb.refresh()
