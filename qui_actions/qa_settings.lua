@@ -2914,19 +2914,12 @@ QA.showMenu = showMenu
 -- ============================================================
 function QA.showInterfaceFilter()
     closeSettingsDialog()
-    local root_items = QA.buildRootMenuItems()
-    local filter_item = nil
-    for __, item in ipairs(root_items) do
-        if item.text == _("Interface Filter") then
-            filter_item = item
-            break
-        end
-    end
-    if filter_item and filter_item.sub_item_table then
-        showMenu(filter_item.sub_item_table, _("Interface Filter"), nil, nil, root_items)
+    local filter_items = QA.getInterfaceFilterMenuItems()
+    if filter_items and #filter_items > 0 then
+        showMenu(filter_items, "Interface Filter", nil, nil, QA.buildRootMenuItems())
     else
         UIManager:show(InfoMessage:new{
-            text = _("Interface Filter not available"),
+            text = "Interface Filter not available",
             timeout = 2,
         })
     end
