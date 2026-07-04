@@ -55,7 +55,7 @@ A customizable action panel integrated into the top menu bar:
 | **Built-in Actions** | WiFi, night mode, rotate, screenshot, continue reading, search, restart, quit, power, HTTP server, font list, etc. |
 | **Custom Actions** | Folders, collections, plugins, system actions (Dispatcher), recorded menu actions |
 | **Icon Picker** | Nerd Font icons, SVG/PNG files, system icon override |
-| **Interface Filter** | Show/hide actions based on current view (File Manager/Reader) |
+| **Interface Filter** | Show/hide actions based on current view (Filemanager/Reader) |
 | **Button Shape** | Round / Rounded Square / Bare |
 | **Button Background** | Transparent / Solid / Light Gray |
 | **Button Size** | 60% ~ 150% (step 5%) |
@@ -68,7 +68,7 @@ A customizable action panel integrated into the top menu bar:
 
 | Action ID | Name | View | Description |
 | :--- | :--- | :--- | :--- |
-| `home` | Home | Common | Return to file manager |
+| `home` | Home | Common | Return to Filemanager |
 | `wifi` | Wi-Fi | Common | Toggle Wi-Fi |
 | `night` | Night Mode | Common | Toggle night mode |
 | `rotate` | Rotate | Common | Rotate screen |
@@ -95,8 +95,10 @@ A customizable action panel integrated into the top menu bar:
 | `qa_bb_settings` | Bottom Bar Settings | Common | Bottom bar settings |
 | `qa_add_bb_tab` | Add Bottom Bar Tab | Common | Add tab to bottom bar |
 | `ui_font_switch` | UI Font Switcher | Common | Switch system UI font |
+| `system_icon_override` | System Icon Override | Common | Open system icon replacement picker |
+| `interface_filter` | Interface Filter | Common | Open interface filter settings |
 | `toggle_cloze_mode` | Toggle Cloze Mode | Reader | Toggle Cloze mode |
-| `QuickUI_CoverSettings` | Cover Settings | File Manager | Cover visual settings |
+| `QuickUI_CoverSettings` | Cover Settings | Filemanager | Cover visual settings |
 | `QuickUI_ClozeSettings` | Cloze Settings | Reader | Cloze mode settings |
 | `QuickUI_HFSettings` | Header/Footer Settings | Reader | Header/Footer settings |
 
@@ -125,8 +127,8 @@ Supports five types of custom actions:
 
 | Type | Description | Default View |
 | :--- | :--- | :--- |
-| 📁 **Folder** | Jump to a specific folder | File Manager (changeable)  |
-| 📚 **Collection** | Open a specific collection | File Manager (changeable)  |
+| 📁 **Folder** | Jump to a specific folder | Filemanager (changeable)  |
+| 📚 **Collection** | Open a specific collection | Filemanager (changeable)  |
 | 🔌 **Plugin/Patch** | Launch any plugin or menu patch | Common (changeable)  |
 | ⚙️ **System Action** | Call Dispatcher system actions | Auto-detected (changeable)  |
 | 📋 **Recorded Menu Action** | Record any menu item as a quick action | Auto-detected,locked (unchangeable) |
@@ -158,8 +160,8 @@ Supports five types of custom actions:
 
 | Feature | Description |
 | :--- | :--- |
-| **Enable Filter** | Automatically filter actions based on current view (File Manager/Reader) |
-| **File Manager Only** | Mark actions to show only in File Manager |
+| **Enable Filter** | Automatically filter actions based on current view (Filemanager/Reader) |
+| **Filemanager Only** | Mark actions to show only in Filemanager |
 | **Reader Only** | Mark actions to show only in Reader |
 | **Reset Defaults** | Restore all actions to common view |
 
@@ -260,19 +262,19 @@ These patches are by the same author as QuickUI and share the same functionality
 
 | Action | Dispatcher Event | View |
 | :--- | :--- | :--- |
-| Open Quick Panel | `QuickUI_Panel` | File Manager / Reader |
-| Quick Actions Settings | `QuickUI_QASettings` | File Manager / Reader |
-| Cover Settings | `QuickUI_CoverSettings` | File Manager |
+| Open Quick Panel | `QuickUI_Panel` | Filemanager / Reader |
+| Quick Actions Settings | `QuickUI_QASettings` | Filemanager / Reader |
+| Cover Settings | `QuickUI_CoverSettings` | Filemanager |
 | Enable/Disable Cloze | `QuickUI_ClozeEnable` | Reader |
 | Cover/Uncover All | `QuickUI_ClozeToggleAll` | Reader |
 | Cloze Settings | `QuickUI_ClozeSettings` | Reader |
 | Header/Footer Settings | `QuickUI_HFSettings` | Reader |
-| New Quick Action | `QuickUI_NewAction` | File Manager / Reader |
-| Panel Settings | `QuickUI_PanelSettings` | File Manager / Reader |
-| Add Panel Button | `QuickUI_AddPanelButton` | File Manager / Reader |
-| Toggle Bottom Bar | `QuickUI_BottombarToggle` | File Manager / Reader |
-| Bottom Bar Settings | `QuickUI_BottombarSettings` | File Manager / Reader |
-| Add Bottom Bar Tab | `QuickUI_AddBottomBarTab` | File Manager / Reader |
+| New Quick Action | `QuickUI_NewAction` | Filemanager / Reader |
+| Panel Settings | `QuickUI_PanelSettings` | Filemanager / Reader |
+| Add Panel Button | `QuickUI_AddPanelButton` | Filemanager / Reader |
+| Toggle Bottom Bar | `QuickUI_BottombarToggle` | Filemanager / Reader |
+| Bottom Bar Settings | `QuickUI_BottombarSettings` | Filemanager / Reader |
+| Add Bottom Bar Tab | `QuickUI_AddBottomBarTab` | Filemanager / Reader |
 
 ---
 
@@ -410,7 +412,7 @@ Supports **downgrading** to any historical version.
 - Quick Actions: 26+ built-in actions (WiFi, night mode, rotate, screenshot, etc.)
 - Quick Actions: Custom actions (folders, collections, plugins, system actions, recorded menu actions)
 - Quick Actions: Icon picker (Nerd Font + SVG/PNG + system icon override)
-- Quick Actions: Interface filter (auto-switch between File Manager/Reader)
+- Quick Actions: Interface filter (auto-switch between Filemanager/Reader)
 - Quick Actions: Bottom navigation bar (customizable tabs, styles, colors)
 - Cover Visual Enhancements: Placeholder covers, badges (favorite/progress/NEW/page count/format), rounded corners, unified aspect ratio
 - Cover Visual Enhancements: Folder covers (Gallery/Stack/Normal/None)
