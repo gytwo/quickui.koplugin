@@ -409,7 +409,7 @@ Supports **downgrading** to any historical version.
 **New Features**
 
 - Four core features integrated: Quick Actions, Cover Visual Enhancements, Cloze Mode, Header & Footer
-- Quick Actions: 26+ built-in actions (WiFi, night mode, rotate, screenshot, etc.)
+- Quick Actions: 28+ built-in actions (WiFi, night mode, rotate, screenshot, etc.)
 - Quick Actions: Custom actions (folders, collections, plugins, system actions, recorded menu actions)
 - Quick Actions: Icon picker (Nerd Font + SVG/PNG + system icon override)
 - Quick Actions: Interface filter (auto-switch between Filemanager/Reader)
