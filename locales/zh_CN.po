@@ -124,7 +124,7 @@ msgstr "界面"
 msgid "Common"
 msgstr "通用"
 
-msgid "File Manager"
+msgid "Filemanager"
 msgstr "文件管理器"
 
 msgid "Reader"
@@ -554,7 +554,7 @@ msgstr "面板已满（最多66个按钮），无法自动添加。"
 msgid "Enable Interface Filter"
 msgstr "启用界面过滤"
 
-msgid "File Manager Dedicated (%d)"
+msgid "Filemanager Dedicated (%d)"
 msgstr "文件管理器专用 (%d)"
 
 msgid "Reader Dedicated (%d)"
@@ -735,7 +735,7 @@ msgstr "文件夹名称"
 msgid "Show Name"
 msgstr "显示名称"
 
-msgid "This feature is only available in File Manager"
+msgid "This feature is only available in Filemanager"
 msgstr "此功能仅在文件管理器中可用"
 
 # ============================================================
