@@ -4,6 +4,9 @@
 
 > **Version**: v1.0.0 | **Author**: gytwo | **License**: AGPL-3.0 | **Compatible**: KOReader ≥ v2026.03
 
+![Qui-filemanager](pictures/Qui-filemanager.png)
+![Qui-reader](pictures/Qui-reader.png)
+
 ---
 
 ## 📖 Overview
