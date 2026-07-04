@@ -125,11 +125,11 @@ Supports five types of custom actions:
 
 | Type | Description | Default View |
 | :--- | :--- | :--- |
-| 📁 **Folder** | Jump to a specific folder | File Manager |
-| 📚 **Collection** | Open a specific collection | File Manager |
-| 🔌 **Plugin/Patch** | Launch any plugin or menu patch | Common |
-| ⚙️ **System Action** | Call Dispatcher system actions | Auto-detected |
-| 📋 **Recorded Menu Action** | Record any menu item as a quick action | Auto-detected |
+| 📁 **Folder** | Jump to a specific folder | File Manager (changeable)  |
+| 📚 **Collection** | Open a specific collection | File Manager (changeable)  |
+| 🔌 **Plugin/Patch** | Launch any plugin or menu patch | Common (changeable)  |
+| ⚙️ **System Action** | Call Dispatcher system actions | Auto-detected (changeable)  |
+| 📋 **Recorded Menu Action** | Record any menu item as a quick action | Auto-detected,locked (unchangeable) |
 
 #### 📌 1.4 Icon Picker
 
