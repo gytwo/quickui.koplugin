@@ -412,7 +412,7 @@ function QA.executeMenuAction(menu_path, ctx)
     else
         local msg = (recorded_view == "reader")
             and _("This action can only be executed in the reader. Please open a book first.")
-            or _("This action can only be executed in the file manager.")
+            or _("This action can only be executed in the Filemanager.")
         UIManager:show(InfoMessage:new{ text = msg, timeout = 3 })
     end
 end
@@ -813,7 +813,7 @@ function QA.getInterfaceFilterMenuItems()
                         fm = fm + 1
                     end
                 end
-                return string.format(_("File Manager Dedicated (%d)"), fm)
+                return string.format(_("Filemanager Dedicated (%d)"), fm)
             end,
             close_on_click = true,
             sub_item_table = buildDedicatedListItems("fm"),
@@ -1363,7 +1363,7 @@ function QA.registerAllActions()
     -- General actions (always registered)
     -- ============================================================
 
-    -- Home (File Manager)
+    -- Home (Filemanager)
     QA.registerAction("home", _("Home"), "nerd:F46D", false, "common", function(ctx)
         local FM = require("apps/filemanager/filemanager")
         local RUI = require("apps/reader/readerui")
@@ -1935,7 +1935,7 @@ function QA.registerAllActions()
             local reader = RUI and RUI.instance
             if reader then
                 UIManager:show(InfoMessage:new{
-                    text = _("This feature is only available in File Manager"),
+                    text = _("This feature is only available in Filemanager"),
                     timeout = 2,
                 })
             else
