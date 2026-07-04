@@ -988,7 +988,7 @@ msgid "Current version is up to date"
 msgstr "当前版本已是最新"
 
 msgid "Downgrade"
-msgstr "降级"
+msgstr "回退"
 
 msgid "Getting version list..."
 msgstr "正在获取版本列表..."
@@ -1036,7 +1036,7 @@ msgid "Current version: %s (re-download)"
 msgstr "当前版本：%s（重新下载）"
 
 msgid "Downgrade to %s"
-msgstr "降级到 %s"
+msgstr "回退到 %s"
 
 msgid "Select update source"
 msgstr "选择更新源"
