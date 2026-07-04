@@ -18,7 +18,7 @@ local Utils = {}
 local DEFAULT_SETTINGS = {
     -- Panel Settings
     qa_panel_enabled = true,
-    qa_panel_slots = {"wifi", "night", "rotate", "screenshot", "QuickUI_CoverSettings","ui_font_switch", "QuickUI_ClozeSettings", "QuickUI_HFSettings", "fontlist", "restart", "qa_settings", "qa_add_panel_button", "qa_new"},
+    qa_panel_slots = {"wifi", "night", "rotate", "screenshot", "QuickUI_CoverSettings","system_icon_override", "ui_font_switch", "QuickUI_ClozeSettings", "QuickUI_HFSettings", "fontlist", "restart", "qa_settings","interface_filter", "qa_add_panel_button", "qa_new"},
     qa_panel_frontlight = true,
     qa_panel_warmth = true,
     qa_panel_shape = "round",
