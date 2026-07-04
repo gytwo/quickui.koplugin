@@ -277,26 +277,58 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
 ---
 
 ## 📁 文件结构
-
+```
+quickui.koplugin/
+├── _meta.lua
+├── changelog.lua
+├── main.lua
+├── README.md
+├── README.zh_CN.md
+│
+├── locales/
+│   └── zh_CN.po
+│
+├── qui_actions/
+│   ├── qa_actions.lua
+│   ├── qa_bottombar.lua
+│   ├── qa_icon_picker.lua
+│   ├── qa_init.lua
+│   ├── qa_menu_recorder.lua
+│   ├── qa_panel.lua
+│   ├── qa_plugin_scan.lua
+│   ├── qa_settings.lua
+│   └── qa_uifont.lua
+│
+├── qui_cover.lua
+├── qui_clozemode.lua
+├── qui_header_footer.lua
+├── qui_i18n.lua
+├── qui_updates.lua
+└── qui_utils.lua
+```
 | 文件 | 用途 |
 | :--- | :--- |
-| `_meta.lua` | 插件元数据（名称、版本、作者、描述） |
-| `main.lua` | 主入口，注册 Dispatcher 操作，构建主菜单 |
-| `qui_utils.lua` | 通用工具函数（配置管理、序列化、字体、颜色等） |
+| `_meta.lua` | 插件元数据（名称、版本、作者） |
+| `changelog.lua` | 版本历史和更新记录 |
+| `main.lua` | 主入口，注册 Dispatcher 动作，构建主菜单 |
+| `README.md` | 英文说明文档 |
+| `README.zh_CN.md` | 中文说明文档 |
+| `locales/zh_CN.po` | 简体中文翻译 |
+| `qui_actions/qa_actions.lua` | 动作注册表（内置 + 自定义）和执行逻辑 |
+| `qui_actions/qa_bottombar.lua` | 底部导航栏构建器 |
+| `qui_actions/qa_icon_picker.lua` | 图标选择器（Nerd Font + SVG/PNG） |
+| `qui_actions/qa_init.lua` | Quick Actions 模块入口 |
+| `qui_actions/qa_menu_recorder.lua` | 菜单动作录制器（用于自定义动作） |
+| `qui_actions/qa_panel.lua` | 快捷面板构建器 |
+| `qui_actions/qa_plugin_scan.lua` | 插件扫描器 |
+| `qui_actions/qa_settings.lua` | Quick Actions 设置菜单 |
+| `qui_actions/qa_uifont.lua` | UI 字体切换器 |
 | `qui_cover.lua` | 封面美化模块 |
 | `qui_clozemode.lua` | 遮盖模式模块 |
 | `qui_header_footer.lua` | 页眉页脚模块 |
-| `qui_i18n.lua` | 国际化支持（加载 .po 翻译文件） |
+| `qui_i18n.lua` | 国际化加载器（加载 .po 文件） |
 | `qui_updates.lua` | 更新检查（GitHub / Gitee） |
-| `qa_actions.lua` | 操作注册表（内置 + 自定义）和执行逻辑 |
-| `qa_bottombar.lua` | 底部导航栏构建器 |
-| `qa_icon_picker.lua` | 图标选择器（Nerd Font + 文件支持） |
-| `qa_init.lua` | 快捷操作模块入口 |
-| `qa_menu_recorder.lua` | 菜单操作录制器（用于自定义操作） |
-| `qa_panel.lua` | 快捷面板构建器 |
-| `qa_plugin_scan.lua` | 插件扫描器（用于自定义插件操作） |
-| `qa_settings.lua` | 快捷操作设置菜单 |
-| `qa_uifont.lua` | UI 字体切换器 |
+| `qui_utils.lua` | 通用工具函数（配置、序列化、字体、颜色） |
 
 ---
 
