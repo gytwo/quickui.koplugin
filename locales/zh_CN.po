@@ -1530,3 +1530,12 @@ msgstr "“%s”的搜索结果"
 
 msgid "No matching actions"
 msgstr "没有匹配的动作"
+
+msgid "Frontlight Slider"
+msgstr "前光滑块"
+
+msgid "Show Slider Value"
+msgstr "显示滑块数值"
+
+msgid "Warmth Slider"
+msgstr "色温滑块"
