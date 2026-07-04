@@ -635,7 +635,7 @@ function QA.showEditActionDialog(action_id, on_done, source)
         local pos, total = getCurrentPosition()
 
         local last_row = {
-            { text = _("Cancel"), callback = function()
+            { text = _("Cancel"), id = "close", callback = function()
                 closeSettingsDialog()
             end },
         }
