@@ -279,52 +279,56 @@ These patches are by the same author as QuickUI and share the same functionality
 ## 📁 File Structure
 ```
 quickui.koplugin/
-├── _meta.lua # Plugin metadata (name, version, author)
-├── changelog.lua # Changelog
-├── main.lua # Main entry point, registers Dispatcher actions, builds main menu
-├── README.md # English documentation
-├── README.zh_CN.md # Chinese documentation
+├── _meta.lua
+├── changelog.lua
+├── main.lua
+├── README.md
+├── README.zh_CN.md
 │
-├── locales/ # Internationalization translation files
-│ └── zh_CN.po # Simplified Chinese translation
+├── locales/
+│   └── zh_CN.po
 │
-├── qui_actions/ # Quick Actions module
-│ ├── qa_actions.lua # Action registry (built-in + custom) and execution logic
-│ ├── qa_bottombar.lua # Bottom navigation bar builder
-│ ├── qa_icon_picker.lua # Icon picker (Nerd Font + SVG/PNG)
-│ ├── qa_init.lua # Quick Actions module entry point
-│ ├── qa_menu_recorder.lua # Menu action recorder (for custom actions)
-│ ├── qa_panel.lua # Quick panel builder
-│ ├── qa_plugin_scan.lua # Plugin scanner
-│ ├── qa_settings.lua # Quick Actions settings menu
-│ └── qa_uifont.lua # UI font switcher
+├── qui_actions/
+│   ├── qa_actions.lua
+│   ├── qa_bottombar.lua
+│   ├── qa_icon_picker.lua
+│   ├── qa_init.lua
+│   ├── qa_menu_recorder.lua
+│   ├── qa_panel.lua
+│   ├── qa_plugin_scan.lua
+│   ├── qa_settings.lua
+│   └── qa_uifont.lua
 │
-├── qui_cover.lua # Cover Visual Enhancements module
-├── qui_clozemode.lua # Cloze Mode module
-├── qui_header_footer.lua # Header & Footer module
-├── qui_i18n.lua # Internationalization loader (loads .po files)
-├── qui_updates.lua # Update checker (GitHub / Gitee)
-└── qui_utils.lua # Common utilities (config, serialization, fonts, colors)
+├── qui_cover.lua
+├── qui_clozemode.lua
+├── qui_header_footer.lua
+├── qui_i18n.lua
+├── qui_updates.lua
+└── qui_utils.lua
 ```
 | File | Purpose |
 | :--- | :--- |
-| `_meta.lua` | Plugin metadata (name, version, author, description) |
+| `_meta.lua` | Plugin metadata (name, version, author) |
+| `changelog.lua` | Version history and update notes |
 | `main.lua` | Main entry point, registers Dispatcher actions, builds main menu |
-| `qui_utils.lua` | Common utilities (config management, serialization, fonts, colors) |
-| `qui_cover.lua` | Cover visual enhancements module |
-| `qui_clozemode.lua` | Cloze mode module |
-| `qui_header_footer.lua` | Header/Footer module |
-| `qui_i18n.lua` | Internationalization support (loads .po translation files) |
+| `README.md` | English documentation |
+| `README.zh_CN.md` | Chinese documentation |
+| `locales/zh_CN.po` | Simplified Chinese translation |
+| `qui_actions/qa_actions.lua` | Action registry (built-in + custom) and execution logic |
+| `qui_actions/qa_bottombar.lua` | Bottom navigation bar builder |
+| `qui_actions/qa_icon_picker.lua` | Icon picker (Nerd Font + SVG/PNG) |
+| `qui_actions/qa_init.lua` | Quick Actions module entry point |
+| `qui_actions/qa_menu_recorder.lua` | Menu action recorder (for custom actions) |
+| `qui_actions/qa_panel.lua` | Quick panel builder |
+| `qui_actions/qa_plugin_scan.lua` | Plugin scanner |
+| `qui_actions/qa_settings.lua` | Quick Actions settings menu |
+| `qui_actions/qa_uifont.lua` | UI font switcher |
+| `qui_cover.lua` | Cover Visual Enhancements module |
+| `qui_clozemode.lua` | Cloze Mode module |
+| `qui_header_footer.lua` | Header & Footer module |
+| `qui_i18n.lua` | Internationalization loader (loads .po files) |
 | `qui_updates.lua` | Update checker (GitHub / Gitee) |
-| `qa_actions.lua` | Action registry (built-in + custom) and execution logic |
-| `qa_bottombar.lua` | Bottom navigation bar builder |
-| `qa_icon_picker.lua` | Icon picker (Nerd Font + file support) |
-| `qa_init.lua` | Quick Actions module entry point |
-| `qa_menu_recorder.lua` | Menu action recorder (for custom actions) |
-| `qa_panel.lua` | Quick panel builder |
-| `qa_plugin_scan.lua` | Plugin scanner (for custom plugin actions) |
-| `qa_settings.lua` | Quick Actions settings menu |
-| `qa_uifont.lua` | UI font switcher |
+| `qui_utils.lua` | Common utilities (config, serialization, fonts, colors) |
 
 ---
 
