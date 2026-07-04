@@ -156,8 +156,7 @@ function QuickUI:registerDispatcherActions()
         category = "none",
         event = "QuickUI_Settings",
         title = _("QuickUI_Settings"),
-        reader = true,
-        filemanager = true,
+        general = true,
     })
 
     -- ============================================================
@@ -217,36 +216,31 @@ function QuickUI:registerDispatcherActions()
             category = "none",
             event = "QuickUI_SystemIconOverride",
             title = _("QuickUI_SystemIconOverride"),
-            reader = true,
-            filemanager = true,
+            general = true,
         })
         Dispatcher:registerAction("QuickUI_InterfaceFilter", {
             category = "none",
             event = "QuickUI_InterfaceFilter",
             title = _("QuickUI_InterfaceFilter"),
-            reader = true,
-            filemanager = true,
+            general = true,
         })
         Dispatcher:registerAction("QuickUI_Panel", {
             category = "none",
             event = "QuickUI_Panel",
             title = _("QuickUI_Panel"),
-            reader = true,
-            filemanager = true,
+            general = true,
         })
         Dispatcher:registerAction("QuickUI_QASettings", {
             category = "none",
             event = "QuickUI_QASettings",
             title = _("QuickUI_QASettings"),
-            reader = true,
-            filemanager = true,
+            general = true,
         })
         Dispatcher:registerAction("QuickUI_NewAction", {
             category = "none",
             event = "QuickUI_NewAction",
             title = _("QuickUI_NewAction"),
-            reader = true,
-            filemanager = true,
+            general = true,
         })
 
         -- Panel related (only if qa_panel_enabled)
@@ -255,15 +249,13 @@ function QuickUI:registerDispatcherActions()
                 category = "none",
                 event = "QuickUI_PanelSettings",
                 title = _("QuickUI_PanelSettings"),
-                reader = true,
-                filemanager = true,
+                general = true,
             })
             Dispatcher:registerAction("QuickUI_AddPanelButton", {
                 category = "none",
                 event = "QuickUI_AddPanelButton",
                 title = _("QuickUI_AddPanelButton"),
-                reader = true,
-                filemanager = true,
+                general = true,
             })
         end
 
@@ -273,22 +265,19 @@ function QuickUI:registerDispatcherActions()
                 category = "none",
                 event = "QuickUI_BottombarToggle",
                 title = _("QuickUI_BottombarToggle"),
-                reader = true,
-                filemanager = true,
+                general = true,
             })
             Dispatcher:registerAction("QuickUI_BottombarSettings", {
                 category = "none",
                 event = "QuickUI_BottombarSettings",
                 title = _("QuickUI_BottombarSettings"),
-                reader = true,
-                filemanager = true,
+                general = true,
             })
             Dispatcher:registerAction("QuickUI_AddBottomBarTab", {
                 category = "none",
                 event = "QuickUI_AddBottomBarTab",
                 title = _("QuickUI_AddBottomBarTab"),
-                reader = true,
-                filemanager = true,
+                general = true,
             })
         end
     end
