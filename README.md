@@ -14,7 +14,7 @@ QuickUI is a comprehensive KOReader enhancement plugin that integrates **four co
 | :--- | :--- |
 | ⚡ **Quick Actions** | Customizable action center: panel, bottom bar, custom actions, icon picker, UI font switcher, and more |
 | 🎨 **Cover Visual Enhancements** | Placeholder covers, badges, rounded corners, unified aspect ratio, folder previews |
-| 🔍 **Cloze Mode** | Annotation masking for review and self-testing (highlights, underlines, strikeouts) |
+| 🎭 **Cloze Mode** | Annotation masking for review and self-testing (highlights, underlines, strikeouts) |
 | 📐 **Header & Footer** | Display time, page numbers, progress, chapter info, battery status at top/bottom of reading screen |
 
 > 💡 **Inspiration**: SimpleUI, ZenUI, ShortcutsToolbar
@@ -181,7 +181,7 @@ Supports five types of custom actions:
 
 ---
 
-### 3. 🔍 Cloze Mode
+### 3. 🎭 Cloze Mode
 
 | Feature | Description |
 | :--- | :--- |
@@ -277,7 +277,35 @@ These patches are by the same author as QuickUI and share the same functionality
 ---
 
 ## 📁 File Structure
-
+```
+quickui.koplugin/
+├── _meta.lua # Plugin metadata (name, version, author)
+├── changelog.lua # Changelog
+├── main.lua # Main entry point, registers Dispatcher actions, builds main menu
+├── README.md # English documentation
+├── README.zh_CN.md # Chinese documentation
+│
+├── locales/ # Internationalization translation files
+│ └── zh_CN.po # Simplified Chinese translation
+│
+├── qui_actions/ # Quick Actions module
+│ ├── qa_actions.lua # Action registry (built-in + custom) and execution logic
+│ ├── qa_bottombar.lua # Bottom navigation bar builder
+│ ├── qa_icon_picker.lua # Icon picker (Nerd Font + SVG/PNG)
+│ ├── qa_init.lua # Quick Actions module entry point
+│ ├── qa_menu_recorder.lua # Menu action recorder (for custom actions)
+│ ├── qa_panel.lua # Quick panel builder
+│ ├── qa_plugin_scan.lua # Plugin scanner
+│ ├── qa_settings.lua # Quick Actions settings menu
+│ └── qa_uifont.lua # UI font switcher
+│
+├── qui_cover.lua # Cover Visual Enhancements module
+├── qui_clozemode.lua # Cloze Mode module
+├── qui_header_footer.lua # Header & Footer module
+├── qui_i18n.lua # Internationalization loader (loads .po files)
+├── qui_updates.lua # Update checker (GitHub / Gitee)
+└── qui_utils.lua # Common utilities (config, serialization, fonts, colors)
+```
 | File | Purpose |
 | :--- | :--- |
 | `_meta.lua` | Plugin metadata (name, version, author, description) |
