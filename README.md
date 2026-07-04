@@ -323,9 +323,6 @@ Each module supports **Save Preset**, **Apply Preset**, and **Reset to Default**
 | :--- | :--- |
 | All | Panel + Bottom Bar + Quick Actions Common + Cover + Cloze + Header/Footer |
 | QA | Panel + Bottom Bar + Quick Actions Common |
-| Panel | Panel settings only |
-| Bottom Bar | Bottom Bar settings only |
-| Quick Actions | Quick Actions Common settings only |
 | Cover | Cover settings only |
 | Cloze | Cloze settings only |
 | Header/Footer | Header/Footer settings only |
@@ -367,8 +364,6 @@ Supports **downgrading** to any historical version.
 | Item | Requirement |
 | :--- | :--- |
 | **KOReader** | ≥ v2026.03 |
-| **Nerd Font** | Nerd Fonts symbol font required for icon display |
-| **Network** | WiFi operations require network manager module |
 | **Device** | Frontlight/warmth controls require device support |
 
 ---
