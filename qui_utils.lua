@@ -23,10 +23,10 @@ local DEFAULT_SETTINGS = {
     qa_panel_warmth = true,
     qa_panel_shape = "round",
     qa_panel_bg = "flat",
-    qa_panel_labels = false,
+    qa_panel_labels = true,
     qa_panel_label_scale_pct = 90,
     qa_panel_settings_on_hold = true,
-    qa_panel_button_size_pct = 100,
+    qa_panel_button_size_pct = 90,
     qa_panel_button_hold_edit = true,
     qa_panel_slider_show_value = false,
 
