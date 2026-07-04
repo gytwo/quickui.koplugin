@@ -1862,7 +1862,9 @@ function QA.registerAllActions()
                         touch_menu = readerui.menu.menu_container[1]
                     end
                 end
-                settings.showAddButtonMenu(touch_menu)
+                settings.showAddButtonMenu(touch_menu, function()
+                    settings.showPanelSettings()
+                end)
             end)
         end
 
