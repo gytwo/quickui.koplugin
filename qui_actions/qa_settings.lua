@@ -247,7 +247,7 @@ local function closeSettingsDialog(exclude)
     if type(exclude) == "string" then
         exclude_set[exclude] = true
     elseif type(exclude) == "table" then
-        for _, key in ipairs(exclude) do
+        for __, key in ipairs(exclude) do
             exclude_set[key] = true
         end
     end
@@ -369,7 +369,7 @@ local function showMenu(items, title, parent_stack, touch_menu, root_items)
                         closeSettingsDialog()
                         local new_stack = {}
                         if parent_stack then
-                            for _, v in ipairs(parent_stack) do
+                            for __, v in ipairs(parent_stack) do
                                 table.insert(new_stack, v)
                             end
                         end
@@ -479,7 +479,7 @@ function QA.showEditActionDialog(action_id, on_done, source)
         if source == "bottombar" then
             local tabs = PLUGIN_STORE.bottombar and PLUGIN_STORE.bottombar.getTabs() or {}
             local new_tabs = {}
-            for _, id in ipairs(tabs) do
+            for __, id in ipairs(tabs) do
                 if id ~= action_id then
                     table.insert(new_tabs, id)
                 end
@@ -704,7 +704,7 @@ function QA.showEditActionDialog(action_id, on_done, source)
             { { text = viewButtonText(), callback = function()
                 closeSettingsDialog()
                 local view_buttons = {}
-                for _, v in ipairs(view_options) do
+                for __, v in ipairs(view_options) do
                     local _v = v
                     table.insert(view_buttons, {{
                         text = (current_view == _v and "✓ " or "  ") .. view_labels[_v],
@@ -827,7 +827,7 @@ function QA.showCustomQADialog(qa_id, on_done, source)
         if source == "bottombar" then
             local tabs = PLUGIN_STORE.bottombar and PLUGIN_STORE.bottombar.getTabs() or {}
             local new_tabs = {}
-            for _, id in ipairs(tabs) do
+            for __, id in ipairs(tabs) do
                 if id ~= qa_id then
                     table.insert(new_tabs, id)
                 end
@@ -837,7 +837,7 @@ function QA.showCustomQADialog(qa_id, on_done, source)
         else
             local slots = getQASlots()
             local new_slots = {}
-            for _, sid in ipairs(slots) do
+            for __, sid in ipairs(slots) do
                 if sid ~= qa_id then
                     table.insert(new_slots, sid)
                 end
@@ -960,7 +960,7 @@ function QA.showCustomQADialog(qa_id, on_done, source)
     local function commitQA(final_label, path, collections, icon, plugin_key, plugin_method, dispatcher_action, dispatcher_value, menu_path, user_view)
         local list = getCustomList()
         local max_n = 0
-        for _, id in ipairs(list) do
+        for __, id in ipairs(list) do
             local n = tonumber(id:match("^custom_qa_(%d+)$"))
             if n and n > max_n then max_n = n end
         end
@@ -1036,7 +1036,7 @@ function QA.showCustomQADialog(qa_id, on_done, source)
         if source ~= "bottombar" and auto_add then
             local slots = getQASlots()
             local already_exists = false
-            for _, sid in ipairs(slots) do
+            for __, sid in ipairs(slots) do
                 if sid == final_id then
                     already_exists = true
                     break
@@ -1135,7 +1135,7 @@ function QA.showCustomQADialog(qa_id, on_done, source)
                 { { text = _("Collections"), enabled = (#collections > 0), callback = function()
                     closeSettingsDialog()
                     local coll_buttons = {}
-                    for _, name in ipairs(collections) do
+                    for __, name in ipairs(collections) do
                         local _name = name
                         coll_buttons[#coll_buttons + 1] = {{ text = name, callback = function()
                             closeSettingsDialog()
@@ -1369,7 +1369,7 @@ function QA.showCustomQADialog(qa_id, on_done, source)
                         setCustom(custom_tbl)
                         local list = getCustomList()
                         local new_list = {}
-                        for _, id in ipairs(list) do
+                        for __, id in ipairs(list) do
                             if id ~= qa_id then
                                 table.insert(new_list, id)
                             end
@@ -1478,7 +1478,7 @@ function QA.showCustomQADialog(qa_id, on_done, source)
                 if current_action_type == "menu" then return end
                 closeSettingsDialog()
                 local view_buttons = {}
-                for _, v in ipairs(view_options) do
+                for __, v in ipairs(view_options) do
                     local _v = v
                     table.insert(view_buttons, {{
                         text = (current_view == _v and "✓ " or "  ") .. view_labels[_v],
@@ -1538,7 +1538,7 @@ end
 function QA.showAddButtonMenu(touch_menu, on_back, filtered_actions)
     local slots = getQASlots()
     local slot_set = {}
-    for _, id in ipairs(slots) do
+    for __, id in ipairs(slots) do
         slot_set[id] = true
     end
     local available = filtered_actions or getAllAvailableActions()
@@ -1690,7 +1690,7 @@ function QA.showAddButtonMenu(touch_menu, on_back, filtered_actions)
     })
 
     local function getAllChecked()
-        for _, action in ipairs(available) do
+        for __, action in ipairs(available) do
             if not slot_set[action.id] then
                 return false
             end
@@ -1708,9 +1708,9 @@ function QA.showAddButtonMenu(touch_menu, on_back, filtered_actions)
                 local new_slots = {}
 
                 if is_all_checked then
-                    for _, id in ipairs(current_slots) do
+                    for __, id in ipairs(current_slots) do
                         local is_available = false
-                        for _, action in ipairs(available) do
+                        for __, action in ipairs(available) do
                             if action.id == id then
                                 is_available = true
                                 break
@@ -1721,10 +1721,10 @@ function QA.showAddButtonMenu(touch_menu, on_back, filtered_actions)
                         end
                     end
                 else
-                    for _, id in ipairs(current_slots) do
+                    for __, id in ipairs(current_slots) do
                         table.insert(new_slots, id)
                     end
-                    for _, action in ipairs(available) do
+                    for __, action in ipairs(available) do
                         if not slot_set[action.id] then
                             if #new_slots >= 66 then
                                 UIManager:show(Notification:new{
@@ -1882,7 +1882,7 @@ local function getCustomItems(touch_menu)
                     setCustom(custom_tbl)
                     local list = getCustomList()
                     local new_list = {}
-                    for _, lid in ipairs(list) do
+                    for __, lid in ipairs(list) do
                         if lid ~= id then
                             table.insert(new_list, lid)
                         end
@@ -1930,7 +1930,7 @@ function QA.getQuickActionsSubmenu()
     }
 
     local builtin_items = {}
-    for _, item in ipairs(getCustomItems()) do
+    for __, item in ipairs(getCustomItems()) do
         if item.is_builtin then
             table.insert(builtin_items, {
                 text = item.text,
@@ -1948,7 +1948,7 @@ function QA.getQuickActionsSubmenu()
         })
     end
 
-    for _, item in ipairs(getCustomItems()) do
+    for __, item in ipairs(getCustomItems()) do
         if not item.is_builtin then
             table.insert(items, {
                 text = item.text,
@@ -2573,7 +2573,7 @@ function QA.getInterfaceFilterMenuItems()
             text = _("Select All Dedicated"),
             checked_func = function()
                 local current_actions = actions.getAllAvailableActions()
-                for _, action in ipairs(current_actions) do
+                for __, action in ipairs(current_actions) do
                     if action.id and not (getCustom()[action.id] and getCustom()[action.id].action_type == "menu") then
                         if action.view ~= target_view then
                             return false
@@ -2584,7 +2584,7 @@ function QA.getInterfaceFilterMenuItems()
             end,
             enabled = function()
                 local current_actions = actions.getAllAvailableActions()
-                for _, action in ipairs(current_actions) do
+                for __, action in ipairs(current_actions) do
                     if action.id and not (getCustom()[action.id] and getCustom()[action.id].action_type == "menu") then
                         return true
                     end
@@ -2594,7 +2594,7 @@ function QA.getInterfaceFilterMenuItems()
             callback = function(touchmenu_instance)
                 local current_actions = actions.getAllAvailableActions()
                 local all_checked = true
-                for _, action in ipairs(current_actions) do
+                for __, action in ipairs(current_actions) do
                     if action.id and not (getCustom()[action.id] and getCustom()[action.id].action_type == "menu") then
                         if action.view ~= target_view then
                             all_checked = false
@@ -2603,7 +2603,7 @@ function QA.getInterfaceFilterMenuItems()
                     end
                 end
 
-                for _, action in ipairs(current_actions) do
+                for __, action in ipairs(current_actions) do
                     if not action.id then goto continue end
                     if getCustom()[action.id] and getCustom()[action.id].action_type == "menu" then
                         goto continue
@@ -2626,7 +2626,7 @@ function QA.getInterfaceFilterMenuItems()
             end,
         })
 
-                for _, action in ipairs(all_actions) do
+                for __, action in ipairs(all_actions) do
                     if not action.id then goto continue end
                     local is_locked = (getCustom()[action.id] and getCustom()[action.id].action_type == "menu")
                     local action_id = action.id
@@ -2677,7 +2677,7 @@ function QA.getInterfaceFilterMenuItems()
             text_func = function()
                 local actions_list = actions.getAllAvailableActions()
                 local fm = 0
-                for _, act in ipairs(actions_list) do
+                for __, act in ipairs(actions_list) do
                     if act.view == "filemanager" then
                         fm = fm + 1
                     end
@@ -2690,7 +2690,7 @@ function QA.getInterfaceFilterMenuItems()
             text_func = function()
                 local actions_list = actions.getAllAvailableActions()
                 local rd = 0
-                for _, act in ipairs(actions_list) do
+                for __, act in ipairs(actions_list) do
                     if act.view == "reader" then
                         rd = rd + 1
                     end
@@ -2847,7 +2847,7 @@ function QA.buildRootMenuItems()
         local bb = PLUGIN_STORE.bottombar
         if bb then bb.refresh() end
     end)
-    for _, item in ipairs(default_items) do
+    for __, item in ipairs(default_items) do
         table.insert(items, item)
     end
 
@@ -2915,7 +2915,7 @@ function QA.showInterfaceFilter()
     closeSettingsDialog()
     local root_items = QA.buildRootMenuItems()
     local filter_item = nil
-    for _, item in ipairs(root_items) do
+    for __, item in ipairs(root_items) do
         if item.text == _("Interface Filter") then
             filter_item = item
             break
