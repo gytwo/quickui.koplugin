@@ -95,6 +95,8 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
 | `qa_bb_settings` | 底部栏设置 | 通用 | 底部栏设置 |
 | `qa_add_bb_tab` | 添加底部栏按钮 | 通用 | 向底部栏添加按钮 |
 | `ui_font_switch` | UI 字体切换 | 通用 | 切换系统 UI 字体 |
+| `system_icon_override` | 系统图标替换 | 通用 | 打开系统图标替换选择器 |
+| `interface_filter` | 界面过滤 | 通用 | 打开界面过滤设置 |
 | `toggle_cloze_mode` | 切换遮盖模式 | 阅读器 | 切换遮盖模式 |
 | `QuickUI_CoverSettings` | 封面设置 | 文件管理器 | 封面视觉设置 |
 | `QuickUI_ClozeSettings` | 遮盖设置 | 阅读器 | 遮盖模式设置 |
