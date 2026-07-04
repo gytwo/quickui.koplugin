@@ -65,30 +65,10 @@ local THUMB_GAP = Screen:scaleBySize(6)
 -- Configuration 
 -- ============================================================
 
-function QA.init(plugin_ref)
-    logger.info("QuickUI QA IconPicker: initialized")
-end
-
-local function getTable(key)
-    local config = _G.__QUICKUI_CONFIG
-    if config and config[key] ~= nil then
-        return config[key]
-    end
-    return {}
-end
-
-local function setTable(key, value)
-    local config = _G.__QUICKUI_CONFIG
-    if config then
-        config[key] = value
-        Utils.saveConfig()
-    end
-end
-
 local function getSystemTempOverrides()
     if system_temp_overrides == nil then
         system_temp_overrides = {}
-        local saved = getTable("qa_common_icon_overrides")
+        local saved = Utils.getTable("qa_common_icon_overrides")
         for k, v in pairs(saved) do
             system_temp_overrides[k] = v
         end
@@ -1026,7 +1006,7 @@ function QA.showIconPicker(on_select, saved_icon, filter, mode, parent_mode)
     -- Build button row
     local btn_row
     if mode == "system" then
-        local all_overrides = getTable("qa_common_icon_overrides")
+        local all_overrides = Utils.getTable("qa_common_icon_overrides")
         local replaced = 0
         for _, item in ipairs(icons_list) do
             if temp_overrides[item.name] then
@@ -1047,7 +1027,7 @@ function QA.showIconPicker(on_select, saved_icon, filter, mode, parent_mode)
                     return
                 end
                 resetSystemTempOverrides()
-                setTable("qa_common_icon_overrides", {})
+                Utils.set("qa_common_icon_overrides", {})
                 picker_cache = {}
                 UIManager:show(Notification:new{
                     text = _("All icons reset, restart required"),
@@ -1076,7 +1056,7 @@ function QA.showIconPicker(on_select, saved_icon, filter, mode, parent_mode)
                     })
                     return
                 end
-                local overrides = getTable("qa_common_icon_overrides")
+                local overrides = Utils.getTable("qa_common_icon_overrides")
                 for k, _ in pairs(overrides) do
                     overrides[k] = nil
                 end
@@ -1085,7 +1065,7 @@ function QA.showIconPicker(on_select, saved_icon, filter, mode, parent_mode)
                         overrides[k] = v
                     end
                 end
-                setTable("qa_common_icon_overrides", overrides)
+                Utils.set("qa_common_icon_overrides", overrides)
                 resetSystemTempOverrides()
                 picker_cache = {}
                 UIManager:show(Notification:new{
@@ -1242,7 +1222,7 @@ function QA.showIconPicker(on_select, saved_icon, filter, mode, parent_mode)
                             local btn_width_sys = math.floor(content_w / 2) - 4
                             local btn_x_start = frame_x + pad
                             if gx >= btn_x_start and gx < btn_x_start + btn_width_sys then
-                                local all_overrides = getTable("qa_common_icon_overrides")
+                                local all_overrides = Utils.getTable("qa_common_icon_overrides")
                                 local replaced = 0
                                 for _, item in ipairs(icons_list) do
                                     if temp_overrides[item.name] then
@@ -1259,7 +1239,7 @@ function QA.showIconPicker(on_select, saved_icon, filter, mode, parent_mode)
                                 UIManager:close(self)
                                 UIManager:setDirty("all", "full")
                                 resetSystemTempOverrides()
-                                setTable("qa_common_icon_overrides", {})
+                                Utils.set("qa_common_icon_overrides", {})
                                 picker_cache = {}
                                 UIManager:show(Notification:new{
                                     text = _("All icons reset, restart required"),
@@ -1276,7 +1256,7 @@ function QA.showIconPicker(on_select, saved_icon, filter, mode, parent_mode)
                                 return true
                             end
                             if gx >= btn_x_start + btn_width_sys + 8 and gx < btn_x_start + (btn_width_sys + 8) * 2 then
-                                local all_overrides = getTable("qa_common_icon_overrides")
+                                local all_overrides = Utils.getTable("qa_common_icon_overrides")
                                 local replaced = 0
                                 for _, item in ipairs(icons_list) do
                                     if temp_overrides[item.name] then
@@ -1292,7 +1272,7 @@ function QA.showIconPicker(on_select, saved_icon, filter, mode, parent_mode)
                                 end
                                 UIManager:close(self)
                                 UIManager:setDirty("all", "full")
-                                local overrides = getTable("qa_common_icon_overrides")
+                                local overrides = Utils.getTable("qa_common_icon_overrides")
                                 for k, _ in pairs(overrides) do
                                     overrides[k] = nil
                                 end
@@ -1301,7 +1281,7 @@ function QA.showIconPicker(on_select, saved_icon, filter, mode, parent_mode)
                                         overrides[k] = v
                                     end
                                 end
-                                setTable("qa_common_icon_overrides", overrides)
+                                Utils.set("qa_common_icon_overrides", overrides)
                                 resetSystemTempOverrides()
                                 picker_cache = {}
                                 UIManager:show(Notification:new{
@@ -1611,7 +1591,7 @@ function QA.patchIconWidget()
 
     function IconWidget:init()
         if self.icon then
-            local overrides = getTable("qa_common_icon_overrides")
+            local overrides = Utils.getTable("qa_common_icon_overrides")
             if overrides and overrides[self.icon] then
                 local user_icon = overrides[self.icon]
                 local dir = QA.getIconsDir()
