@@ -1833,6 +1833,58 @@ function QA.registerAllActions()
         end)
 
         -- ============================================================
+        -- System Icon Override (NEW)
+        -- ============================================================
+        QA.registerAction("system_icon_override", _("System Icon Override"), "nerd:E709", false, "common", function(ctx)
+            local icon_picker = require("qui_actions/qa_icon_picker")
+            if ctx and ctx.touch_menu then
+                ctx.touch_menu:onClose()
+            end
+            icon_picker.showIconPicker(nil, nil, nil, "system")
+        end)
+
+        -- ============================================================
+        -- Interface Filter
+        -- ============================================================
+        QA.registerAction("interface_filter", _("Interface Filter"), "nerd:F0B0", false, "common", function(ctx)
+            -- Just open the QA settings and navigate to Interface Filter
+            -- The settings module handles the navigation
+            local settings = require("qui_actions/qa_settings")
+            if ctx and ctx.touch_menu then
+                ctx.touch_menu:onClose()
+            end
+            
+            -- Find and execute the Interface Filter menu item directly
+            local function openInterfaceFilter()
+                local root_items = settings.buildRootMenuItems()
+                local filter_item = nil
+                for _, item in ipairs(root_items) do
+                    if item.text == _("Interface Filter") then
+                        filter_item = item
+                        break
+                    end
+                end
+                if filter_item and filter_item.sub_item_table then
+                    -- Show the submenu directly
+                    settings.showMenu(
+                        filter_item.sub_item_table, 
+                        _("Interface Filter"), 
+                        nil, 
+                        nil, 
+                        root_items
+                    )
+                else
+                    UIManager:show(InfoMessage:new{
+                        text = _("Interface Filter not available"),
+                        timeout = 2,
+                    })
+                end
+            end
+            
+            openInterfaceFilter()
+        end)
+        
+        -- ============================================================
         -- Panel actions (qa_panel_enabled)
         -- ============================================================
         if config.qa_panel_enabled then
