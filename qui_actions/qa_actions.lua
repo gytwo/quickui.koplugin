@@ -52,98 +52,6 @@ local ACTION_ORDER = {}
 local _wifi_optimistic = nil
 
 -- ============================================================
--- Configuration - Read from _G.__QUICKUI_CONFIG
--- ============================================================
-
-local function getBool(key)
-    local config = _G.__QUICKUI_CONFIG
-    if config and config[key] ~= nil then
-        return config[key] == true
-    end
-    return false
-end
-
-local function getString(key)
-    local config = _G.__QUICKUI_CONFIG
-    if config and config[key] ~= nil then
-        return config[key]
-    end
-    return ""
-end
-
-local function getTable(key)
-    local config = _G.__QUICKUI_CONFIG
-    if config and config[key] ~= nil then
-        return config[key]
-    end
-    return {}
-end
-
-local function getCustom()
-    local config = _G.__QUICKUI_CONFIG
-    if config and config.qa_common_custom then
-        return config.qa_common_custom
-    end
-    return {}
-end
-
-local function setCustom(value)
-    local config = _G.__QUICKUI_CONFIG
-    if config then
-        config.qa_common_custom = value
-        Utils.saveConfig()
-    end
-end
-
-local function getBuiltinOverrides()
-    local config = _G.__QUICKUI_CONFIG
-    if config and config.qa_common_builtin_overrides then
-        return config.qa_common_builtin_overrides
-    end
-    return {}
-end
-
-local function setBuiltinOverrides(value)
-    local config = _G.__QUICKUI_CONFIG
-    if config then
-        config.qa_common_builtin_overrides = value
-        Utils.saveConfig()
-    end
-end
-
-local function getQASlots()
-    local config = _G.__QUICKUI_CONFIG
-    if config and config.qa_panel_slots then
-        return config.qa_panel_slots
-    end
-    return {}
-end
-
-local function saveQASlots(slots)
-    local config = _G.__QUICKUI_CONFIG
-    if config then
-        config.qa_panel_slots = slots
-        Utils.saveConfig()
-    end
-end
-
-local function getCustomList()
-    local config = _G.__QUICKUI_CONFIG
-    if config and config.qa_common_custom_list then
-        return config.qa_common_custom_list
-    end
-    return {}
-end
-
-local function setCustomList(value)
-    local config = _G.__QUICKUI_CONFIG
-    if config then
-        config.qa_common_custom_list = value
-        Utils.saveConfig()
-    end
-end
-
--- ============================================================
 -- Network Manager Helper
 -- ============================================================
 
@@ -209,7 +117,7 @@ QA.getDefaultViewForActionType = getDefaultViewForActionType
 -- ============================================================
 
 function QA.getAction(id)
-    local builtin_overrides = getBuiltinOverrides()
+    local builtin_overrides = Utils.getTable("qa_common_builtin_overrides")
     if builtin_overrides[id] then
         return {
             label = builtin_overrides[id].label or (ACTION_REGISTRY[id] and ACTION_REGISTRY[id].label) or id,
@@ -231,7 +139,7 @@ function QA.getAction(id)
         }
     end
 
-    local custom = getCustom()
+    local custom = Utils.getTable("qa_common_custom")
     local cfg = custom[id]
     if type(cfg) == "table" and cfg.label then
         local view = cfg.view
@@ -427,7 +335,7 @@ function QA.isInPlace(id)
 end
 
 function QA.getLabelForAction(id)
-    local builtin_overrides = getBuiltinOverrides()
+    local builtin_overrides = Utils.getTable("qa_common_builtin_overrides")
     if builtin_overrides[id] and builtin_overrides[id].label then
         return builtin_overrides[id].label
     end
@@ -487,11 +395,11 @@ end
 
 function QA.getActionViewFinal(id)
     if not id then return "common" end
-    local overrides = getBuiltinOverrides()
+    local overrides = Utils.getTable("qa_common_builtin_overrides")
     if overrides and overrides[id] and overrides[id].view then
         return overrides[id].view
     end
-    local custom = getCustom()
+    local custom = Utils.getTable("qa_common_custom")
     local cfg = custom and custom[id]
     if cfg then
         if cfg.action_type == "menu" and cfg.menu_path and cfg.menu_path.view then
@@ -508,7 +416,7 @@ function QA.getActionViewFinal(id)
 end
 
 function QA.getTypePriority(id)
-    local cfg = getCustom()[id]
+    local cfg = Utils.getTable("qa_common_custom")[id]
     if cfg then
         if cfg.action_type == "menu" then
             return 1
@@ -550,7 +458,7 @@ function QA.getActionSymbol(id)
         return circle_char .. " "
     end
 
-    local cfg = getCustom()[id]
+    local cfg = Utils.getTable("qa_common_custom")[id]
     if cfg then
         if cfg.action_type == "dispatcher" then
             return "⊕ "
@@ -588,11 +496,11 @@ function QA.getAllAvailableActions()
             end
         end
     end
-    local custom_list = getCustomList()
+    local custom_list = Utils.getTable("qa_common_custom_list")
     if type(custom_list) == "table" then
         for i = 1, #custom_list do
             local id = custom_list[i]
-            local cfg = getCustom()[id]
+            local cfg = Utils.getTable("qa_common_custom")[id]
             if cfg then
                 local view = cfg.view
                 if not view then
@@ -615,7 +523,7 @@ function QA.getAllAvailableActions()
 end
 
 function QA.isActionVisible(action_id, current_view)
-    if not getBool("qa_common_context_filter") then return true end
+    if not Utils.getBool("qa_common_context_filter") then return true end
     local view = QA.getActionViewFinal(action_id)
     if current_view == "filemanager" then
         return view == "filemanager" or view == "common"
@@ -638,14 +546,14 @@ function QA.toggleDedicated(action_id, target_view)
                 _G.__QUICKUI_CONFIG.qa_common_builtin_overrides[action_id] = {}
             end
             _G.__QUICKUI_CONFIG.qa_common_builtin_overrides[action_id].view = "common"
-            setBuiltinOverrides(_G.__QUICKUI_CONFIG.qa_common_builtin_overrides)
+            Utils.set("qa_common_builtin_overrides", _G.__QUICKUI_CONFIG.qa_common_builtin_overrides)
         else
             if not _G.__QUICKUI_CONFIG.qa_common_custom then
                 _G.__QUICKUI_CONFIG.qa_common_custom = {}
             end
             if _G.__QUICKUI_CONFIG.qa_common_custom[action_id] then
                 _G.__QUICKUI_CONFIG.qa_common_custom[action_id].view = "common"
-                setCustom(_G.__QUICKUI_CONFIG.qa_common_custom)
+                Utils.set("qa_common_custom", _G.__QUICKUI_CONFIG.qa_common_custom)
             end
         end
     else
@@ -657,14 +565,14 @@ function QA.toggleDedicated(action_id, target_view)
                 _G.__QUICKUI_CONFIG.qa_common_builtin_overrides[action_id] = {}
             end
             _G.__QUICKUI_CONFIG.qa_common_builtin_overrides[action_id].view = target_view
-            setBuiltinOverrides(_G.__QUICKUI_CONFIG.qa_common_builtin_overrides)
+            Utils.set("qa_common_builtin_overrides", _G.__QUICKUI_CONFIG.qa_common_builtin_overrides)
         else
             if not _G.__QUICKUI_CONFIG.qa_common_custom then
                 _G.__QUICKUI_CONFIG.qa_common_custom = {}
             end
             if _G.__QUICKUI_CONFIG.qa_common_custom[action_id] then
                 _G.__QUICKUI_CONFIG.qa_common_custom[action_id].view = target_view
-                setCustom(_G.__QUICKUI_CONFIG.qa_common_custom)
+                Utils.set("qa_common_custom", _G.__QUICKUI_CONFIG.qa_common_custom)
             end
         end
     end
@@ -686,7 +594,7 @@ end
 -- ============================================================
 
 function QA.removeFromPanel(action_id, touch_menu)
-    local slots = getQASlots()
+    local slots = Utils.getTable("qa_panel_slots")
     local found = false
     local new_slots = {}
     for __, sid in ipairs(slots) do
