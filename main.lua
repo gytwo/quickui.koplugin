@@ -681,18 +681,6 @@ function QuickUI:buildMenuItems()
     end
 
     -- ============================================================
-    -- Updates
-    -- ============================================================
-    if updates_module and updates_module.checkForUpdates then
-        table.insert(items, {
-            text = _("Check for Updates") .. "  (" .. _("Current version") .. ": " .. self.VERSION .. ")",
-            callback = function()
-                updates_module.checkForUpdates(false, self)
-            end,
-        })
-    end
-
-    -- ============================================================
     -- Default Config Management
     -- ============================================================
 local all_modules = {"qa_panel", "qa_bb", "qa_common", "cover", "cloze", "hf"}
@@ -707,6 +695,18 @@ for _, item in ipairs(all_items) do
     table.insert(items, item)
 end
 
+    -- ============================================================
+    -- Updates
+    -- ============================================================
+    if updates_module and updates_module.checkForUpdates then
+        table.insert(items, {
+            text = _("Check for Updates") .. "  (" .. _("Current version") .. ": " .. self.VERSION .. ")",
+            callback = function()
+                updates_module.checkForUpdates(false, self)
+            end,
+        })
+    end
+    
     -- ============================================================
     -- Plugin Info
     -- ============================================================
