@@ -213,6 +213,20 @@ function QuickUI:registerDispatcherActions()
     -- ============================================================
     if config and config.qa_common_enabled then
         -- Always register when QA is enabled
+                Dispatcher:registerAction("QuickUI_SystemIconOverride", {
+            category = "none",
+            event = "QuickUI_SystemIconOverride",
+            title = _("QuickUI_SystemIconOverride"),
+            reader = true,
+            filemanager = true,
+        })
+        Dispatcher:registerAction("QuickUI_InterfaceFilter", {
+            category = "none",
+            event = "QuickUI_InterfaceFilter",
+            title = _("QuickUI_InterfaceFilter"),
+            reader = true,
+            filemanager = true,
+        })
         Dispatcher:registerAction("QuickUI_Panel", {
             category = "none",
             event = "QuickUI_Panel",
@@ -283,6 +297,17 @@ end
 -- ============================================================
 -- Dispatcher Action Event Handlers
 -- ============================================================
+function QuickUI:onQuickUI_SystemIconOverride()
+    local icon_picker = require("qui_actions/qa_icon_picker")
+    icon_picker.showIconPicker(nil, nil, nil, "system")
+    return true
+end
+
+function QuickUI:onQuickUI_InterfaceFilter()
+    local QA = require("qui_actions/qa_actions")
+    QA.executeAction("interface_filter", {})
+    return true
+end
 
 function QuickUI:onQuickUI_Panel()
     if actions_module and actions_module.showPanel then
