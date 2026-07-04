@@ -496,6 +496,15 @@ msgstr "添加底部栏按钮"
 msgid "Cover Visual Settings"
 msgstr "封面视觉设置"
 
+msgid "QuickUI_InterfaceFilter"
+msgstr "QuickUI-界面过滤"
+
+msgid "QuickUI_Cover All/Uncover All"
+msgstr "QuickUI- 全部遮盖/全部揭开"
+
+msgid "QuickUI_SystemIconOverride"
+msgstr "QuickUI- 系统图标替换"
+
 msgid "Toggle Cloze Mode"
 msgstr "切换遮盖模式"
 
@@ -516,9 +525,6 @@ msgstr "QuickUI-页眉页脚设置"
 
 msgid "toggle_cloze_mode"
 msgstr "切换遮盖模式"
-
-msgid "QuickUI_ClozeSettings"
-msgstr "QuickUI-遮盖模式设置"
 
 msgid "No recent book found"
 msgstr "未找到最近阅读的书籍"
@@ -1479,9 +1485,6 @@ msgstr "QuickUI-启用遮盖模式"
 
 msgid "QuickUI_ClozeToggleAll"
 msgstr "QuickUI-切换全部填空"
-
-msgid "QuickUI_ClozeSettings"
-msgstr "QuickUI-遮盖模式设置"
 
 msgid "QuickUI_HFSettings"
 msgstr "QuickUI-页眉页脚设置"
