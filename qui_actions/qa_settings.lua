@@ -452,7 +452,7 @@ function QA.showEditActionDialog(action_id, on_done, source)
     local view_options = { "common", "filemanager", "reader" }
     local view_labels = {
         common = _("Common"),
-        filemanager = _("File Manager"),
+        filemanager = _("Filemanager"),
         reader = _("Reader"),
     }
 
@@ -800,7 +800,7 @@ function QA.showCustomQADialog(qa_id, on_done, source)
     local view_options = { "common", "filemanager", "reader" }
     local view_labels = {
         common = _("Common"),
-        filemanager = _("File Manager"),
+        filemanager = _("Filemanager"),
         reader = _("Reader"),
     }
 
@@ -2682,7 +2682,7 @@ function QA.getInterfaceFilterMenuItems()
                         fm = fm + 1
                     end
                 end
-                return string.format(_("File Manager Dedicated (%d)"), fm)
+                return string.format(_("Filemanager Dedicated (%d)"), fm)
             end,
             sub_item_table = buildDedicatedListItems("fm"),
         },
