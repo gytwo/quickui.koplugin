@@ -40,50 +40,6 @@ local M = {}
 M._add_tab_dialog = nil
 
 -- ============================================================
--- Configuration - Read from _G.__QUICKUI_CONFIG
--- ============================================================
-
-local function get(key, default)
-    local config = _G.__QUICKUI_CONFIG
-    if config and config[key] ~= nil then
-        return config[key]
-    end
-    return default
-end
-
-local function getBool(key, default)
-    local config = _G.__QUICKUI_CONFIG
-    if config and config[key] ~= nil then
-        return config[key] == true
-    end
-    return default or false
-end
-
-local function getString(key, default)
-    local config = _G.__QUICKUI_CONFIG
-    if config and config[key] ~= nil then
-        return config[key]
-    end
-    return default or ""
-end
-
-local function getNumber(key, default)
-    local config = _G.__QUICKUI_CONFIG
-    if config and config[key] ~= nil then
-        return config[key]
-    end
-    return default or 0
-end
-
-local function set(key, value)
-    local config = _G.__QUICKUI_CONFIG
-    if config then
-        config[key] = value
-        Utils.saveConfig()
-    end
-end
-
--- ============================================================
 -- Constants
 -- ============================================================
 
@@ -94,7 +50,7 @@ local MAX_TABS = 16
 -- ============================================================
 
 local function getNavbarScale()
-    return (getNumber("qa_bb_size_pct", 100) or 100) / 100
+    return (Utils.getNumber("qa_bb_size_pct", 100) or 100) / 100
 end
 
 function M.BAR_H()
@@ -102,12 +58,12 @@ function M.BAR_H()
 end
 
 function M.ICON_SZ()
-    local icon_scale = (getNumber("qa_bb_icon_scale_pct", 100) or 100) / 100
+    local icon_scale = (Utils.getNumber("qa_bb_icon_scale_pct", 100) or 100) / 100
     return math.floor(Screen:scaleBySize(19) * getNavbarScale() * icon_scale)
 end
 
 function M.LABEL_FS()
-    local label_scale = (getNumber("qa_bb_label_scale_pct", 100) or 100) / 100
+    local label_scale = (Utils.getNumber("qa_bb_label_scale_pct", 100) or 100) / 100
     return math.floor(12 * getNavbarScale() * label_scale)
 end
 
@@ -120,7 +76,7 @@ function M.TOP_SP()
 end
 
 function M.BOT_SP()
-    local margin = (getNumber("qa_bb_bottom_margin_pct", 100) or 100) / 100
+    local margin = (Utils.getNumber("qa_bb_bottom_margin_pct", 100) or 100) / 100
     return math.floor(Screen:scaleBySize(1) * margin)
 end
 
@@ -129,12 +85,12 @@ function M.SIDE_M()
 end
 
 function M.SEP_H()
-    if getString("qa_bb_style") == "framed" then return 0 end
+    if Utils.getString("qa_bb_style") == "framed" then return 0 end
     return Screen:scaleBySize(1)
 end
 
 function M.TOTAL_H()
-    if not getBool("qa_bb_enabled", true) then return 0 end
+    if not Utils.getBool("qa_bb_enabled", true) then return 0 end
     return M.BAR_H() + M.TOP_SP() + M.BOT_SP()
 end
 
@@ -143,8 +99,8 @@ end
 -- ============================================================
 
 local function getBarBg()
-    if getBool("qa_bb_transparent", false) then return nil end
-    local hex = getString("qa_bb_bg_color", "")
+    if Utils.getBool("qa_bb_transparent", false) then return nil end
+    local hex = Utils.getString("qa_bb_bg_color", "")
     if hex ~= "" then
         local c = Utils.hexToColor(hex)
         if c then return c end
@@ -153,7 +109,7 @@ local function getBarBg()
 end
 
 local function getBarFg()
-    local hex = getString("qa_bb_fg_color", "")
+    local hex = Utils.getString("qa_bb_fg_color", "")
     if hex ~= "" then
         local c = Utils.hexToColor(hex)
         if c then return c end
@@ -162,7 +118,7 @@ local function getBarFg()
 end
 
 local function getInactiveColor()
-    local hex = getString("qa_bb_inactive_color", "")
+    local hex = Utils.getString("qa_bb_inactive_color", "")
     if hex ~= "" then
         local c = Utils.hexToColor(hex)
         if c then return c end
@@ -171,7 +127,7 @@ local function getInactiveColor()
 end
 
 local function getAccentColor()
-    local hex = getString("qa_bb_accent_color", "")
+    local hex = Utils.getString("qa_bb_accent_color", "")
     if hex ~= "" then
         local c = Utils.hexToColor(hex)
         if c then return c end
@@ -247,8 +203,8 @@ function M.buildTabCell(action_id, active, tab_w, mode)
     local icon_path = QA.getIconForAction(action_id)
     local vg = VerticalGroup:new{ align = "center" }
     local fg = active and getAccentColor() or getBarFg()
-    local bar_style = getString("qa_bb_style", "default")
-    local show_labels = getBool("qa_bb_labels", false)
+    local bar_style = Utils.getString("qa_bb_style", "default")
+    local show_labels = Utils.getBool("qa_bb_labels", false)
 
     if mode == "icons" or mode == "both" then
         local icon_widget = makeIconWidget(icon_path, M.ICON_SZ(), fg)
@@ -296,7 +252,7 @@ function M.buildTabCell(action_id, active, tab_w, mode)
         content,
     }
 
-    if bar_style == "default" and not getBool("qa_bb_transparent", false) then
+    if bar_style == "default" and not Utils.getBool("qa_bb_transparent", false) then
         if active then
             og[#og + 1] = LineWidget:new{
                 dimen = Geom:new{ w = tab_w, h = M.INDIC_H() },
@@ -335,7 +291,7 @@ end
 -- ============================================================
 
 local function buildContainer(hg_args)
-    local style = getString("qa_bb_style", "default")
+    local style = Utils.getString("qa_bb_style", "default")
     local bg = getBarBg()
 
     if style == "framed" then
@@ -415,7 +371,7 @@ end
 function M.buildBar(active_action_id)
     local tabs = getTabs()
     local num_tabs = #tabs
-    local mode = getString("qa_bb_mode", "both")
+    local mode = Utils.getString("qa_bb_mode", "both")
     local screen_w = Screen:getWidth()
     local side_m = M.SIDE_M()
     local usable_w = screen_w - side_m * 2
@@ -450,9 +406,9 @@ function getAvailableActions()
 end
 
 function getTabs()
-    local tabs = get("qa_bb_tabs", nil)
+    local tabs = Utils.get("qa_bb_tabs", nil)
 
-    local filter_enabled = getBool("qa_common_context_filter")
+    local filter_enabled = Utils.getBool("qa_common_context_filter")
 
     local current_view = "common"
     if filter_enabled then
@@ -508,11 +464,11 @@ function getTabs()
 end
 
 function M.isEnabled()
-    return getBool("qa_bb_enabled", true)
+    return Utils.getBool("qa_bb_enabled", true)
 end
 
 function M.setEnabled(enabled)
-    set("qa_bb_enabled", enabled)
+    Utils.set("qa_bb_enabled", enabled)
 end
 
 -- ============================================================
@@ -593,7 +549,7 @@ function M.registerTouchZones(fm_self)
                 ratio_h = nav_h / screen_h,
             },
             handler = function()
-                if not getBool("qa_bb_button_hold_edit", true) then
+                if not Utils.getBool("qa_bb_button_hold_edit", true) then
                     return true
                 end
                 local action_id = tabs[pos]
@@ -635,7 +591,7 @@ function M.registerTouchZones(fm_self)
             ratio_h = nav_h / screen_h,
         },
         handler = function()
-            if getBool("qa_bb_settings_on_hold", true) then
+            if Utils.getBool("qa_bb_settings_on_hold", true) then
                 local settings = require("qui_actions.qa_settings")
                 if settings and settings.showBottombarSettings then
                     settings.showBottombarSettings()
@@ -655,7 +611,7 @@ end
 -- ============================================================
 
 function M.wrapWithBottombar(inner_widget)
-    if not getBool("qa_bb_enabled", true) then return inner_widget end
+    if not Utils.getBool("qa_bb_enabled", true) then return inner_widget end
 
     local screen_w = Screen:getWidth()
     local screen_h = Screen:getHeight()
@@ -731,8 +687,8 @@ function M.wrapWithBottombar(inner_widget)
     og._bottombar_bar_idx = 2
     og._bottombar_container = og
 
-    local is_bare = getString("qa_bb_style") == "bare"
-    local bg = (getBool("qa_bb_transparent", false) or is_bare) and nil or Blitbuffer.COLOR_WHITE
+    local is_bare = Utils.getString("qa_bb_style") == "bare"
+    local bg = (Utils.getBool("qa_bb_transparent", false) or is_bare) and nil or Blitbuffer.COLOR_WHITE
 
     return FrameContainer:new{
         bordersize = 0,
@@ -870,7 +826,7 @@ end
 -- ============================================================
 
 function M.showAddTabMenu(on_back, filtered_actions)
-    local current_tabs = get("qa_bb_tabs", nil)
+    local current_tabs = Utils.get("qa_bb_tabs", nil)
     if type(current_tabs) ~= "table" then
         current_tabs = {}
     end
@@ -997,7 +953,7 @@ function M.showAddTabMenu(on_back, filtered_actions)
                     end
                 end
 
-                set("qa_bb_tabs", new_tabs)
+                Utils.set("qa_bb_tabs", new_tabs)
                 M.refresh()
                 if M._add_tab_dialog then
                     UIManager:close(M._add_tab_dialog)
@@ -1043,7 +999,7 @@ function M.showAddTabMenu(on_back, filtered_actions)
                         new_tabs[#new_tabs + 1] = action.id
                     end
 
-                    set("qa_bb_tabs", new_tabs)
+                    Utils.set("qa_bb_tabs", new_tabs)
                     M.refresh()
                     if M._add_tab_dialog then
                         UIManager:close(M._add_tab_dialog)
