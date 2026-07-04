@@ -19,6 +19,9 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
 
 > 💡 **灵感来源**：SimpleUI、ZenUI、ShortcutsToolbar
 
+![Qui-文件管理器](pictures/Qui-filemanager.png)
+![Qui-阅读器](pictures/Qui-reader.png)
+
 ---
 
 ## 📄 许可证
