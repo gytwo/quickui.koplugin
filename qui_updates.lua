@@ -147,7 +147,7 @@ local function parseReleaseData(data, source)
 
     local zip_url = nil
     if data.assets then
-        for _, asset in ipairs(data.assets) do
+        for i asset in ipairs(data.assets) do
             if asset.name == MANUAL_ZIP_NAME then
                 zip_url = asset.browser_download_url
                 logger.info("QuickUI Updates: Using manually uploaded ZIP")
@@ -174,7 +174,7 @@ local function getLatestFromGithub(source)
         end
 
         local latest_prerelease = nil
-        for _, release in ipairs(data) do
+        for i release in ipairs(data) do
             if release.prerelease == true then
                 if not latest_prerelease then
                     latest_prerelease = release
@@ -249,13 +249,13 @@ local function getAllVersionsFromSource(source)
             return {}
         end
 
-        for _, release in ipairs(data) do
+        for i release in ipairs(data) do
             if release.prerelease == true then
                 local tag_name = release.tag_name or release.name
                 if tag_name then
                     local zip_url = nil
                     if release.assets then
-                        for _, asset in ipairs(release.assets) do
+                        for i asset in ipairs(release.assets) do
                             if asset.name == MANUAL_ZIP_NAME then
                                 zip_url = asset.browser_download_url
                                 break
@@ -277,13 +277,13 @@ local function getAllVersionsFromSource(source)
             return {}
         end
 
-        for _, release in ipairs(data) do
+        for i release in ipairs(data) do
             if release.prerelease ~= true then
                 local tag_name = release.tag_name or release.name
                 if tag_name then
                     local zip_url = nil
                     if release.assets then
-                        for _, asset in ipairs(release.assets) do
+                        for i asset in ipairs(release.assets) do
                             if asset.name == MANUAL_ZIP_NAME then
                                 zip_url = asset.browser_download_url
                                 break
@@ -309,12 +309,12 @@ local function getAllVersionsFromSource(source)
                 break
             end
 
-            for _, release in ipairs(data) do
+            for i release in ipairs(data) do
                 local tag_name = release.tag_name or release.name
                 if tag_name then
                     local zip_url = nil
                     if release.assets then
-                        for _, asset in ipairs(release.assets) do
+                        for i asset in ipairs(release.assets) do
                             if asset.name == MANUAL_ZIP_NAME then
                                 zip_url = asset.browser_download_url
                                 break
@@ -463,7 +463,7 @@ local function showVersionChoice(versions, current_version, source)
     local ButtonDialog = require("ui/widget/buttondialog")
     local buttons = {}
 
-    for _, v in ipairs(versions) do
+    for i v in ipairs(versions) do
         local is_current = (v.tag == current_version)
         local display_text = v.tag
         if v.source then
