@@ -2701,6 +2701,7 @@ function QA.getInterfaceFilterMenuItems()
         },
         {
             text = _("Reset to Defaults"),
+            close_on_click = true, 
             callback = function(touchmenu_instance)
                 UIManager:show(ConfirmBox:new{
                     text = _("Reset all dedicated view settings to defaults?"),
