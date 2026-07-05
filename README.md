@@ -26,8 +26,8 @@ QuickUI is a comprehensive KOReader enhancement plugin that integrates **four co
 
 <table>
   <tr>
-    <td><img src="pictures/Qui-filemanager.png" alt="Qui-filemanager" width="100%" /></td>
-    <td><img src="pictures/Qui-reader.png" alt="Qui-reader" width="100%" /></td>
+    <td><img src="pictures/Qui-filemanager.png" alt="Qui-filemanager" width="400" /></td>
+    <td><img src="pictures/Qui-reader.png" alt="Qui-reader" width="400" /></td>
   </tr>
 </table>
 
@@ -114,8 +114,12 @@ A customizable action panel integrated into the top menu bar:
 | `QuickUI_ClozeSettings` | Cloze Settings | Reader | Cloze mode settings |
 | `QuickUI_HFSettings` | Header/Footer Settings | Reader | Header/Footer settings |
 
-![Qui-settings-QA-qa](pictures/Qui-settings-QA-qa.png)
-![Qui-settings-QA-qa-editqa](pictures/Qui-settings-QA-qa-editqa.png)
+<table>
+  <tr>
+    <td><img src="pictures/Qui-settings-QA-qa.png" alt="Qui-settings-QA-qa" width="400" /></td>
+    <td><img src="pictures/Qui-settings-QA-qa-editqa.png" alt="Qui-settings-QA-qa-editqa" width="400" /></td>
+  </tr>
+</table>
 
 #### 📌 1.2 Quick Actions Bottom Bar
 
@@ -136,8 +140,12 @@ A customizable navigation bar at the bottom of the screen:
 | **Tab Management** | Add/Remove/Arrange |
 | **Long Press** | Edit tab / Open settings |
 
-<img src="pictures/Qui-settings-QA-bottom.png" alt="Qui-settings-QA-bottom" width="400" />
-<img src="pictures/Qui-settings-QA-bottom-addtab.png" alt="Qui-settings-QA-bottom-addtab" width="400" />
+<table>
+  <tr>
+    <td><img src="pictures/Qui-settings-QA-bottom.png" alt="Qui-settings-QA-bottom" width="400" /></td>
+    <td><img src="pictures/Qui-settings-QA-bottom-addtab.png" alt="Qui-settings-QA-bottom-addtab" width="400" /></td>
+  </tr>
+</table>
 
 #### 📌 1.3 Custom Actions
 
@@ -151,8 +159,12 @@ Supports five types of custom actions:
 | ⚙️ **System Action** | Call Dispatcher system actions | Auto-detected (changeable)  |
 | 📋 **Recorded Menu Action** | Record any menu item as a quick action | Auto-detected,locked (unchangeable) |
 
-<img src="pictures/Qui-settings-QA-qa-addnew.png" alt="Qui-settings-QA-qa-addnew" width="400" />
-<img src="pictures/Qui-settings-QA-actiontype.png" alt="Qui-settings-QA-actiontype" width="400" />
+<table>
+  <tr>
+    <td><img src="pictures/Qui-settings-QA-qa-addnew.png" alt="Qui-settings-QA-qa-addnew" width="400" /></td>
+    <td><img src="pictures/Qui-settings-QA-actiontype.png" alt="Qui-settings-QA-actiontype" width="400" /></td>
+  </tr>
+</table>
 
 #### 📌 1.4 Icon Picker
 
@@ -165,8 +177,12 @@ Supports five types of custom actions:
 | **System Icon Override** | Replace built-in system icons (requires restart) |
 | **Batch Operations** | Reset all overrides / Apply all replacements |
 
-<img src="pictures/Qui-settings-QA-iconpicker.png" alt="Qui-settings-QA-iconpicker" width="400" />
-<img src="pictures/Qui-settings-QA-systemiconoverride.png" alt="Qui-settings-QA-systemiconoverride" width="400" />
+<table>
+  <tr>
+    <td><img src="pictures/Qui-settings-QA-iconpicker.png" alt="Qui-settings-QA-iconpicker" width="400" /></td>
+    <td><img src="pictures/Qui-settings-QA-systemiconoverride.png" alt="Qui-settings-QA-systemiconoverride" width="400" /></td>
+  </tr>
+</table>
 
 #### 📌 1.5 UI Font Switcher
 
