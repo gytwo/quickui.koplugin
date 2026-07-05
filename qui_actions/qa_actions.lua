@@ -1072,7 +1072,6 @@ end
 
 function QA.registerAllActions()
     if QA._registered then
-        logger.info("QuickUI QA: actions already registered, skipping")
         return
     end
 
@@ -1716,7 +1715,6 @@ function QA.registerAllActions()
             end
         end)
     end
-
     logger.info("QuickUI QA: All built-in actions registered (" .. #ACTION_ORDER .. " actions)")
 end
 
@@ -1725,7 +1723,6 @@ end
 -- ============================================================
 
 function QA.init(plugin)
-    logger.info("QuickUI QA Actions: initialized")
 end
 
 QA.ACTION_ORDER = ACTION_ORDER
