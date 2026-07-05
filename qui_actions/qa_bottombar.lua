@@ -761,7 +761,6 @@ function M.rebuildBottombar()
             end
         end
     end
-   logger.info("QuickUI QA BottomBar: rebuildBottombar done")
 end
 
 -- ============================================================
@@ -769,12 +768,10 @@ end
 -- ============================================================
 
 function M.removeBottombar()
-    logger.info("QuickUI QA BottomBar: removeBottombar called")
 
     local FM = require("apps/filemanager/filemanager")
     local fm = FM and FM.instance
     if fm and fm._bottombar_original_inner then
-        logger.info("QuickUI QA BottomBar: removing from FileManager")
         fm[1] = fm._bottombar_original_inner
         fm._bottombar_container = nil
         fm._bottombar_original_inner = nil
@@ -794,7 +791,6 @@ function M.removeBottombar()
     local RUI = require("apps/reader/readerui")
     local reader = RUI and RUI.instance
     if reader and reader._bottombar_original_inner then
-        logger.info("QuickUI QA BottomBar: removing from Reader")
         reader[1] = reader._bottombar_original_inner
         reader._bottombar_container = nil
         reader._bottombar_original_inner = nil
@@ -817,7 +813,6 @@ end
 -- ============================================================
 
 function M.refresh()
-    logger.info("QuickUI QA BottomBar: refresh called")
     M.rebuildBottombar()
 end
 
@@ -1073,7 +1068,6 @@ function M.init()
     end
     UIManager:scheduleIn(0.5, hookDeviceListener)
 
-    logger.info("QuickUI QA BottomBar: initialized")
     UIManager:scheduleIn(0.1, function()
        M.rebuildBottombar()
     end)
