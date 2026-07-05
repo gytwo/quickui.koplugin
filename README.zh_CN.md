@@ -17,7 +17,12 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
 | 🔍 **遮盖模式** | 标注遮罩模式，用于复习和自测（高亮、下划线、删除线） |
 | 📐 **页眉页脚** | 阅读页面顶部/底部显示时间、页码、进度、章节、电量等信息 |
 
-> 💡 **灵感来源**：SimpleUI、ZenUI、ShortcutsToolbar
+> 💡 **灵感来源**：
+- [shortcutstoolbar.koplugin](https://github.com/xusoo/shortcutstoolbar.koplugin)
+- [simpleui.koplugin](https://github.com/doctorhetfield-cmd/simpleui.koplugin)
+- [zen_ui.koplugin](https://github.com/AnthonyGress/zen_ui.koplugin)
+- [kopatches repo](https://github.com/gytwo/kopatches)
+- [KOReader.patches](https://github.com/joshuacant/KOReader.patches)
 
 ![Qui-文件管理器](pictures/Qui-filemanager.png)
 ![Qui-阅读器](pictures/Qui-reader.png)
@@ -27,17 +32,6 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
 ## 📄 许可证
 
 本项目采用 **GNU Affero General Public License v3.0 (AGPL-3.0)** 许可证。
-
-您可以：
-- 出于任何目的使用本插件
-- 修改和改编代码
-- 分发原始或修改后的代码副本
-
-但须遵守以下条件：
-- 分发软件时必须**公开源代码**
-- 必须**包含原始版权声明和许可证**
-- 必须**说明您对代码所做的所有更改**
-- 如果将软件作为**网络服务**运行，必须向用户提供源代码
 
 完整许可证文本请参见：[https://www.gnu.org/licenses/agpl-3.0.en.html](https://www.gnu.org/licenses/agpl-3.0.en.html)
 
@@ -222,10 +216,10 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
 
 | 功能模块 | 设置入口 | 说明 |
 | :--- | :--- | :--- |
-| **快捷操作** | `设置 → 插件管理 → QuickUI` | 取消勾选 **"启用快捷操作"** |
-| **封面美化** | `设置 → 插件管理 → QuickUI` | 取消勾选 **"启用封面美化"** |
-| **遮盖模式** | `设置 → 插件管理 → QuickUI` | 取消勾选 **"启用遮盖模式"** |
-| **页眉页脚** | `设置 → 插件管理 → QuickUI` | 取消勾选 **"启用页眉页脚"** |
+| **快捷操作** | `工具 → QuickUI` | 取消勾选 **"启用快捷操作"** |
+| **封面美化** | `工具 → QuickUI` | 取消勾选 **"启用封面美化"** |
+| **遮盖模式** | `工具 → QuickUI` | 取消勾选 **"启用遮盖模式"** |
+| **页眉页脚** | `工具 → QuickUI` | 取消勾选 **"启用页眉页脚"** |
 
 > 禁用模块后，需要**重启 KOReader** 才能生效。
 
@@ -339,7 +333,7 @@ quickui.koplugin/
 
 ## ⚙️ 配置
 
-所有设置存储在：`~/.adds/koreader/settings/quickui.lua`
+所有设置存储在：`~/koreader/settings/quickui.lua`
 
 默认配置定义在 `qui_utils.lua` 的 `DEFAULT_SETTINGS` 表中：
 
