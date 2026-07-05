@@ -24,8 +24,12 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
 - [kopatches repo](https://github.com/gytwo/kopatches)
 - [KOReader.patches](https://github.com/joshuacant/KOReader.patches)
 
-<img src="pictures/Qui-filemanager.png" alt="Qui-filemanager" width="500" />
-<img src="pictures/Qui-reader.png" alt="Qui-reader" width="500" />
+<table>
+  <tr>
+    <td><img src="pictures/Qui-filemanager.png" alt="Qui-filemanager" width="400" /></td>
+    <td><img src="pictures/Qui-reader.png" alt="Qui-reader" width="400" /></td>
+  </tr>
+</table>
 
 ---
 
@@ -39,13 +43,13 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
 
 ## 🚀 核心功能
 
-<img src="pictures/Qui-settings-Qui.png" alt="Qui-settings-Qui" width="500" />
+<img src="pictures/Qui-settings-Qui.png" alt="Qui-settings-Qui" width="400" />
 
 ### 1. ⚡ 快捷操作
 
 这是 QuickUI 最核心、最强大的功能模块，包含以下几个子模块：
 
-<img src="pictures/Qui-settings-QA.png" alt="Qui-settings-QA" width="500" />
+<img src="pictures/Qui-settings-QA.png" alt="Qui-settings-QA" width="400" />
 
 #### 📌 1.1 快捷面板
 
@@ -65,8 +69,12 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
 | **滑块** | 前光强度 / 色温（带数值显示） |
 | **长按操作** | 编辑按钮 / 打开设置 |
 
-<img src="pictures/Qui-settings-QA-panel.png" alt="Qui-settings-QA-panel" width="500" />
-<img src="pictures/Qui-settings-QA-panel-addbutton.png" alt="Qui-settings-QA-panel-addbutton" width="500" />
+<table>
+  <tr>
+    <td><img src="pictures/Qui-settings-QA-panel.png" alt="Qui-settings-QA-panel" width="400" /></td>
+    <td><img src="pictures/Qui-settings-QA-panel-addbutton.png" alt="Qui-settings-QA-panel-addbutton" width="400" /></td>
+  </tr>
+</table>
 
 **内置操作完整列表：**
 
@@ -106,8 +114,12 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
 | `QuickUI_ClozeSettings` | 遮盖设置 | 阅读器 | 遮盖模式设置 |
 | `QuickUI_HFSettings` | 页眉页脚设置 | 阅读器 | 页眉页脚设置 |
 
-<img src="pictures/Qui-settings-QA-qa.png" alt="Qui-settings-QA-qa" width="500" />
-<img src="pictures/Qui-settings-QA-qa-editqa.png" alt="Qui-settings-QA-qa-editqa" width="500" />
+<table>
+  <tr>
+    <td><img src="pictures/Qui-settings-QA-qa.png" alt="Qui-settings-QA-qa" width="400" /></td>
+    <td><img src="pictures/Qui-settings-QA-qa-editqa.png" alt="Qui-settings-QA-qa-editqa" width="400" /></td>
+  </tr>
+</table>
 
 #### 📌 1.2 底部栏
 
@@ -128,8 +140,12 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
 | **按钮管理** | 添加/删除/排列 |
 | **长按操作** | 编辑按钮 / 打开设置 |
 
-<img src="pictures/Qui-settings-QA-bottom.png" alt="Qui-settings-QA-bottom" width="500" />
-<img src="pictures/Qui-settings-QA-bottom-addtab.png" alt="Qui-settings-QA-bottom-addtab" width="500" />
+<table>
+  <tr>
+    <td><img src="pictures/Qui-settings-QA-bottom.png" alt="Qui-settings-QA-bottom" width="400" /></td>
+    <td><img src="pictures/Qui-settings-QA-bottom-addtab.png" alt="Qui-settings-QA-bottom-addtab" width="400" /></td>
+  </tr>
+</table>
 
 #### 📌 1.3 自定义操作
 
@@ -143,8 +159,12 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
 | ⚙️ **系统操作** | 调用 Dispatcher 系统操作 | 自动判断，可更改 |
 | 📋 **录制菜单操作** | 录制任意菜单项为快捷操作 | 自动判断，锁定（不可更改） |
 
-<img src="pictures/Qui-settings-QA-qa-addnew.png" alt="Qui-settings-QA-qa-addnew" width="500" />
-<img src="pictures/Qui-settings-QA-actiontype.png" alt="Qui-settings-QA-actiontype" width="500" />
+<table>
+  <tr>
+    <td><img src="pictures/Qui-settings-QA-qa-addnew.png" alt="Qui-settings-QA-qa-addnew" width="400" /></td>
+    <td><img src="pictures/Qui-settings-QA-actiontype.png" alt="Qui-settings-QA-actiontype" width="400" /></td>
+  </tr>
+</table>
 
 #### 📌 1.4 图标选择器
 
@@ -157,8 +177,12 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
 | **系统图标替换** | 替换系统内置图标（需要重启） |
 | **批量操作** | 重置全部替换 / 应用全部替换 |
 
-<img src="pictures/Qui-settings-QA-iconpicker.png" alt="Qui-settings-QA-iconpicker" width="500" />
-<img src="pictures/Qui-settings-QA-systemiconoverride.png" alt="Qui-settings-QA-systemiconoverride" width="500" />
+<table>
+  <tr>
+    <td><img src="pictures/Qui-settings-QA-iconpicker.png" alt="Qui-settings-QA-iconpicker" width="400" /></td>
+    <td><img src="pictures/Qui-settings-QA-systemiconoverride.png" alt="Qui-settings-QA-systemiconoverride" width="400" /></td>
+  </tr>
+</table>
 
 #### 📌 1.5 UI 字体切换
 
@@ -172,7 +196,7 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
 - 实时预览效果
 - 一键重置所有字体
 
-<img src="pictures/Qui-settings-QA-uifontswitch.png" alt="Qui-settings-QA-uifontswitch" width="500" />
+<img src="pictures/Qui-settings-QA-uifontswitch.png" alt="Qui-settings-QA-uifontswitch" width="400" />
 
 #### 📌 1.6 界面过滤
 
@@ -183,7 +207,7 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
 | **阅读器专用** | 标记仅在阅读器显示的操作 |
 | **恢复默认** | 恢复所有操作到通用界面 |
 
-<img src="pictures/Qui-settings-QA-filter.png" alt="Qui-settings-QA-filter" width="500" />
+<img src="pictures/Qui-settings-QA-filter.png" alt="Qui-settings-QA-filter" width="400" />
 
 ---
 
@@ -201,7 +225,7 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
 | **封面比例** | 3:4（默认）/ 2:3 | 封面宽高比 |
 | **其他** | 封面圆角 / 封面下方显示标题 / 封面下方显示作者 / 隐藏下划线 / 隐藏返回上级 | 通用开关 |
 
-<img src="pictures/Qui-settings-Cover.png" alt="Qui-settings-Cover" width="500" />
+<img src="pictures/Qui-settings-Cover.png" alt="Qui-settings-Cover" width="400" />
 
 ---
 
@@ -215,7 +239,7 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
 | **快捷操作** | 全部遮盖 / 全部取消遮盖 |
 | **Dispatcher 操作** | `QuickUI_ClozeEnable`、`QuickUI_ClozeToggleAll`、`QuickUI_ClozeSettings` |
 
-<img src="pictures/Qui-settings-Cloze.png" alt="Qui-settings-Cloze" width="500" />
+<img src="pictures/Qui-settings-Cloze.png" alt="Qui-settings-Cloze" width="400" />
 
 ---
 
@@ -231,7 +255,7 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
 | **进度小数位数** | 0、1 或 2 |
 | **PDF 支持** | 是否在 PDF 文档中显示（默认禁用） |
 
-<img src="pictures/Qui-settings-HF.png" alt="Qui-settings-HF" width="500" />
+<img src="pictures/Qui-settings-HF.png" alt="Qui-settings-HF" width="400" />
 
 ---
 
@@ -288,19 +312,19 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
 
 | 操作名称 | Dispatcher 事件 | 适用界面 |
 | :--- | :--- | :--- |
-| 打开快捷面板 | `QuickUI_Panel` | 文件管理器 / 阅读器 |
-| 快捷操作设置 | `QuickUI_QASettings` | 文件管理器 / 阅读器 |
+| 打开快捷面板 | `QuickUI_Panel` | 常规 |
+| 快捷操作设置 | `QuickUI_QASettings` | 常规 |
 | 封面设置 | `QuickUI_CoverSettings` | 文件管理器 |
 | 启用/禁用遮盖 | `QuickUI_ClozeEnable` | 阅读器 |
 | 全部遮盖/取消遮盖 | `QuickUI_ClozeToggleAll` | 阅读器 |
 | 遮盖设置 | `QuickUI_ClozeSettings` | 阅读器 |
 | 页眉页脚设置 | `QuickUI_HFSettings` | 阅读器 |
-| 新建快捷操作 | `QuickUI_NewAction` | 文件管理器 / 阅读器 |
-| 面板设置 | `QuickUI_PanelSettings` | 文件管理器 / 阅读器 |
-| 添加面板按钮 | `QuickUI_AddPanelButton` | 文件管理器 / 阅读器 |
-| 底部栏开关 | `QuickUI_BottombarToggle` | 文件管理器 / 阅读器 |
-| 底部栏设置 | `QuickUI_BottombarSettings` | 文件管理器 / 阅读器 |
-| 添加底部栏按钮 | `QuickUI_AddBottomBarTab` | 文件管理器 / 阅读器 |
+| 新建快捷操作 | `QuickUI_NewAction` | 常规 |
+| 面板设置 | `QuickUI_PanelSettings` | 常规 |
+| 添加面板按钮 | `QuickUI_AddPanelButton` | 常规 |
+| 底部栏开关 | `QuickUI_BottombarToggle` | 常规 |
+| 底部栏设置 | `QuickUI_BottombarSettings` | 常规 |
+| 添加底部栏按钮 | `QuickUI_AddBottomBarTab` | 常规 |
 
 ---
 
