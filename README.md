@@ -17,7 +17,12 @@ QuickUI is a comprehensive KOReader enhancement plugin that integrates **four co
 | 🎭 **Cloze Mode** | Annotation masking for review and self-testing (highlights, underlines, strikeouts) |
 | 📐 **Header & Footer** | Display time, page numbers, progress, chapter info, battery status at top/bottom of reading screen |
 
-> 💡 **Inspiration**: SimpleUI, ZenUI, ShortcutsToolbar
+> 💡 **Inspiration**:
+- [shortcutstoolbar.koplugin](https://github.com/xusoo/shortcutstoolbar.koplugin)
+- [simpleui.koplugin](https://github.com/doctorhetfield-cmd/simpleui.koplugin)
+- [zen_ui.koplugin](https://github.com/AnthonyGress/zen_ui.koplugin)
+- [kopatches repo](https://github.com/gytwo/kopatches)
+- [KOReader.patches](https://github.com/joshuacant/KOReader.patches)
 
 ![Qui-filemanager](pictures/Qui-filemanager.png)
 ![Qui-reader](pictures/Qui-reader.png)
@@ -222,10 +227,10 @@ You can independently enable/disable the four feature modules in QuickUI's setti
 
 | Feature | Settings Entry | Description |
 | :--- | :--- | :--- |
-| **Quick Actions** | `Settings → Plugin Management → QuickUI` | Uncheck **"Enable Quick Actions"** |
-| **Cover Visual Enhancements** | `Settings → Plugin Management → QuickUI` | Uncheck **"Enable Cover"** |
-| **Cloze Mode** | `Settings → Plugin Management → QuickUI` | Uncheck **"Enable Cloze Mode"** |
-| **Header & Footer** | `Settings → Plugin Management → QuickUI` | Uncheck **"Enable Header & Footer"** |
+| **Quick Actions** | `Tools → QuickUI` | Uncheck **"Enable Quick Actions"** |
+| **Cover Visual Enhancements** | `Tools → QuickUI` | Uncheck **"Enable Cover"** |
+| **Cloze Mode** | `Tools → QuickUI` | Uncheck **"Enable Cloze Mode"** |
+| **Header & Footer** | `Tools → QuickUI` | Uncheck **"Enable Header & Footer"** |
 
 > Disabling a module requires a **KOReader restart** to take effect.
 
