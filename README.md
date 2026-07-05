@@ -312,19 +312,19 @@ These patches are by the same author as QuickUI and share the same functionality
 
 | Action | Dispatcher Event | View |
 | :--- | :--- | :--- |
-| Open Quick Panel | `QuickUI_Panel` | Filemanager / Reader |
-| Quick Actions Settings | `QuickUI_QASettings` | Filemanager / Reader |
+| Open Quick Panel | `QuickUI_Panel` | General |
+| Quick Actions Settings | `QuickUI_QASettings` | General |
 | Cover Settings | `QuickUI_CoverSettings` | Filemanager |
 | Enable/Disable Cloze | `QuickUI_ClozeEnable` | Reader |
 | Cover/Uncover All | `QuickUI_ClozeToggleAll` | Reader |
 | Cloze Settings | `QuickUI_ClozeSettings` | Reader |
 | Header/Footer Settings | `QuickUI_HFSettings` | Reader |
-| New Quick Action | `QuickUI_NewAction` | Filemanager / Reader |
-| Panel Settings | `QuickUI_PanelSettings` | Filemanager / Reader |
-| Add Panel Button | `QuickUI_AddPanelButton` | Filemanager / Reader |
-| Toggle Bottom Bar | `QuickUI_BottombarToggle` | Filemanager / Reader |
-| Bottom Bar Settings | `QuickUI_BottombarSettings` | Filemanager / Reader |
-| Add Bottom Bar Tab | `QuickUI_AddBottomBarTab` | Filemanager / Reader |
+| New Quick Action | `QuickUI_NewAction` | General |
+| Panel Settings | `QuickUI_PanelSettings` | General |
+| Add Panel Button | `QuickUI_AddPanelButton` | General |
+| Toggle Bottom Bar | `QuickUI_BottombarToggle` | General |
+| Bottom Bar Settings | `QuickUI_BottombarSettings` | General |
+| Add Bottom Bar Tab | `QuickUI_AddBottomBarTab` | General |
 
 ---
 
