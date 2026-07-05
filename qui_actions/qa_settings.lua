@@ -54,7 +54,6 @@ _G.__QUICKUI_PLUGIN_STORE = PLUGIN_STORE
 
 function QA.init(plugin)
     PLUGIN_STORE.plugin_ref = plugin
-    logger.info("QuickUI QA Settings: initialized")
 
     -- Register refresh handler for Utils
     Utils.registerRefreshHandler("qa_panel", function()
@@ -65,7 +64,6 @@ end
 function QA.setBottombar(bb)
     PLUGIN_STORE.bottombar = bb
     if bb then
-        logger.info("QuickUI QA Settings: BottomBar received")
     else
         logger.warn("QuickUI QA Settings: BottomBar not available")
     end
