@@ -204,7 +204,6 @@ function Utils.saveConfig()
     if f then
         f:write("return " .. Utils.serializeTable(config))
         f:close()
-        logger.info("QuickUI Utils: Config saved")
     end
     -- Reload after save to ensure consistency
     Utils.loadConfig()
@@ -862,7 +861,6 @@ function Utils.patchFileChooserForBottombar()
         return orig_update(fc_self, ...)
     end
 
-    logger.info("QuickUI Utils: FileChooser patched for bottombar")
 end
 
 -- ============================================================
