@@ -258,8 +258,8 @@ msgstr "标签大小"
 msgid "Long-press button to edit"
 msgstr "长按按钮编辑"
 
-msgid "Long-press tab to open settings"
-msgstr "长按按钮打开设置"
+msgid "Long-press panel to open settings"
+msgstr "长按面板打开设置"
 
 msgid "Long press to edit"
 msgstr "长按编辑"
