@@ -344,7 +344,7 @@ quickui.koplugin/
 
 ## ⚙️ Configuration
 
-All settings are stored in: `~/.adds/koreader/settings/quickui.lua`
+All settings are stored in: `~/koreader/settings/quickui.lua`
 
 Default settings are defined in `DEFAULT_SETTINGS` in `qui_utils.lua`:
 
