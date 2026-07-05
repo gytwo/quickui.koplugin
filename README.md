@@ -24,8 +24,12 @@ QuickUI is a comprehensive KOReader enhancement plugin that integrates **four co
 - [kopatches repo](https://github.com/gytwo/kopatches)
 - [KOReader.patches](https://github.com/joshuacant/KOReader.patches)
 
-<img src="pictures/Qui-filemanager.png" alt="Qui-filemanager" width="500" />
-<img src="pictures/Qui-reader.png" alt="Qui-reader" width="500" />
+<table>
+  <tr>
+    <td><img src="pictures/Qui-filemanager.png" alt="Qui-filemanager" width="100%" /></td>
+    <td><img src="pictures/Qui-reader.png" alt="Qui-reader" width="100%" /></td>
+  </tr>
+</table>
 
 ---
 
@@ -39,13 +43,13 @@ For the full license text, see: [https://www.gnu.org/licenses/agpl-3.0.en.html](
 
 ## 🚀 Core Features
 
-<img src="pictures/Qui-settings-Qui.png" alt="Qui-settings-Qui" width="500" />
+<img src="pictures/Qui-settings-Qui.png" alt="Qui-settings-Qui" width="400" />
 
 ### 1. ⚡ Quick Actions
 
 This is QuickUI's most powerful module, consisting of the following sub-modules:
 
-<img src="pictures/Qui-settings-QA.png" alt="Qui-settings-QA" width="500" />
+<img src="pictures/Qui-settings-QA.png" alt="Qui-settings-QA" width="400" />
 
 #### 📌 1.1 Quick Actions Panel
 
@@ -65,8 +69,12 @@ A customizable action panel integrated into the top menu bar:
 | **Sliders** | Frontlight intensity / Color temperature (with value display) |
 | **Long Press** | Edit button / Open settings |
 
-<img src="pictures/Qui-settings-QA-panel.png" alt="Qui-settings-QA-panel" width="500" />
-<img src="pictures/Qui-settings-QA-panel-addbutton.png" alt="Qui-settings-QA-panel-addbutton" width="500" />
+<table>
+  <tr>
+    <td><img src="pictures/Qui-settings-QA-panel.png" alt="Qui-settings-QA-panel" width="400" /></td>
+    <td><img src="pictures/Qui-settings-QA-panel-addbutton.png" alt="Qui-settings-QA-panel-addbutton" width="400" /></td>
+  </tr>
+</table>
 
 **Complete Built-in Action List:**
 
@@ -128,8 +136,8 @@ A customizable navigation bar at the bottom of the screen:
 | **Tab Management** | Add/Remove/Arrange |
 | **Long Press** | Edit tab / Open settings |
 
-<img src="pictures/Qui-settings-QA-bottom.png" alt="Qui-settings-QA-bottom" width="500" />
-<img src="pictures/Qui-settings-QA-bottom-addtab.png" alt="Qui-settings-QA-bottom-addtab" width="500" />
+<img src="pictures/Qui-settings-QA-bottom.png" alt="Qui-settings-QA-bottom" width="400" />
+<img src="pictures/Qui-settings-QA-bottom-addtab.png" alt="Qui-settings-QA-bottom-addtab" width="400" />
 
 #### 📌 1.3 Custom Actions
 
@@ -143,8 +151,8 @@ Supports five types of custom actions:
 | ⚙️ **System Action** | Call Dispatcher system actions | Auto-detected (changeable)  |
 | 📋 **Recorded Menu Action** | Record any menu item as a quick action | Auto-detected,locked (unchangeable) |
 
-<img src="pictures/Qui-settings-QA-qa-addnew.png" alt="Qui-settings-QA-qa-addnew" width="500" />
-<img src="pictures/Qui-settings-QA-actiontype.png" alt="Qui-settings-QA-actiontype" width="500" />
+<img src="pictures/Qui-settings-QA-qa-addnew.png" alt="Qui-settings-QA-qa-addnew" width="400" />
+<img src="pictures/Qui-settings-QA-actiontype.png" alt="Qui-settings-QA-actiontype" width="400" />
 
 #### 📌 1.4 Icon Picker
 
@@ -157,8 +165,8 @@ Supports five types of custom actions:
 | **System Icon Override** | Replace built-in system icons (requires restart) |
 | **Batch Operations** | Reset all overrides / Apply all replacements |
 
-<img src="pictures/Qui-settings-QA-iconpicker.png" alt="Qui-settings-QA-iconpicker" width="500" />
-<img src="pictures/Qui-settings-QA-systemiconoverride.png" alt="Qui-settings-QA-systemiconoverride" width="500" />
+<img src="pictures/Qui-settings-QA-iconpicker.png" alt="Qui-settings-QA-iconpicker" width="400" />
+<img src="pictures/Qui-settings-QA-systemiconoverride.png" alt="Qui-settings-QA-systemiconoverride" width="400" />
 
 #### 📌 1.5 UI Font Switcher
 
@@ -172,7 +180,7 @@ Supports five types of custom actions:
 - Real-time preview
 - One-click reset all fonts
 
-<img src="pictures/Qui-settings-QA-uifontswitch.png" alt="Qui-settings-QA-uifontswitch" width="500" />
+<img src="pictures/Qui-settings-QA-uifontswitch.png" alt="Qui-settings-QA-uifontswitch" width="400" />
 
 #### 📌 1.6 Interface Filter
 
@@ -183,7 +191,7 @@ Supports five types of custom actions:
 | **Reader Only** | Mark actions to show only in Reader |
 | **Reset Defaults** | Restore all actions to common view |
 
-<img src="pictures/Qui-settings-QA-filter.png" alt="Qui-settings-QA-filter" width="500" />
+<img src="pictures/Qui-settings-QA-filter.png" alt="Qui-settings-QA-filter" width="400" />
 
 ---
 
@@ -201,7 +209,7 @@ Supports five types of custom actions:
 | **Aspect Ratio** | 3:4 (default) / 2:3 | Cover aspect ratio |
 | **Other** | Rounded corners / Title below cover / Author below cover / Hide underline / Hide up folder | General toggles |
 
-<img src="pictures/Qui-settings-Cover.png" alt="Qui-settings-Cover" width="500" />
+<img src="pictures/Qui-settings-Cover.png" alt="Qui-settings-Cover" width="400" />
 
 ---
 
@@ -215,7 +223,7 @@ Supports five types of custom actions:
 | **Quick Actions** | Cover all / Uncover all |
 | **Dispatcher Actions** | `QuickUI_ClozeEnable`, `QuickUI_ClozeToggleAll`, `QuickUI_ClozeSettings` |
 
-<img src="pictures/Qui-settings-Cloze.png" alt="Qui-settings-Cloze" width="500" />
+<img src="pictures/Qui-settings-Cloze.png" alt="Qui-settings-Cloze" width="400" />
 
 ---
 
@@ -231,7 +239,7 @@ Supports five types of custom actions:
 | **Progress Decimals** | 0, 1, or 2 |
 | **PDF Support** | Show in PDF documents (disabled by default) |
 
-<img src="pictures/Qui-settings-HF.png" alt="Qui-settings-HF" width="500" />
+<img src="pictures/Qui-settings-HF.png" alt="Qui-settings-HF" width="400" />
 
 ---
 
