@@ -232,7 +232,6 @@ function UIFont.applyUIFontChanges()
         reader.menu.menu_container[1]:updateItems()
     end
 
-    logger.info("QuickUI UIFont: UI font changes applied")
 end
 
 -- ============================================================
@@ -468,7 +467,6 @@ end
 -- ============================================================
 
 function UIFont.init(plugin)
-    logger.info("QuickUI QA UIFont: initialized")
     UIFont.applyUIFontChanges()
     Utils.registerRefreshHandler("qa_common", function()
         UIFont.applyUIFontChanges()
