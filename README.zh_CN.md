@@ -24,8 +24,8 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
 - [kopatches repo](https://github.com/gytwo/kopatches)
 - [KOReader.patches](https://github.com/joshuacant/KOReader.patches)
 
-![Qui-文件管理器](pictures/Qui-filemanager.png)
-![Qui-阅读器](pictures/Qui-reader.png)
+<img src="pictures/Qui-filemanager.png" alt="Qui-filemanager" width="500" />
+<img src="pictures/Qui-reader.png" alt="Qui-reader" width="500" />
 
 ---
 
@@ -39,9 +39,13 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
 
 ## 🚀 核心功能
 
+<img src="pictures/Qui-settings-Qui.png" alt="Qui-settings-Qui" width="500" />
+
 ### 1. ⚡ 快捷操作
 
 这是 QuickUI 最核心、最强大的功能模块，包含以下几个子模块：
+
+<img src="pictures/Qui-settings-QA.png" alt="Qui-settings-QA" width="500" />
 
 #### 📌 1.1 快捷面板
 
@@ -60,6 +64,9 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
 | **显示标签** | 开关 |
 | **滑块** | 前光强度 / 色温（带数值显示） |
 | **长按操作** | 编辑按钮 / 打开设置 |
+
+<img src="pictures/Qui-settings-QA-panel.png" alt="Qui-settings-QA-panel" width="500" />
+<img src="pictures/Qui-settings-QA-panel-addbutton.png" alt="Qui-settings-QA-panel-addbutton" width="500" />
 
 **内置操作完整列表：**
 
@@ -99,6 +106,9 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
 | `QuickUI_ClozeSettings` | 遮盖设置 | 阅读器 | 遮盖模式设置 |
 | `QuickUI_HFSettings` | 页眉页脚设置 | 阅读器 | 页眉页脚设置 |
 
+<img src="pictures/Qui-settings-QA-qa.png" alt="Qui-settings-QA-qa" width="500" />
+<img src="pictures/Qui-settings-QA-qa-editqa.png" alt="Qui-settings-QA-qa-editqa" width="500" />
+
 #### 📌 1.2 底部栏
 
 在屏幕底部显示的可自定义导航栏：
@@ -118,6 +128,9 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
 | **按钮管理** | 添加/删除/排列 |
 | **长按操作** | 编辑按钮 / 打开设置 |
 
+<img src="pictures/Qui-settings-QA-bottom.png" alt="Qui-settings-QA-bottom" width="500" />
+<img src="pictures/Qui-settings-QA-bottom-addtab.png" alt="Qui-settings-QA-bottom-addtab" width="500" />
+
 #### 📌 1.3 自定义操作
 
 支持五种类型的自定义快捷操作：
@@ -130,6 +143,9 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
 | ⚙️ **系统操作** | 调用 Dispatcher 系统操作 | 自动判断，可更改 |
 | 📋 **录制菜单操作** | 录制任意菜单项为快捷操作 | 自动判断，锁定（不可更改） |
 
+<img src="pictures/Qui-settings-QA-qa-addnew.png" alt="Qui-settings-QA-qa-addnew" width="500" />
+<img src="pictures/Qui-settings-QA-actiontype.png" alt="Qui-settings-QA-actiontype" width="500" />
+
 #### 📌 1.4 图标选择器
 
 | 功能 | 说明 |
@@ -140,6 +156,9 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
 | **过滤** | 按名称或码点搜索图标 |
 | **系统图标替换** | 替换系统内置图标（需要重启） |
 | **批量操作** | 重置全部替换 / 应用全部替换 |
+
+<img src="pictures/Qui-settings-QA-iconpicker.png" alt="Qui-settings-QA-iconpicker" width="500" />
+<img src="pictures/Qui-settings-QA-systemiconoverride.png" alt="Qui-settings-QA-systemiconoverride" width="500" />
 
 #### 📌 1.5 UI 字体切换
 
@@ -153,6 +172,8 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
 - 实时预览效果
 - 一键重置所有字体
 
+<img src="pictures/Qui-settings-QA-uifontswitch.png" alt="Qui-settings-QA-uifontswitch" width="500" />
+
 #### 📌 1.6 界面过滤
 
 | 功能 | 说明 |
@@ -161,6 +182,8 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
 | **文件管理器专用** | 标记仅在文件管理器显示的操作 |
 | **阅读器专用** | 标记仅在阅读器显示的操作 |
 | **恢复默认** | 恢复所有操作到通用界面 |
+
+<img src="pictures/Qui-settings-QA-filter.png" alt="Qui-settings-QA-filter" width="500" />
 
 ---
 
@@ -178,6 +201,8 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
 | **封面比例** | 3:4（默认）/ 2:3 | 封面宽高比 |
 | **其他** | 封面圆角 / 封面下方显示标题 / 封面下方显示作者 / 隐藏下划线 / 隐藏返回上级 | 通用开关 |
 
+<img src="pictures/Qui-settings-Cover.png" alt="Qui-settings-Cover" width="500" />
+
 ---
 
 ### 3. 🔍 遮盖模式
@@ -189,6 +214,8 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
 | **可遮盖样式** | 可单独选择覆盖哪些标注类型 |
 | **快捷操作** | 全部遮盖 / 全部取消遮盖 |
 | **Dispatcher 操作** | `QuickUI_ClozeEnable`、`QuickUI_ClozeToggleAll`、`QuickUI_ClozeSettings` |
+
+<img src="pictures/Qui-settings-Cloze.png" alt="Qui-settings-Cloze" width="500" />
 
 ---
 
@@ -203,6 +230,8 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
 | **时间格式** | 24小时制 / 12小时制 |
 | **进度小数位数** | 0、1 或 2 |
 | **PDF 支持** | 是否在 PDF 文档中显示（默认禁用） |
+
+<img src="pictures/Qui-settings-HF.png" alt="Qui-settings-HF" width="500" />
 
 ---
 
