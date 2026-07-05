@@ -20,7 +20,6 @@ local uifont_module = nil
 local bottombar_module = nil
 
 function QA.init(plugin)
-    logger.info("QuickUI QA: initializing...")
 
     local config = _G.__QUICKUI_CONFIG
     local ok, err
@@ -32,9 +31,7 @@ function QA.init(plugin)
         ok, panel_module = pcall(require, "qui_actions.qa_panel")
         if ok and panel_module and panel_module.init then
             panel_module.init(plugin)
-            logger.info("QuickUI QA: Panel module loaded")
         else
-            logger.warn("QuickUI QA: Panel module failed to load")
         end
     end
 
@@ -44,7 +41,6 @@ function QA.init(plugin)
     ok, settings_module = pcall(require, "qui_actions.qa_settings")
     if ok and settings_module and settings_module.init then
         settings_module.init(plugin)
-        logger.info("QuickUI QA: Settings module loaded")
     else
         logger.warn("QuickUI QA: Settings module failed to load")
     end
@@ -55,7 +51,6 @@ function QA.init(plugin)
     ok, actions_module = pcall(require, "qui_actions.qa_actions")
     if ok and actions_module and actions_module.init then
         actions_module.init(plugin)
-        logger.info("QuickUI QA: Actions module loaded")
     else
         logger.warn("QuickUI QA: Actions module failed to load")
     end
@@ -66,7 +61,6 @@ function QA.init(plugin)
     ok, plugin_scan_module = pcall(require, "qui_actions.qa_plugin_scan")
     if ok and plugin_scan_module and plugin_scan_module.init then
         plugin_scan_module.init(plugin)
-        logger.info("QuickUI QA: Plugin scan module loaded")
     else
         logger.warn("QuickUI QA: Plugin scan module failed to load")
     end
@@ -77,7 +71,6 @@ function QA.init(plugin)
     ok, icon_picker_module = pcall(require, "qui_actions.qa_icon_picker")
     if ok and icon_picker_module and icon_picker_module.init then
         icon_picker_module.init(plugin)
-        logger.info("QuickUI QA: Icon picker module loaded")
     else
         logger.warn("QuickUI QA: Icon picker module failed to load")
     end
@@ -88,7 +81,6 @@ function QA.init(plugin)
     ok, menu_recorder_module = pcall(require, "qui_actions.qa_menu_recorder")
     if ok and menu_recorder_module and menu_recorder_module.init then
         menu_recorder_module.init(plugin)
-        logger.info("QuickUI QA: Menu recorder module loaded")
     else
         logger.warn("QuickUI QA: Menu recorder module failed to load")
     end
@@ -99,7 +91,6 @@ function QA.init(plugin)
     ok, uifont_module = pcall(require, "qui_actions.qa_uifont")
     if ok and uifont_module and uifont_module.init then
         uifont_module.init(plugin)
-        logger.info("QuickUI QA: UI Font module loaded")
     else
         logger.warn("QuickUI QA: UI Font module failed to load")
     end
@@ -112,7 +103,6 @@ if config and config.qa_bb_enabled then
     if ok and bottombar_module and bottombar_module.init then
         bottombar_module.init()
         _G.__QUICKUI_PLUGIN_STORE.bottombar = bottombar_module
-        logger.info("QuickUI QA: Bottom Bar module loaded")
     else
         logger.warn("QuickUI QA: Bottom Bar module failed to load")
     end
@@ -124,7 +114,6 @@ end
 
     if panel_module and panel_module.patchTouchMenu then
         panel_module.patchTouchMenu()
-        logger.info("QuickUI QA: TouchMenu patch applied")
     end
 
     if actions_module and actions_module.registerAllActions then
@@ -135,7 +124,6 @@ end
         icon_picker_module.patchIconWidget()
     end
 
-    logger.info("QuickUI QA: initialization complete")
 end
 
 function QA.showPanel()
