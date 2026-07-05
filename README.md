@@ -33,26 +33,19 @@ QuickUI is a comprehensive KOReader enhancement plugin that integrates **four co
 
 This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**.
 
-You are free to:
-- Use this plugin for any purpose
-- Modify and adapt the code
-- Distribute copies of the original or modified code
-
-Under the following conditions:
-- You must **disclose the source code** when you distribute the software
-- You must **include the original copyright notice and license**
-- You must **state all changes** you have made to the code
-- If you run the software as a **network service**, you must make the source code available to users
-
 For the full license text, see: [https://www.gnu.org/licenses/agpl-3.0.en.html](https://www.gnu.org/licenses/agpl-3.0.en.html)
 
 ---
 
 ## 🚀 Core Features
 
+![Qui-settings-Qui](pictures/Qui-settings-Qui.png)
+
 ### 1. ⚡ Quick Actions
 
 This is QuickUI's most powerful module, consisting of the following sub-modules:
+
+![Qui-settings-QA](pictures/Qui-settings-QA.png)
 
 #### 📌 1.1 Quick Actions Panel
 
@@ -71,6 +64,9 @@ A customizable action panel integrated into the top menu bar:
 | **Show Labels** | Toggle |
 | **Sliders** | Frontlight intensity / Color temperature (with value display) |
 | **Long Press** | Edit button / Open settings |
+
+![Qui-settings-QA-panel](pictures/Qui-settings-QA-panel.png)
+![Qui-settings-QA-panel-addbutton](pictures/Qui-settings-QA-panel-addbutton.png)
 
 **Complete Built-in Action List:**
 
@@ -110,6 +106,8 @@ A customizable action panel integrated into the top menu bar:
 | `QuickUI_ClozeSettings` | Cloze Settings | Reader | Cloze mode settings |
 | `QuickUI_HFSettings` | Header/Footer Settings | Reader | Header/Footer settings |
 
+![Qui-settings-QA-qa-editqa](pictures/Qui-settings-QA-qa-editqa.png)
+
 #### 📌 1.2 Quick Actions Bottom Bar
 
 A customizable navigation bar at the bottom of the screen:
@@ -129,6 +127,9 @@ A customizable navigation bar at the bottom of the screen:
 | **Tab Management** | Add/Remove/Arrange |
 | **Long Press** | Edit tab / Open settings |
 
+![Qui-settings-QA-bottom](pictures/Qui-settings-QA-bottom.png)
+![Qui-settings-QA-bottom-addtab](pictures/Qui-settings-QA-bottom-addtab.png)
+
 #### 📌 1.3 Custom Actions
 
 Supports five types of custom actions:
@@ -141,6 +142,8 @@ Supports five types of custom actions:
 | ⚙️ **System Action** | Call Dispatcher system actions | Auto-detected (changeable)  |
 | 📋 **Recorded Menu Action** | Record any menu item as a quick action | Auto-detected,locked (unchangeable) |
 
+![Qui-settings-QA-qa-addnew](pictures/Qui-settings-QA-qa-addnew.png)
+
 #### 📌 1.4 Icon Picker
 
 | Feature | Description |
@@ -151,6 +154,8 @@ Supports five types of custom actions:
 | **Filter** | Search icons by name or codepoint |
 | **System Icon Override** | Replace built-in system icons (requires restart) |
 | **Batch Operations** | Reset all overrides / Apply all replacements |
+
+![Qui-settings-QA-iconpicker](pictures/Qui-settings-QA-iconpicker.png)
 
 #### 📌 1.5 UI Font Switcher
 
@@ -164,6 +169,8 @@ Supports five types of custom actions:
 - Real-time preview
 - One-click reset all fonts
 
+![Qui-settings-QA-uifontswitch](pictures/Qui-settings-QA-uifontswitch.png)
+
 #### 📌 1.6 Interface Filter
 
 | Feature | Description |
@@ -172,6 +179,8 @@ Supports five types of custom actions:
 | **Filemanager Only** | Mark actions to show only in Filemanager |
 | **Reader Only** | Mark actions to show only in Reader |
 | **Reset Defaults** | Restore all actions to common view |
+
+![Qui-settings-QA-filter](pictures/Qui-settings-QA-filter.png)
 
 ---
 
@@ -189,6 +198,8 @@ Supports five types of custom actions:
 | **Aspect Ratio** | 3:4 (default) / 2:3 | Cover aspect ratio |
 | **Other** | Rounded corners / Title below cover / Author below cover / Hide underline / Hide up folder | General toggles |
 
+![Qui-settings-Cover](pictures/Qui-settings-Cover.png)
+
 ---
 
 ### 3. 🎭 Cloze Mode
@@ -200,6 +211,8 @@ Supports five types of custom actions:
 | **Maskable Styles** | Individually select which annotation types to mask |
 | **Quick Actions** | Cover all / Uncover all |
 | **Dispatcher Actions** | `QuickUI_ClozeEnable`, `QuickUI_ClozeToggleAll`, `QuickUI_ClozeSettings` |
+
+![Qui-settings-Cloze](pictures/Qui-settings-Cloze.png)
 
 ---
 
@@ -214,6 +227,8 @@ Supports five types of custom actions:
 | **Time Format** | 24-hour / 12-hour |
 | **Progress Decimals** | 0, 1, or 2 |
 | **PDF Support** | Show in PDF documents (disabled by default) |
+
+![Qui-settings-HF](pictures/Qui-settings-HF.png)
 
 ---
 
