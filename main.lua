@@ -54,8 +54,6 @@ function QuickUI:init()
         return orig_new(_, args)
     end
 
-    logger.info("QuickUI: init started, version " .. self.VERSION)
-
     Utils.loadConfig()
 
     self.ui.menu:registerToMainMenu(self)
@@ -70,7 +68,6 @@ function QuickUI:init()
         ok, cover_module = pcall(require, "qui_cover")
         if ok and cover_module and cover_module.init then
             cover_module.init(self)
-            logger.info("QuickUI: Cover enabled")
         else
             logger.warn("QuickUI: Cover failed to load")
         end
@@ -95,7 +92,6 @@ function QuickUI:init()
         ok, actions_module = pcall(require, "qui_actions/qa_init")
         if ok and actions_module and actions_module.init then
             actions_module.init(self)
-            logger.info("QuickUI: Quick Actions enabled")
         else
             logger.warn("QuickUI: Quick Actions failed to load")
         end
@@ -108,7 +104,6 @@ function QuickUI:init()
         ok, cloze_module = pcall(require, "qui_clozemode")
         if ok and cloze_module and cloze_module.init then
             cloze_module.init(self)
-            logger.info("QuickUI: Cloze enabled")
         else
             logger.warn("QuickUI: Cloze failed to load")
         end
@@ -121,7 +116,6 @@ function QuickUI:init()
         ok, hf_module = pcall(require, "qui_header_footer")
         if ok and hf_module and hf_module.init then
             hf_module.init(self)
-            logger.info("QuickUI: Header/Footer enabled")
         else
             logger.warn("QuickUI: Header/Footer failed to load")
         end
