@@ -2051,7 +2051,6 @@ function Cover._patchMosaic()
         end
     end
 
-    logger.info("QuickUI Cover: Mosaic patch applied")
 end
 
 -- ============================================================
@@ -2564,7 +2563,6 @@ function Cover._patchList()
         applyRoundedCornersToCover(bb, target)
     end
 
-    logger.info("QuickUI Cover: List patch applied")
 end
 
 -- ============================================================
@@ -2597,7 +2595,6 @@ function Cover._patchHideUpFolder()
         return items
     end
 
-    logger.info("QuickUI Cover: Hide up folder patch applied")
 end
 
 -- ============================================================
