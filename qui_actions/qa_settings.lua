@@ -2081,7 +2081,7 @@ function QA.getPanelMenuItems()
     }
 
     items[#items + 1] = {
-        text = _("Long-press tab to open settings"),
+        text = _("Long-press panel to open settings"),
         checked_func = function()
             return Utils.getBool("qa_panel_settings_on_hold", true)
         end,
