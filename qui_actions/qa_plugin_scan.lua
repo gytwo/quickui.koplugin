@@ -822,7 +822,6 @@ end
 
 function PluginScan.init(plugin_ref)
     PLUGIN_STORE.plugin_ref = plugin_ref
-    logger.info("QuickUI QA PluginScan: initialized")
 end
 
 return PluginScan
