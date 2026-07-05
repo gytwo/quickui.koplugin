@@ -103,7 +103,6 @@ end
 -- HTTP request
 local function requestUrl(url, timeout)
     timeout = timeout or 10
-    logger.info("QuickUI Updates: Requesting " .. url)
 
     local http = require("socket.http")
     local ltn12 = require("ltn12")
@@ -143,21 +142,18 @@ end
 -- Parse release data
 local function parseReleaseData(data, source)
     local tag_name = data.tag_name or data.name
-    logger.info("QuickUI Updates: Latest version: " .. tag_name .. " (source: " .. source.name .. ")")
 
     local zip_url = nil
     if data.assets then
         for i, asset in ipairs(data.assets) do
             if asset.name == MANUAL_ZIP_NAME then
                 zip_url = asset.browser_download_url
-                logger.info("QuickUI Updates: Using manually uploaded ZIP")
                 break
             end
         end
     end
     if not zip_url and data.zipball_url then
         zip_url = data.zipball_url
-        logger.info("QuickUI Updates: Using auto-generated source ZIP")
     end
 
     return tag_name, zip_url, source.name, data.body
@@ -431,7 +427,6 @@ local function installUpdate(zip_path)
         os.remove(zip_path)
 
         if result == 0 then
-            logger.info("QuickUI Updates: Auto-install successful")
             return true
         else
             logger.warn("QuickUI Updates: Auto-install failed")
@@ -447,7 +442,6 @@ local function installUpdate(zip_path)
         os.remove(zip_path)
 
         if result == 0 then
-            logger.info("QuickUI Updates: Update installed successfully")
         else
             logger.warn("QuickUI Updates: Update installation failed")
         end
@@ -711,7 +705,6 @@ Public API: Init
 ]]
 function Updates.init(plugin_ref)
     plugin = plugin_ref or plugin
-    logger.info("QuickUI Updates: initialized")
 end
 
 return Updates
