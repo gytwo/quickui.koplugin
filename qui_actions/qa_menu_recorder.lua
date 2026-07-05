@@ -498,7 +498,6 @@ end
 
 function MenuRecorder.init(plugin_ref)
     PLUGIN_STORE.plugin_ref = plugin_ref
-    logger.info("QuickUI QA MenuRecorder: initialized")
 end
 
 return MenuRecorder
