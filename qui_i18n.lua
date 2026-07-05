@@ -110,7 +110,6 @@ local function loadTranslationsForLang(lang)
         local path = _dir .. "locales/" .. name .. ".po"
         local t, c, n = parsePO(path)
         if t and n and n > 0 then
-            logger.info("QuickUI i18n: loaded " .. path .. " — " .. n .. " entries")
             return t, c
         end
         return nil, nil
@@ -189,7 +188,6 @@ local function install()
     end
 
     _installed = true
-    logger.info("QuickUI i18n: installed for lang=" .. (detectLang() or "?"))
 end
 
 --[[
@@ -211,7 +209,6 @@ local function uninstall()
     _orig_changeLang = nil
     _orig_gettext = nil
     _installed = false
-    logger.info("QuickUI i18n: uninstalled")
 end
 
 return {
