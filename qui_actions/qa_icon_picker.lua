@@ -1608,7 +1608,6 @@ function QA.patchIconWidget()
         return orig_init(self)
     end
 
-    logger.info("QuickUI QA IconPicker: IconWidget patched")
 end
 
 return QA
