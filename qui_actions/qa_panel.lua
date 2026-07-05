@@ -56,7 +56,6 @@ local _qs_refs = nil
 
 function QA.init(plugin)
     PLUGIN_STORE.plugin_ref = plugin
-    logger.info("QuickUI QA Panel: initialized")
 end
 
 -- ============================================================
@@ -879,8 +878,6 @@ function QA.patchTouchMenu()
             return _orig_onPan(self, arg, ges_ev)
         end
     end
-
-    logger.info("QuickUI QA: TouchMenu patch applied")
 end
 
 -- ============================================================
