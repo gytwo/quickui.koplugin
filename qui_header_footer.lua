@@ -998,6 +998,7 @@ function HeaderFooter.showSettings()
                                 showMenu(title, item_table, parent_stack)
                             end
                         end
+                     end
                     }
                 })
             end
