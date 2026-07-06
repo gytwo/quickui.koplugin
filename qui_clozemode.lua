@@ -253,14 +253,7 @@ function ClozeMode.init(plugin_ref)
                 },
             },
         })
-
-        local menu = self.ui.menu
-        if menu and menu.menu_items then
-            ClozeMode.addToMainMenu(menu.menu_items)
-            if menu.touchmenu_instance then
-                menu:updateItems()
-            end
-        end
+        
     end
 
     -- Double-tap handler
@@ -366,18 +359,6 @@ function ClozeMode.toggleAll()
     end
 
     forceRedraw(ui)
-end
-
-function ClozeMode.addToMainMenu(menu_items)
-    if menu_items.cloze_mode then
-        return
-    end
-
-    menu_items.cloze_mode = {
-        text = _("Cloze Mode"),
-        sorting_hint = "typeset",
-        sub_item_table = ClozeMode.getMenuItems(plugin),
-    }
 end
 
 function ClozeMode.getMenuItems(plugin_ref)
