@@ -441,6 +441,7 @@ function HeaderFooter.getMenuItems()
             text_func = function()
                 return T(_("Font Size: %1"), cfg(S.HEADER_FONT_SIZE))
             end,
+            close_on_click = true,
             callback = function()
                 local dialog
                 dialog = InputDialog:new{
@@ -488,6 +489,7 @@ function HeaderFooter.getMenuItems()
             text_func = function()
                 return T(_("Top Padding: %1"), cfg(S.HEADER_TOP_PADDING))
             end,
+            close_on_click = true,
             callback = function()
                 local dialog
                 dialog = InputDialog:new{
@@ -609,6 +611,7 @@ function HeaderFooter.getMenuItems()
             text_func = function()
                 return T(_("Font Size: %1"), cfg(S.FOOTER_FONT_SIZE))
             end,
+            close_on_click = true, 
             callback = function()
                 local dialog
                 dialog = InputDialog:new{
@@ -656,6 +659,7 @@ function HeaderFooter.getMenuItems()
             text_func = function()
                 return T(_("Bottom Padding: %1"), cfg(S.FOOTER_BOTTOM_PADDING))
             end,
+            close_on_click = true,
             callback = function()
                 local dialog
                 dialog = InputDialog:new{
@@ -699,6 +703,7 @@ function HeaderFooter.getMenuItems()
             text_func = function()
                 return T(_("Left Offset: %1"), cfg(S.LEFT_OFFSET))
             end,
+            close_on_click = true,
             callback = function()
                 local dialog
                 dialog = InputDialog:new{
@@ -734,6 +739,7 @@ function HeaderFooter.getMenuItems()
             text_func = function()
                 return T(_("Right Offset: %1"), cfg(S.RIGHT_OFFSET))
             end,
+            close_on_click = true, 
             callback = function()
                 local dialog
                 dialog = InputDialog:new{
@@ -794,6 +800,7 @@ function HeaderFooter.getMenuItems()
             text_func = function()
                 return T(_("Progress Decimals: %1"), cfg(S.PROGRESS_DECIMALS))
             end,
+            close_on_click = true, 
             callback = function()
                 local dialog
                 dialog = InputDialog:new{
@@ -976,10 +983,18 @@ function HeaderFooter.showSettings()
                                 item.callback()
                             end
                             if self_ref._hf_settings_dialog then
-                                UIManager:close(self_ref._hf_settings_dialog)
-                                self_ref._hf_settings_dialog = nil
+                            if item.close_on_click then
+                                if self_ref._hf_settings_dialog then
+                                    UIManager:close(self_ref._hf_settings_dialog)
+                                    self_ref._hf_settings_dialog = nil
+                                end
+                            else
+                                if self_ref._hf_settings_dialog then
+                                    UIManager:close(self_ref._hf_settings_dialog)
+                                    self_ref._hf_settings_dialog = nil
+                                end
+                                showMenu(title, item_table, parent_stack)
                             end
-                            showMenu(title, item_table, parent_stack)
                         end
                     }
                 })
