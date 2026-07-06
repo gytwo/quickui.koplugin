@@ -982,13 +982,15 @@ function HeaderFooter.showSettings()
                             if item.callback then
                                 item.callback()
                             end
-                            if self_ref._hf_settings_dialog then
+
                             if item.close_on_click then
+                                -- Close settings menu and do not reopen (for InputDialog popups)
                                 if self_ref._hf_settings_dialog then
                                     UIManager:close(self_ref._hf_settings_dialog)
                                     self_ref._hf_settings_dialog = nil
                                 end
                             else
+                                -- Close and refresh the menu (for regular toggles/selections)
                                 if self_ref._hf_settings_dialog then
                                     UIManager:close(self_ref._hf_settings_dialog)
                                     self_ref._hf_settings_dialog = nil
