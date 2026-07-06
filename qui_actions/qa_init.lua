@@ -116,10 +116,6 @@ end
         panel_module.patchTouchMenu()
     end
 
-    if actions_module and actions_module.registerAllActions then
-        actions_module.registerAllActions()
-    end
-
     if icon_picker_module and icon_picker_module.patchIconWidget then
         icon_picker_module.patchIconWidget()
     end
