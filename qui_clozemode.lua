@@ -329,48 +329,6 @@ function ClozeMode.init(plugin_ref)
         return originalTap(self, _, ges)
     end
 
-    -- Register dispatcher action
-    Dispatcher:registerAction("quickui_toggle_cloze_action", {
-        category = "none",
-        event = "QuickUIToggleClozeAction",
-        title = _("QuickUI - Cover All / Uncover All"),
-        reader = true,
-    })
-
-    local ReaderUI = require("apps/reader/readerui")
-    if ReaderUI and not ReaderUI._quickui_cloze_handler then
-        function ReaderUI:onQuickUIToggleClozeAction()
-            if not isEnabled() then
-                return
-            end
-            local highlight = self.highlight
-            if not highlight then
-                return
-            end
-
-            local has_covered = false
-            local annotations = highlight.ui.annotation.annotations
-            for idx, item in ipairs(annotations) do
-                if item.drawer then
-                    local is_cov = highlight._temp_covered and highlight._temp_covered[idx]
-                    if is_cov then
-                        has_covered = true
-                        break
-                    end
-                end
-            end
-
-            if has_covered then
-                uncoverAllHighlights(highlight)
-            else
-                coverAllHighlights(highlight)
-            end
-
-            forceRedraw(self)
-        end
-        ReaderUI._quickui_cloze_handler = true
-    end
-
     Utils.registerRefreshHandler("cloze", function()
         local ReaderUI = require("apps/reader/readerui")
         if ReaderUI and ReaderUI.instance then
@@ -382,9 +340,32 @@ end
 function ClozeMode.toggleAll()
     local ReaderUI = require("apps/reader/readerui")
     local ui = ReaderUI.instance
-    if ui then
-        ui:onQuickUIToggleClozeAction()
+    if not ui then
+        return
     end
+    local highlight = ui.highlight
+    if not highlight then
+        return
+    end
+
+    local has_covered = false
+    local annotations = highlight.ui.annotation.annotations
+    if annotations then
+        for idx, item in ipairs(annotations) do
+            if item.drawer and highlight._temp_covered and highlight._temp_covered[idx] then
+                has_covered = true
+                break
+            end
+        end
+    end
+
+    if has_covered then
+        uncoverAllHighlights(highlight)
+    else
+        coverAllHighlights(highlight)
+    end
+
+    forceRedraw(ui)
 end
 
 function ClozeMode.addToMainMenu(menu_items)
