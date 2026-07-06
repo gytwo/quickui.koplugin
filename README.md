@@ -1,3 +1,6 @@
+[![Release](https://github.com/gytwo/gitee-sync/actions/workflows/release.yml/badge.svg)](https://github.com/gytwo/gitee-sync/actions/workflows/release.yml)
+[![Sync from Gitee to GitHub](https://github.com/gytwo/gitee-sync/actions/workflows/gitee-sync.yml/badge.svg)](https://github.com/gytwo/gitee-sync/actions/workflows/gitee-sync.yml)
+
 # QuickUI - KOReader Enhancement Plugin
 
 > **QuickUI: Quick Actions, Cover Visuals, Cloze Mode, Header & Footer — more efficient KOReader.**
