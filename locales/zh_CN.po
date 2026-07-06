@@ -149,6 +149,9 @@ msgstr "遮盖模式设置"
 msgid "Header & Footer Settings"
 msgstr "页眉页脚设置"
 
+msgid "Header & Footer"
+msgstr "页眉页脚"
+
 msgid "Panel Settings"
 msgstr "顶部面板设置"
 
@@ -503,7 +506,7 @@ msgid "QuickUI_Cover All/Uncover All"
 msgstr "QuickUI- 全部遮盖/全部揭开"
 
 msgid "QuickUI_SystemIconOverride"
-msgstr "QuickUI- 系统图标替换"
+msgstr "QuickUI-系统图标替换"
 
 msgid "Toggle Cloze Mode"
 msgstr "切换遮盖模式"
