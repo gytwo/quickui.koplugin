@@ -205,7 +205,7 @@ Supports five types of custom actions:
 | **Enable Filter** | Automatically filter actions based on current view (Filemanager/Reader) |
 | **Filemanager Only** | Mark actions to show only in Filemanager |
 | **Reader Only** | Mark actions to show only in Reader |
-| **Reset Defaults** | Restore all actions to common view |
+| **Reset Defaults** | Restore all actions to default view |
 
 <img src="pictures/Qui-settings-QA-filter.png" alt="Qui-settings-QA-filter" width="400" />
 
