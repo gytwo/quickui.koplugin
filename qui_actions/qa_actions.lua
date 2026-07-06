@@ -1066,16 +1066,11 @@ end
 -- Register All Built-in Actions
 -- ============================================================
 
--- ============================================================
--- Register All Built-in Actions
--- ============================================================
-
 function QA.registerAllActions()
-    if QA._registered then
+    if package.loaded["quickui_qa_registered"] then
         return
     end
-
-    QA._registered = true
+    package.loaded["quickui_qa_registered"] = true
 
     local config = _G.__QUICKUI_CONFIG
 
