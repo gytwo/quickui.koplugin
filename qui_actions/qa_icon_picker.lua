@@ -64,6 +64,8 @@ local THUMB_GAP = Screen:scaleBySize(6)
 -- ============================================================
 -- Configuration 
 -- ============================================================
+-- Empty init to satisfy qa_init.lua's module loading pattern
+function QA.init(plugin) end
 
 local function getSystemTempOverrides()
     if system_temp_overrides == nil then
