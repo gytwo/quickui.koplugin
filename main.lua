@@ -713,17 +713,6 @@ end
         end,
     })
 
-    return items
-end
-
-function QuickUI:addToMainMenu(menu_items)
-    menu_items.quickui = {
-        text = _("QuickUI"),
-        sorting_hint = "tools",
-        sub_item_table = self:buildMenuItems(),
-    }
-end
-
     -- ============================================================
     -- Updates
     -- ============================================================
@@ -736,6 +725,16 @@ end
         })
     end
 
+    return items
+end
+
+function QuickUI:addToMainMenu(menu_items)
+    menu_items.quickui = {
+        text = _("QuickUI"),
+        sorting_hint = "tools",
+        sub_item_table = self:buildMenuItems(),
+    }
+end
 -- ============================================================
 -- QuickUI Settings
 -- ============================================================
