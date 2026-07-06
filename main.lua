@@ -702,18 +702,6 @@ end)
 for _, item in ipairs(all_items) do
     table.insert(items, item)
 end
-
-    -- ============================================================
-    -- Updates
-    -- ============================================================
-    if updates_module and updates_module.checkForUpdates then
-        table.insert(items, {
-            text = _("Check for Updates") .. "  (" .. _("Current version") .. ": " .. self.VERSION .. ")",
-            callback = function()
-                updates_module.checkForUpdates(false, self)
-            end,
-        })
-    end
     
     -- ============================================================
     -- Plugin Info
@@ -735,6 +723,18 @@ function QuickUI:addToMainMenu(menu_items)
         sub_item_table = self:buildMenuItems(),
     }
 end
+
+    -- ============================================================
+    -- Updates
+    -- ============================================================
+    if updates_module and updates_module.checkForUpdates then
+        table.insert(items, {
+            text = _("Check for Updates") .. "  (" .. _("Current version") .. ": " .. self.VERSION .. ")",
+            callback = function()
+                updates_module.checkForUpdates(false, self)
+            end,
+        })
+    end
 
 -- ============================================================
 -- QuickUI Settings
