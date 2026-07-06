@@ -1067,10 +1067,10 @@ end
 -- ============================================================
 
 function QA.registerAllActions()
-    if package.loaded["quickui_qa_registered"] then
+    if QA._registered then
         return
     end
-    package.loaded["quickui_qa_registered"] = true
+    QA._registered = true
 
     local config = _G.__QUICKUI_CONFIG
 
@@ -1710,7 +1710,6 @@ function QA.registerAllActions()
             end
         end)
     end
-    logger.info("QuickUI QA: All built-in actions registered (" .. #ACTION_ORDER .. " actions)")
 end
 
 -- ============================================================
