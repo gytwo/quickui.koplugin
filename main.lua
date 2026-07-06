@@ -750,7 +750,6 @@ function QuickUI:quickuisettings()
     
     local function showQuickUIMenu(item_table, title, parent_stack)
         local buttons = {}
-        local is_top_level = (parent_stack == nil or #parent_stack == 0)
         
         if parent_stack and #parent_stack > 0 then
             if #parent_stack > 1 then
@@ -830,19 +829,10 @@ function QuickUI:quickuisettings()
                             if item.callback then
                                 item.callback()
                             end
-                            
-                            if is_top_level then
-                                if _quickui_settings_dialog then
-                                    UIManager:close(_quickui_settings_dialog)
-                                    _quickui_settings_dialog = nil
-                                end
-                            else
-                                if _quickui_settings_dialog then
-                                    UIManager:close(_quickui_settings_dialog)
-                                    _quickui_settings_dialog = nil
-                                end
-                                showQuickUIMenu(item_table, title, parent_stack)
-                            end
+                            if _quickui_settings_dialog then
+                                 UIManager:close(_quickui_settings_dialog)
+                                 _quickui_settings_dialog = nil
+                               end
                         end
                     }
                 })
