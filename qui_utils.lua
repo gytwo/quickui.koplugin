@@ -930,10 +930,16 @@ function Utils.createSearchButton(on_back, on_search, on_open)
                     {
                         {
                             text = _("Back"),
-                            id = "close",
                             callback = function()
                                 UIManager:close(search_dialog)
                                 if on_back then on_back() end
+                            end,
+                        },
+                        {
+                            text = _("Cancel"),
+                            id = "close",
+                            callback = function()
+                                UIManager:close(search_dialog)
                             end,
                         },
                         {
