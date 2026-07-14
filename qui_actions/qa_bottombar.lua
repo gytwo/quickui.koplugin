@@ -709,6 +709,8 @@ function M.rebuildBottombar()
         return
     end
 
+    M.removeBottombar()
+    
     local FM = require("apps/filemanager/filemanager")
     local fm = FM.instance
     if fm then
