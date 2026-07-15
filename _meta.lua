@@ -23,6 +23,6 @@ return {
     fullname = _("QuickUI"),
     plugin_id = "quickui_plugin",
     description = _([[QuickUI: Quick Actions, Cover Visuals, Cloze Mode, Header & Footer — more efficient KOReader]]),
-    version = "1.0.0",
+    version = "1.0.1",
     author = "gytwo",
 }
