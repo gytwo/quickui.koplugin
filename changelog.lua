@@ -41,4 +41,7 @@ return {
         "i18n support: Chinese translation included",
         "Inspired by SimpleUI, ZenUI, and ShortcutsToolbar",
     },
+    ["1.0.1"] = {
+        "fix(bottombar): clean up old instance before rebuild to fix overlap",
+    },
 }
