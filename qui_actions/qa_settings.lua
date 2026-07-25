@@ -2130,7 +2130,25 @@ function QA.getBottomBarMenuItems()
             bb.refresh()
         end,
     }
-
+    
+    -- 1.1  Allow overlap with content (Reader only)
+    items[#items + 1] = {
+    text = _("Allow overlap with content (Reader only)"),
+    checked_func = function()
+        return Utils.getBool("qa_bb_overlap", false)
+    end,
+    callback = function(touchmenu_instance)
+        Utils.set("qa_bb_overlap", not Utils.getBool("qa_bb_overlap", false))
+        if touchmenu_instance then
+            touchmenu_instance:updateItems()
+        end
+        bb.refresh()
+        UIManager:show(Notification:new{
+            text = _("Overlap mode changed, restart to take full effect"),
+            timeout = 2,
+        })
+    end,
+}
     -- 2. Long press to edit
     items[#items + 1] = {
         text = _("Long press to edit"),
