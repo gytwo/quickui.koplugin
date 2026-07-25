@@ -38,9 +38,25 @@ local qa_settings = nil
 -- QuickUI Class Definition
 -- ============================================================
 
+-- Get version from _meta.lua
+local function getPluginVersion()
+    local meta_path = _plugin_dir .. "_meta.lua"
+    local f = io.open(meta_path, "r")
+    if not f then return "1.0.0" end
+    local content = f:read("*all")
+    f:close()
+    local version = content:match('version%s*=%s*"([^"]+)"')
+    if not version then
+        version = content:match("version%s*=%s*'([^']+)'")
+    end
+    return version or "1.0.0"
+end
+
+local PLUGIN_VERSION = getPluginVersion()
+
 local QuickUI = WidgetContainer:extend{
     is_doc_only = false,
-    VERSION = "1.0.0",
+    VERSION = PLUGIN_VERSION,
 }
 
 function QuickUI:init()
