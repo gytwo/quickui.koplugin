@@ -502,11 +502,13 @@ function QA.showEditActionDialog(action_id, on_done, source)
             end },
         }
 
-        table.insert(last_row, { text = _("Remove"), callback = function()
+      if qa_id then
+            table.insert(last_row, { text = _("Remove"), callback = function()
             closeSettingsDialog()
             removeFromList()
             if on_done then on_done() end
-        end })
+          end })
+      end
 
         if pos then
             table.insert(last_row, { text = "◀", enabled = (pos > 1), callback = function()
