@@ -55,8 +55,7 @@ local SOURCES = {
 }
 
 -- Get plugin directory
-local Utils = require("qui_utils")
-local _plugin_dir = Utils.getPluginDir()
+local _plugin_dir = (debug.getinfo(1, "S").source:match("^@(.+/)") or "./")
 
 -- Get current version from _meta.lua
 local function getCurrentVersion()
