@@ -610,65 +610,97 @@ end
 -- Wrapper - Add bottombar to existing UI
 -- ============================================================
 
+-- Helper: check if widget is a reader view
+local function isReaderWidget(widget)
+    if not widget then return false end
+    local RUI = require("apps/reader/readerui")
+    if not RUI or not RUI.instance then return false end
+    
+    -- Direct match
+    if widget == RUI.instance or widget == RUI.instance.view then
+        return true
+    end
+    
+    -- Check if it's a wrapped reader
+    local function checkChild(w)
+        if not w then return false end
+        if w == RUI.instance or w == RUI.instance.view then return true end
+        if type(w) == "table" and w[1] then
+            return checkChild(w[1])
+        end
+        return false
+    end
+    return checkChild(widget)
+end
+
 function M.wrapWithBottombar(inner_widget)
     if not Utils.getBool("qa_bb_enabled", true) then return inner_widget end
 
     local screen_w = Screen:getWidth()
     local screen_h = Screen:getHeight()
     local nav_h = M.TOTAL_H()
-    local content_h = screen_h - nav_h
-    local content_y = 0
+    
+    -- Only apply overlap mode in reader
+    local is_reader = isReaderWidget(inner_widget)
+    local overlap = is_reader and Utils.getBool("qa_bb_overlap", false) or false
 
-    if inner_widget.dimen then
-        inner_widget.dimen.h = content_h
-        inner_widget.dimen.w = screen_w
-        inner_widget.dimen.y = content_y
-    end
-    if inner_widget.height ~= nil then
-        inner_widget.height = content_h
-    end
-    if inner_widget.y ~= nil then
-        inner_widget.y = content_y
-    end
+    if not overlap then
+        -- Non-overlap mode: shrink content to make room for bottom bar
+        local content_h = screen_h - nav_h
+        local content_y = 0
 
-    local fc = inner_widget.file_chooser or inner_widget
-    if fc then
-        if fc.height ~= nil then
-            fc.height = content_h
-        end
-        if fc.y ~= nil then
-            fc.y = content_y
-        end
-        if fc.dimen then
-            fc.dimen.h = content_h
-            fc.dimen.y = content_y
-        end
-
-        local bordersize = fc.bordersize or 0
-        local padding = fc.padding or 0
-        fc.available_height = content_h - bordersize * 2 - padding * 2
-
-        if fc._recalculateDimen then
-            fc:_recalculateDimen()
-        end
-        if fc.updateItems then
-            fc:updateItems()
-        end
-    end
-
-    if inner_widget._bottombar_injected then
         if inner_widget.dimen then
             inner_widget.dimen.h = content_h
+            inner_widget.dimen.w = screen_w
             inner_widget.dimen.y = content_y
         end
-        if inner_widget[1] and inner_widget[1].dimen then
-            inner_widget[1].dimen.h = content_h
-            inner_widget[1].dimen.y = content_y
+        if inner_widget.height ~= nil then
+            inner_widget.height = content_h
         end
-        if inner_widget._recalculateDimen then
-            inner_widget:_recalculateDimen()
+        if inner_widget.y ~= nil then
+            inner_widget.y = content_y
+        end
+
+        local fc = inner_widget.file_chooser or inner_widget
+        if fc then
+            if fc.height ~= nil then
+                fc.height = content_h
+            end
+            if fc.y ~= nil then
+                fc.y = content_y
+            end
+            if fc.dimen then
+                fc.dimen.h = content_h
+                fc.dimen.y = content_y
+            end
+
+            local bordersize = fc.bordersize or 0
+            local padding = fc.padding or 0
+            fc.available_height = content_h - bordersize * 2 - padding * 2
+
+            if fc._recalculateDimen then
+                fc:_recalculateDimen()
+            end
+            if fc.updateItems then
+                fc:updateItems()
+            end
+        end
+
+        if inner_widget._bottombar_injected then
+            if inner_widget.dimen then
+                inner_widget.dimen.h = content_h
+                inner_widget.dimen.y = content_y
+            end
+            if inner_widget[1] and inner_widget[1].dimen then
+                inner_widget[1].dimen.h = content_h
+                inner_widget[1].dimen.y = content_y
+            end
+            if inner_widget._recalculateDimen then
+                inner_widget:_recalculateDimen()
+            end
         end
     end
+    -- Overlap mode: leave content unchanged, bar floats on top (reader only)
 
     local active_action = getTabs()[1]
     local bar = M.buildBar(active_action)
@@ -688,7 +720,9 @@ function M.wrapWithBottombar(inner_widget)
     og._bottombar_container = og
 
     local is_bare = Utils.getString("qa_bb_style") == "bare"
-    local bg = (Utils.getBool("qa_bb_transparent", false) or is_bare) and nil or Blitbuffer.COLOR_WHITE
+    -- Enable transparent background automatically in overlap mode
+    local use_transparent = Utils.getBool("qa_bb_transparent", false) or overlap
+    local bg = (use_transparent or is_bare) and nil or Blitbuffer.COLOR_WHITE
 
     return FrameContainer:new{
         bordersize = 0,
