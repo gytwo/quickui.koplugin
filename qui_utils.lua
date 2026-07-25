@@ -47,6 +47,7 @@ local DEFAULT_SETTINGS = {
     qa_bb_labels = false,
     qa_bb_tabs = {"home", "annotations_viewer", "continue", "reading_insights", "qa_add_bb_tab","search","cloudlibrary_batch_download_books", "zlibrary_search"},
     qa_bb_reader_enabled = true,
+    qa_bb_overlap = false,  -- Allow bottom bar to overlap content
 
     -- Common Settings
     qa_common_enabled = true,
