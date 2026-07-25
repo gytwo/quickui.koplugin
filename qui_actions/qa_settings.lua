@@ -2144,7 +2144,7 @@ function QA.getBottomBarMenuItems()
         end
         bb.refresh()
         UIManager:show(Notification:new{
-            text = _("Overlap mode changed, restart to take full effect"),
+            text = _("Overlap mode changed"),
             timeout = 2,
         })
     end,
