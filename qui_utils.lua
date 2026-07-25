@@ -47,6 +47,7 @@ local DEFAULT_SETTINGS = {
     qa_bb_labels = false,
     qa_bb_tabs = {"home", "annotations_viewer", "continue", "reading_insights", "qa_add_bb_tab","search","cloudlibrary_batch_download_books", "zlibrary_search"},
     qa_bb_reader_enabled = true,
+    qa_bb_overlap = false,  -- Allow bottom bar to overlap content
 
     -- Common Settings
     qa_common_enabled = true,
@@ -294,6 +295,7 @@ function Utils.getDefaultKeys(module_key)
             "qa_bb_transparent", "qa_bb_settings_on_hold", "qa_bb_button_hold_edit",
             "qa_bb_bg_color", "qa_bb_fg_color", "qa_bb_inactive_color",
             "qa_bb_accent_color", "qa_bb_labels", "qa_bb_tabs", "qa_bb_reader_enabled",
+            "qa_bb_overlap",
         },
         qa_common = {
             "qa_common_tab_icon", "qa_common_custom_list", "qa_common_custom",

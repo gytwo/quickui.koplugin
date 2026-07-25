@@ -502,11 +502,13 @@ function QA.showEditActionDialog(action_id, on_done, source)
             end },
         }
 
-        table.insert(last_row, { text = _("Remove"), callback = function()
+      if qa_id and pos then
+            table.insert(last_row, { text = _("Remove"), callback = function()
             closeSettingsDialog()
             removeFromList()
             if on_done then on_done() end
-        end })
+          end })
+      end
 
         if pos then
             table.insert(last_row, { text = "◀", enabled = (pos > 1), callback = function()
@@ -1267,11 +1269,13 @@ function QA.showCustomQADialog(qa_id, on_done, source)
             end })
         end
 
-        table.insert(last_row, { text = _("Remove"), callback = function()
+      if qa_id and pos then
+            table.insert(last_row, { text = _("Remove"), callback = function()
             closeSettingsDialog()
             removeFromList()
             if on_done then on_done() end
-        end })
+          end })
+      end
 
         table.insert(last_row, { text = _("Save"), is_enter_default = true, callback = function()
             local inputs = _active_dialog:getFields()
@@ -2130,7 +2134,25 @@ function QA.getBottomBarMenuItems()
             bb.refresh()
         end,
     }
-
+    
+    -- 1.1  Allow overlap with content (Reader only)
+    items[#items + 1] = {
+    text = _("Allow overlap with content (Reader only)"),
+    checked_func = function()
+        return Utils.getBool("qa_bb_overlap", false)
+    end,
+    callback = function(touchmenu_instance)
+        Utils.set("qa_bb_overlap", not Utils.getBool("qa_bb_overlap", false))
+        if touchmenu_instance then
+            touchmenu_instance:updateItems()
+        end
+        bb.refresh()
+        UIManager:show(Notification:new{
+            text = _("Overlap mode changed"),
+            timeout = 2,
+        })
+    end,
+}
     -- 2. Long press to edit
     items[#items + 1] = {
         text = _("Long press to edit"),
