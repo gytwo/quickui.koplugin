@@ -44,4 +44,7 @@ return {
     ["1.0.1"] = {
         "fix(bottombar): clean up old instance before rebuild to fix overlap",
     },
+    ["1.0.2"] = {
+        "feat(bottombar): add overlap toggle for reader view",
+    },
 }
