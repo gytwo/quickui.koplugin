@@ -502,7 +502,7 @@ function QA.showEditActionDialog(action_id, on_done, source)
             end },
         }
 
-      if qa_id then
+      if qa_id and pos then
             table.insert(last_row, { text = _("Remove"), callback = function()
             closeSettingsDialog()
             removeFromList()
@@ -1269,11 +1269,13 @@ function QA.showCustomQADialog(qa_id, on_done, source)
             end })
         end
 
-        table.insert(last_row, { text = _("Remove"), callback = function()
+      if qa_id and pos then
+            table.insert(last_row, { text = _("Remove"), callback = function()
             closeSettingsDialog()
             removeFromList()
             if on_done then on_done() end
-        end })
+          end })
+      end
 
         table.insert(last_row, { text = _("Save"), is_enter_default = true, callback = function()
             local inputs = _active_dialog:getFields()
