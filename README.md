@@ -5,7 +5,7 @@
 
 > **QuickUI: Quick Actions, Cover Visuals, Cloze Mode, Header & Footer — more efficient KOReader.**
 
-> **Version**: v1.0.0 | **Author**: gytwo | **License**: AGPL-3.0 | **Compatible**: KOReader ≥ v2026.03
+> **Author**: gytwo | **License**: AGPL-3.0 | **Compatible**: KOReader ≥ v2026.03
 
 ---
 
@@ -452,38 +452,6 @@ Supports **downgrading** to any historical version.
 | :--- | :--- |
 | **KOReader** | ≥ v2026.03 |
 | **Device** | Frontlight/warmth controls require device support |
-
----
-
-## 📝 Changelog
-
-### v1.0.0 (2026-07-04)
-
-**New Features**
-
-- Four core features integrated: Quick Actions, Cover Visual Enhancements, Cloze Mode, Header & Footer
-- Quick Actions: 28+ built-in actions (WiFi, night mode, rotate, screenshot, etc.)
-- Quick Actions: Custom actions (folders, collections, plugins, system actions, recorded menu actions)
-- Quick Actions: Icon picker (Nerd Font + SVG/PNG + system icon override)
-- Quick Actions: Interface filter (auto-switch between Filemanager/Reader)
-- Quick Actions: Bottom navigation bar (customizable tabs, styles, colors)
-- Cover Visual Enhancements: Placeholder covers, badges (favorite/progress/NEW/page count/format), rounded corners, unified aspect ratio
-- Cover Visual Enhancements: Folder covers (Gallery/Stack/Normal/None)
-- Cloze Mode: Annotation masking (highlights/underlines/strikeouts/inversions), three toggle modes
-- Header & Footer: Time, page numbers, progress, chapter info, author, title, battery
-- UI Font Switcher: Regular/Bold/Monospace font replacement
-- Internationalization support (Chinese translation)
-- Online updates (GitHub/Gitee)
-
-**Improvements**
-
-- Unified configuration management (`quickui.lua`)
-- Module-independent enable/disable
-- Preset management (save/apply/reset)
-
-**Fixes**
-
-- None (initial release)
 
 ---
 
