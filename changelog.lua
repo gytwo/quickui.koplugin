@@ -50,4 +50,8 @@ return {
         "fix(main): read plugin version from _meta.lua dynamically",
         "i18n: add translations for overlap mode",
     },
+    ["1.0.3"] = {
+        "Expose QuickUI bottom bar height globally for SimpleUI compatibility",
+        "Remove the name field to be compatible with KOReader v2026.07",
+    },
 }
