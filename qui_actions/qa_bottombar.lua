@@ -1082,6 +1082,15 @@ function M.init()
     Utils.patchFileChooserForBottombar()
     Utils.registerRefreshHandler("qa_bb", M.refresh)
 
+
+    -- Expose QuickUI bottom bar height globally for SimpleUI compatibility
+    if Utils.getBool("qa_bb_enabled", true) then
+        _G.__QUICKUI_BAR_HEIGHT = M.TOTAL_H()
+        logger.info("QuickUI: __QUICKUI_BAR_HEIGHT = " .. M.TOTAL_H())
+    else
+        _G.__QUICKUI_BAR_HEIGHT = 0
+    end
+    
     -- Hook screen rotation
     local function hookDeviceListener()
         local ok, DeviceListener = pcall(require, "device/devicelistener")
