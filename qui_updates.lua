@@ -569,7 +569,7 @@ local function doCheckUpdates(source)
     showMsg(_("Checking for updates..."), 1)
 
     UIManager:scheduleIn(0.5, function()
-        local latest_version, download_url, source_used, err = getLatestVersionFromSource(source)
+        local latest_version, download_url, source_used, release_body, err = getLatestVersionFromSource(source)
 
         if not latest_version then
             showMsg(err or _("Check for updates failed"), 3)
@@ -582,7 +582,17 @@ local function doCheckUpdates(source)
             local source_text = " (" .. source_used .. ")"
             local message = string.format(_("New version found: %s%s\nCurrent version: %s\n\nDownload and install update?"),
                 latest_version, source_text, current_version)
-
+            -- Display release notes from GitHub/Gitee if available
+            if release_body and release_body ~= "" then
+                local clean_notes = release_body:gsub("^#+%s*", ""):gsub("\n#+%s*", "\n")
+                clean_notes = clean_notes:gsub("%*%*(.-)%*%*", "%1")
+                clean_notes = clean_notes:gsub("`(.-)`", "%1")
+                if #clean_notes > 1600 then
+                    clean_notes = util.fixUtf8(clean_notes:sub(1, 1597), "") .. "..."
+                end
+                message = message .. "\n\n" .. clean_notes
+            end
+                message = message .. "\n\n" .. _("Download and install update?")
             UIManager:show(ConfirmBox:new{
                 text = message,
                 ok_text = _("Update"),
