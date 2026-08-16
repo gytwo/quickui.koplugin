@@ -612,7 +612,6 @@ function QA.showEditActionDialog(action_id, on_done, source)
             buttons = buttons,
         }
         UIManager:show(_active_dialog)
-        pcall(function() _active_dialog:onShowKeyboard() end)
     end
 
     rebuildDialog()
@@ -1391,7 +1390,6 @@ function QA.showCustomQADialog(qa_id, on_done, source)
             buttons = buttons,
         }
         UIManager:show(_active_dialog)
-        pcall(function() _active_dialog:onShowKeyboard() end)
     end
 
     buildSaveDialog(false)
