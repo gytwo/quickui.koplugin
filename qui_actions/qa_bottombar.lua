@@ -369,7 +369,8 @@ end
 -- ============================================================
 
 function M.buildBar(active_action_id)
-    local tabs = getTabs()
+    -- Safely get tabs, always returns a table
+    local tabs = getTabs() or {}
     local num_tabs = #tabs
     local mode = Utils.getString("qa_bb_mode", "both")
     local screen_w = Screen:getWidth()
@@ -377,12 +378,25 @@ function M.buildBar(active_action_id)
     local usable_w = screen_w - side_m * 2
     local hg_args = { align = "top" }
 
+    -- Handle empty tabs: show friendly message
     if num_tabs == 0 then
         local vg = VerticalGroup:new{ align = "center" }
-        vg[#vg + 1] = VerticalSpan:new{ width = M.BAR_H() }
-        return buildContainer({ align = "top", vg })
+        
+        local hint_text = TextWidget:new{
+            text = _("No actions configured, long press to add"),
+            face = Utils.getFontFace("cfont", Utils.scaleBySize(14)),
+            fgcolor = Blitbuffer.gray(0.5),
+        }
+        local center = CenterContainer:new{
+            dimen = Geom:new{ w = usable_w, h = M.BAR_H() },
+            hint_text,
+        }
+        vg[#vg + 1] = center
+        hg_args[#hg_args + 1] = vg
+        return buildContainer(hg_args)
     end
 
+    -- Build tabs normally
     local widths = M.getTabWidths(num_tabs, usable_w)
     for i = 1, num_tabs do
         local action_id = tabs[i]
@@ -425,11 +439,15 @@ function getTabs()
         end
     end
 
+    -- Ensure tabs is a table
     if type(tabs) == "table" and #tabs > 0 then
         local valid = {}
         local action_map = {}
-        for __, action in ipairs(getAvailableActions()) do
-            action_map[action.id] = true
+        local available_actions = getAvailableActions() or {}
+        for __, action in ipairs(available_actions) do
+            if action and action.id then
+                action_map[action.id] = true
+            end
         end
 
         for __, id in ipairs(tabs) do
@@ -456,11 +474,12 @@ function getTabs()
         if #valid > 0 then
             return valid
         end
-        if _G.__QUICKUI_CONFIG and _G.__QUICKUI_CONFIG.qa_bb_tabs then
-           return _G.__QUICKUI_CONFIG.qa_bb_tabs
-        end
-       return  {}
-   end
+        -- No valid tabs found, return empty table
+        return {}
+    end
+    
+    -- Always return a table (empty if no tabs configured)
+    return {}
 end
 
 function M.isEnabled()
@@ -484,7 +503,7 @@ end
 -- ============================================================
 
 function M.registerTouchZones(fm_self)
-    local tabs = getTabs()
+    local tabs = getTabs() or {}
     local num_tabs = #tabs
     local screen_w = Screen:getWidth()
     local screen_h = Screen:getHeight()
@@ -493,8 +512,12 @@ function M.registerTouchZones(fm_self)
     local side_m = M.SIDE_M()
     local usable_w = screen_w - side_m * 2
 
-    if nav_h <= 0 or num_tabs == 0 then return end
+    if nav_h <= 0 then
+        -- Bottom bar is hidden or disabled, skip touch zone registration
+        return
+    end
 
+    -- Always register the settings hold zone, even when no tabs
     local old_zones = {}
     for i = 1, num_tabs do
         old_zones[#old_zones + 1] = { id = "bb_tab_" .. i }
@@ -505,82 +528,10 @@ function M.registerTouchZones(fm_self)
         fm_self:unregisterTouchZones(old_zones)
     end
 
-    local widths = M.getTabWidths(num_tabs, usable_w)
     local zones = {}
     local overrides = { "tap_left_bottom_corner", "tap_right_bottom_corner" }
 
-    local cumulative = 0
-    for i = 1, num_tabs do
-        local x_start = side_m + cumulative
-        local this_tab_w = widths[i]
-        cumulative = cumulative + this_tab_w
-
-        local pos = i
-
-        -- tap to execute
-        zones[#zones + 1] = {
-            id = "bb_tab_" .. i,
-            ges = "tap",
-            overrides = overrides,
-            screen_zone = {
-                ratio_x = x_start / screen_w,
-                ratio_y = bar_y / screen_h,
-                ratio_w = this_tab_w / screen_w,
-                ratio_h = nav_h / screen_h,
-            },
-            handler = function()
-                local action_id = tabs[pos]
-                if action_id then
-                    M.executeAction(action_id, {})
-                end
-                return true
-            end,
-        }
-
-        -- hold to edit
-        zones[#zones + 1] = {
-            id = "bb_tab_hold_" .. i,
-            ges = "hold",
-            overrides = overrides,
-            screen_zone = {
-                ratio_x = x_start / screen_w,
-                ratio_y = bar_y / screen_h,
-                ratio_w = this_tab_w / screen_w,
-                ratio_h = nav_h / screen_h,
-            },
-            handler = function()
-                if not Utils.getBool("qa_bb_button_hold_edit", true) then
-                    return true
-                end
-                local action_id = tabs[pos]
-                if not action_id then return true end
-
-                local is_builtin = QA.isBuiltinAction and QA.isBuiltinAction(action_id)
-                local settings = require("qui_actions.qa_settings")
-
-                if settings then
-                    if is_builtin then
-                        settings.showEditActionDialog(action_id, function()
-                            if fm_self and fm_self.updateItems then
-                                fm_self:updateItems()
-                            end
-                            M.rebuildBottombar()
-                        end, "bottombar")
-                    else
-                        settings.showCustomQADialog(action_id, function()
-                            if fm_self and fm_self.updateItems then
-                                fm_self:updateItems()
-                            end
-                            M.rebuildBottombar()
-                        end, "bottombar")
-                    end
-                end
-                return true
-            end,
-        }
-    end
-
-    -- hold on empty area to open settings
+    -- Register hold settings zone regardless of tab count
     zones[#zones + 1] = {
         id = "bb_hold_settings",
         ges = "hold_release",
@@ -600,6 +551,81 @@ function M.registerTouchZones(fm_self)
             return true
         end,
     }
+
+    -- Only register tab zones if there are tabs
+    if num_tabs > 0 then
+        local widths = M.getTabWidths(num_tabs, usable_w)
+        local cumulative = 0
+        for i = 1, num_tabs do
+            local x_start = side_m + cumulative
+            local this_tab_w = widths[i]
+            cumulative = cumulative + this_tab_w
+
+            local pos = i
+
+            -- tap to execute
+            zones[#zones + 1] = {
+                id = "bb_tab_" .. i,
+                ges = "tap",
+                overrides = overrides,
+                screen_zone = {
+                    ratio_x = x_start / screen_w,
+                    ratio_y = bar_y / screen_h,
+                    ratio_w = this_tab_w / screen_w,
+                    ratio_h = nav_h / screen_h,
+                },
+                handler = function()
+                    local action_id = tabs[pos]
+                    if action_id then
+                        M.executeAction(action_id, {})
+                    end
+                    return true
+                end,
+            }
+
+            -- hold to edit
+            zones[#zones + 1] = {
+                id = "bb_tab_hold_" .. i,
+                ges = "hold",
+                overrides = overrides,
+                screen_zone = {
+                    ratio_x = x_start / screen_w,
+                    ratio_y = bar_y / screen_h,
+                    ratio_w = this_tab_w / screen_w,
+                    ratio_h = nav_h / screen_h,
+                },
+                handler = function()
+                    if not Utils.getBool("qa_bb_button_hold_edit", true) then
+                        return true
+                    end
+                    local action_id = tabs[pos]
+                    if not action_id then return true end
+
+                    local is_builtin = QA.isBuiltinAction and QA.isBuiltinAction(action_id)
+                    local settings = require("qui_actions.qa_settings")
+
+                    if settings then
+                        if is_builtin then
+                            settings.showEditActionDialog(action_id, function()
+                                if fm_self and fm_self.updateItems then
+                                    fm_self:updateItems()
+                                end
+                                M.rebuildBottombar()
+                            end, "bottombar")
+                        else
+                            settings.showCustomQADialog(action_id, function()
+                                if fm_self and fm_self.updateItems then
+                                    fm_self:updateItems()
+                                end
+                                M.rebuildBottombar()
+                            end, "bottombar")
+                        end
+                    end
+                    return true
+                end,
+            }
+        end
+    end
 
     if fm_self.registerTouchZones then
         fm_self:registerTouchZones(zones)
@@ -702,7 +728,9 @@ function M.wrapWithBottombar(inner_widget)
     end
     -- Overlap mode: leave content unchanged, bar floats on top (reader only)
 
-    local active_action = getTabs()[1]
+    -- Safely get tabs, always returns a table
+    local tabs = getTabs() or {}
+    local active_action = (tabs and #tabs > 0) and tabs[1] or nil
     local bar = M.buildBar(active_action)
     local bar_y = screen_h - nav_h
     bar.overlap_offset = { 0, bar_y }
@@ -804,7 +832,6 @@ end
 -- ============================================================
 
 function M.removeBottombar()
-
     local FM = require("apps/filemanager/filemanager")
     local fm = FM and FM.instance
     if fm and fm._bottombar_original_inner then
@@ -1071,7 +1098,7 @@ end
 -- ============================================================
 
 function M.getTabs()
-    return getTabs()
+    return getTabs() or {}
 end
 
 -- ============================================================
