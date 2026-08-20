@@ -26,6 +26,7 @@ local ImageWidget = require("ui/widget/imagewidget")
 local Font = require("ui/font")
 local ButtonDialog = require("ui/widget/buttondialog")
 local InfoMessage = require("ui/widget/infomessage")
+local Notification = require("ui/widget/notification")
 
 local Utils = require("qui_utils")
 local QA = require("qui_actions.qa_actions")
@@ -997,50 +998,32 @@ function M.showAddTabMenu(on_back, filtered_actions)
     table.insert(buttons, {})
 
     -- Select All / Deselect All
-    local all_checked = true
-    for __, action in ipairs(available) do
-        if not tab_set[action.id] then
-            all_checked = false
-            break
-        end
-    end
-
     table.insert(buttons, {
         {
-            text = all_checked and "☑ " .. _("Deselect All") or "☐ " .. _("Select All"),
-            callback = function()
-                local is_all_checked = true
-                for __, action in ipairs(available) do
-                    if not tab_set[action.id] then
-                        is_all_checked = false
-                        break
-                    end
-                end
-
-                local new_tabs = {}
-                if is_all_checked then
-                    for __, id in ipairs(current_tabs) do
-                        local still_available = false
-                        for __, action in ipairs(available) do
-                            if action.id == id then
-                                still_available = true
-                                break
-                            end
-                        end
-                        if not still_available then
-                            new_tabs[#new_tabs + 1] = id
-                        end
-                    end
+            text_func = function()
+                if #current_tabs > 0 then
+                    return "☑ " .. _("Deselect All")
                 else
-                    for __, id in ipairs(current_tabs) do
-                        new_tabs[#new_tabs + 1] = id
-                    end
+                    return "☐ " .. _("Select All")
+                end
+            end,
+            callback = function()
+                local new_tabs = {}
+
+                if #current_tabs > 0 then
+                    -- Deselect All: clear all tabs
+                    new_tabs = {}
+                else
+                    -- Select All: add all available actions (up to MAX_TABS)
                     for __, action in ipairs(available) do
-                        if not tab_set[action.id] then
-                            if #new_tabs < MAX_TABS then
-                                new_tabs[#new_tabs + 1] = action.id
-                            end
+                        if #new_tabs >= MAX_TABS then
+                            UIManager:show(Notification:new{
+                                text = string.format(_("Max %d tabs, only first %d added"), MAX_TABS, MAX_TABS),
+                                timeout = 2,
+                            })
+                            break
                         end
+                        table.insert(new_tabs, action.id)
                     end
                 end
 
