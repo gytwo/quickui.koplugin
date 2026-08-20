@@ -1557,3 +1557,6 @@ msgstr "允许与内容重叠（仅阅读器）"
 
 msgid "Overlap mode changed"
 msgstr "重叠模式已更改"
+
+msgid "Delete quick action \"%s\"?"
+msgstr "删除快捷操作 \"%s\"？"
