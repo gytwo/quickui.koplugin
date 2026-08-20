@@ -1560,3 +1560,6 @@ msgstr "重叠模式已更改"
 
 msgid "Delete quick action \"%s\"?"
 msgstr "删除快捷操作 \"%s\"？"
+
+msgid "Max %d tabs, only first %d added"
+msgstr "最多 %d 个标签，只添加了前 %d 个"
