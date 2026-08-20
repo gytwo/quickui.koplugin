@@ -835,39 +835,36 @@ function M.removeBottombar()
     local FM = require("apps/filemanager/filemanager")
     local fm = FM and FM.instance
     if fm and fm._bottombar_original_inner then
+        -- Clear the entire _zones table to remove all residual touch zone handlers
+        if fm._zones then
+            fm._zones = {}
+        end
+        if fm.touch_zone_dg then
+            fm.touch_zone_dg = nil
+        end
+        fm._ordered_touch_zones = {}
+        
         fm[1] = fm._bottombar_original_inner
         fm._bottombar_container = nil
         fm._bottombar_original_inner = nil
         UIManager:setDirty(fm, "ui")
-        if fm.unregisterTouchZones then
-            local tabs = M.getTabs() or {}
-            local zones = {}
-            for i = 1, #tabs do
-                zones[#zones + 1] = { id = "bb_tab_" .. i }
-                zones[#zones + 1] = { id = "bb_tab_hold_" .. i }
-            end
-            zones[#zones + 1] = { id = "bb_hold_settings" }
-            fm:unregisterTouchZones(zones)
-        end
     end
 
     local RUI = require("apps/reader/readerui")
     local reader = RUI and RUI.instance
     if reader and reader._bottombar_original_inner then
+        if reader._zones then
+            reader._zones = {}
+        end
+        if reader.touch_zone_dg then
+            reader.touch_zone_dg = nil
+        end
+        reader._ordered_touch_zones = {}
+        
         reader[1] = reader._bottombar_original_inner
         reader._bottombar_container = nil
         reader._bottombar_original_inner = nil
         UIManager:setDirty(reader, "ui")
-        if reader.unregisterTouchZones then
-            local tabs = M.getTabs() or {}
-            local zones = {}
-            for i = 1, #tabs do
-                zones[#zones + 1] = { id = "bb_tab_" .. i }
-                zones[#zones + 1] = { id = "bb_tab_hold_" .. i }
-            end
-            zones[#zones + 1] = { id = "bb_hold_settings" }
-            reader:unregisterTouchZones(zones)
-        end
     end
 end
 
