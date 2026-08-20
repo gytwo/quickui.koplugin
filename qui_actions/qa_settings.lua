@@ -502,14 +502,6 @@ function QA.showEditActionDialog(action_id, on_done, source)
             end },
         }
 
-      if pos then
-            table.insert(last_row, { text = _("Remove"), callback = function()
-            closeSettingsDialog()
-            removeFromList()
-            if on_done then on_done() end
-          end })
-      end
-
         if pos then
             table.insert(last_row, { text = "◀", enabled = (pos > 1), callback = function()
                 closeSettingsDialog()
@@ -532,7 +524,15 @@ function QA.showEditActionDialog(action_id, on_done, source)
                 rebuildDialog()
             end })
         end
-
+        
+      if pos then
+            table.insert(last_row, { text = _("Remove"), callback = function()
+            closeSettingsDialog()
+            removeFromList()
+            if on_done then on_done() end
+          end })
+      end
+        
         table.insert(last_row, { text = _("Save"), is_enter_default = true, callback = function()
             if not _active_dialog then return end
             local inputs = _active_dialog:getFields()
