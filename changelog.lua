@@ -56,4 +56,8 @@ return {
         "Display release notes when new version is found",
         "Remove the name field to be compatible with KOReader v2026.07",
     },
+    ["1.0.4"] = {
+    "Fix crash when removing last bottom bar tab (empty tab list handling)",
+    "Fix residual touch handler when removing the rightmost bottom bar tab",
+},
 }
