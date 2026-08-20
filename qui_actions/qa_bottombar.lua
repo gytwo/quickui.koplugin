@@ -835,14 +835,33 @@ function M.removeBottombar()
     local FM = require("apps/filemanager/filemanager")
     local fm = FM and FM.instance
     if fm and fm._bottombar_original_inner then
-        -- Clear the entire _zones table to remove all residual touch zone handlers
+        -- Delete only bb_* touch zones from _zones table
         if fm._zones then
-            fm._zones = {}
+            for id, _ in pairs(fm._zones) do
+                if type(id) == "string" and id:match("^bb_") then
+                    fm._zones[id] = nil
+                end
+            end
         end
+        
+        -- Also clean up touch_zone_dg and _ordered_touch_zones for bb_* zones
         if fm.touch_zone_dg then
-            fm.touch_zone_dg = nil
+            for id, _ in pairs(fm._zones or {}) do
+                if type(id) == "string" and id:match("^bb_") then
+                    fm.touch_zone_dg:removeNode(id)
+                end
+            end
         end
+        
+        -- Rebuild _ordered_touch_zones from remaining zones
         fm._ordered_touch_zones = {}
+        if fm.touch_zone_dg then
+            for _, zone_id in ipairs(fm.touch_zone_dg:serialize()) do
+                if fm._zones and fm._zones[zone_id] then
+                    table.insert(fm._ordered_touch_zones, fm._zones[zone_id])
+                end
+            end
+        end
         
         fm[1] = fm._bottombar_original_inner
         fm._bottombar_container = nil
@@ -854,12 +873,29 @@ function M.removeBottombar()
     local reader = RUI and RUI.instance
     if reader and reader._bottombar_original_inner then
         if reader._zones then
-            reader._zones = {}
+            for id, _ in pairs(reader._zones) do
+                if type(id) == "string" and id:match("^bb_") then
+                    reader._zones[id] = nil
+                end
+            end
         end
+        
         if reader.touch_zone_dg then
-            reader.touch_zone_dg = nil
+            for id, _ in pairs(reader._zones or {}) do
+                if type(id) == "string" and id:match("^bb_") then
+                    reader.touch_zone_dg:removeNode(id)
+                end
+            end
         end
+        
         reader._ordered_touch_zones = {}
+        if reader.touch_zone_dg then
+            for _, zone_id in ipairs(reader.touch_zone_dg:serialize()) do
+                if reader._zones and reader._zones[zone_id] then
+                    table.insert(reader._ordered_touch_zones, reader._zones[zone_id])
+                end
+            end
+        end
         
         reader[1] = reader._bottombar_original_inner
         reader._bottombar_container = nil
