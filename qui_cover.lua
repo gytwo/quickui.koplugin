@@ -2073,15 +2073,14 @@ function Cover._patchList()
 
     local orig_paintTo = ListMenuItem.paintTo
 
-    local function getFontSize(nominal, dimen_h)
+    -- Identical to original listmenu.lua's _fontSize logic
+    local function _fontSize(nominal, max, dimen_h)
         local scale_by_size = Screen:scaleBySize(1000000) * (1/1000000)
-        local scale = Utils.scaleBySize(1)
-        local fs = math.floor(nominal * dimen_h * (1 / 64) / scale_by_size * scale + 0.5)
-        local max_size = math.floor(24 * scale + 0.5)
-        local min_size = math.max(8, math.floor(10 * scale + 0.5))
-        if fs > max_size then fs = max_size end
-        if fs < min_size then fs = min_size end
-        return fs
+        local font_size = math.floor(nominal * dimen_h * (1/64) / scale_by_size)
+        if max and font_size >= max then
+            return max
+        end
+        return font_size
     end
 
     function ListMenuItem:update()
@@ -2089,7 +2088,10 @@ function Cover._patchList()
         local is_dir = not (self.entry.is_file or self.entry.file)
 
         local underline_h = 1
-        local dimen_h = self.height - 2 * underline_h
+        -- Fallback to prevent nil dimen_h when self.height is not set
+        local dimen_h = (self.height or 0) - 2 * underline_h
+        if dimen_h < 1 then dimen_h = 1 end
+
         local border = Size.border.thin
         local cover_v_pad = Screen:scaleBySize(4)
         local max_img = dimen_h - 2 * border - 2 * cover_v_pad
@@ -2129,8 +2131,7 @@ function Cover._patchList()
             local pad_left = Screen:scaleBySize(8)
             local text_safe_pad_top = math.max(2, Screen:scaleBySize(4))
             local content_h = math.max(1, dimen_h - text_safe_pad_top * 2)
-            local fs_title = getFontSize(16, dimen_h)
-            fs_title = math.min(fs_title, math.max(9, math.floor(content_h * 0.45)))
+            local fs_title = _fontSize(20, 24, dimen_h)
 
             local up_text = BD.mirroredUILayout() and BD.ltr("../ \u{F062}") or "\u{F062}  ../"
             local wtitle = TextBoxWidget:new{
@@ -2255,14 +2256,14 @@ function Cover._patchList()
             local text_safe_pad_top = math.max(2, Screen:scaleBySize(4))
             local content_h = math.max(1, dimen_h - text_safe_pad_top * 2)
 
-            local fs_title = getFontSize(16, dimen_h)
-            fs_title = math.min(fs_title, math.max(9, math.floor(content_h * 0.45)))
-
             local title_text = BD.directory(folder_name)
+            local fs_title = _fontSize(20, 24, dimen_h)
+            local title_w = self.width - target_w - Screen:scaleBySize(24)
+
             local wtitle = TextBoxWidget:new{
                 text = title_text,
                 face = Utils.getFontFace("cfont", fs_title),
-                width = self.width - target_w - Screen:scaleBySize(24),
+                width = title_w,
                 height = content_h,
                 height_adjust = true,
                 height_overflow_show_ellipsis = true,
@@ -2272,8 +2273,7 @@ function Cover._patchList()
             table.insert(right_widgets, wtitle)
 
             if folder_file_count and folder_file_count > 0 then
-                local fs_info = getFontSize(12, dimen_h)
-                fs_info = math.min(fs_info, math.max(8, math.floor(content_h * 0.34)))
+                local fs_info = _fontSize(18, 22, dimen_h)
                 local count_str = tostring(folder_file_count) .. " " .. (folder_file_count == 1 and _("book") or _("books"))
                 local wcount = TextWidget:new{
                     text = count_str,
@@ -2297,6 +2297,9 @@ function Cover._patchList()
                 right_available_w = 50
             end
 
+            local right_stack_h = right_stack:getSize().h
+            local right_container_h = math.max(dimen_h, right_stack_h + text_safe_pad_top)
+
             local widget = OverlapGroup:new{
                 dimen = row_dimen,
                 LeftContainer:new{
@@ -2309,7 +2312,7 @@ function Cover._patchList()
                         },
                         HorizontalSpan:new{ width = pad_left },
                         LeftContainer:new{
-                            dimen = { w = right_available_w, h = dimen_h },
+                            dimen = { w = right_available_w, h = right_container_h },
                             right_stack,
                         },
                     },
@@ -2414,13 +2417,14 @@ function Cover._patchList()
             end
 
             if title then
-                local fs_title = getFontSize(16, dimen_h)
-                fs_title = math.min(fs_title, math.max(9, math.floor(content_h * 0.45)))
+                local fs_title = _fontSize(20, 24, dimen_h)
+                local title_w = self.width - target_w - Screen:scaleBySize(24)
+
                 local wtitle = TextBoxWidget:new{
                     text = BD.auto(title),
                     face = Utils.getFontFace("cfont", fs_title),
-                    width = self.width - target_w - Screen:scaleBySize(24),
-                    height = math.floor(content_h * 0.6),
+                    width = title_w,
+                    height = content_h,
                     height_adjust = true,
                     height_overflow_show_ellipsis = true,
                     alignment = "left",
@@ -2430,13 +2434,15 @@ function Cover._patchList()
             end
 
             if authors and authors ~= "" then
-                local fs_author = getFontSize(12, dimen_h)
-                fs_author = math.min(fs_author, math.max(8, math.floor(content_h * 0.34)))
+                local fs_author = _fontSize(18, 22, dimen_h)
+                local author_w = self.width - target_w - Screen:scaleBySize(24)
+                local author_text = BD.auto(authors:gsub("\n", ", "))
+
                 local wauthors = TextWidget:new{
-                    text = BD.auto(authors:gsub("\n", ", ")),
+                    text = author_text,
                     face = Utils.getFontFace("cfont", fs_author),
+                    width = author_w,
                     fgcolor = Blitbuffer.COLOR_GRAY,
-                    max_width = self.width - target_w - Screen:scaleBySize(24),
                 }
                 table.insert(right_widgets, wauthors)
             end
@@ -2456,6 +2462,9 @@ function Cover._patchList()
             right_available_w = 50
         end
 
+        local right_stack_h = right_stack:getSize().h
+        local right_container_h = math.max(dimen_h, right_stack_h + text_safe_pad_top)
+
         local widget = OverlapGroup:new{
             dimen = row_dimen,
             LeftContainer:new{
@@ -2468,7 +2477,7 @@ function Cover._patchList()
                     },
                     HorizontalSpan:new{ width = pad_left },
                     LeftContainer:new{
-                        dimen = { w = right_available_w, h = dimen_h },
+                        dimen = { w = right_available_w, h = right_container_h },
                         right_stack,
                     },
                 },
