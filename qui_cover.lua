@@ -1817,6 +1817,7 @@ function Cover._patchMosaic()
                             padding = 0, bordersize = border,
                             width = portrait_w + 2 * border, height = portrait_h + 2 * border,
                             background = Blitbuffer.COLOR_LIGHT_GRAY,
+                            dim = self.entry and self.entry.dim,
                             CenterContainer:new{
                                 dimen = { w = portrait_w, h = portrait_h },
                                 ImageWidget:new{ image = cover_bb, width = portrait_w, height = portrait_h },
@@ -2373,6 +2374,7 @@ function Cover._patchList()
                 margin = 0,
                 padding = 0,
                 bordersize = border,
+                dim = self.entry and self.entry.dim, 
                 CenterContainer:new{
                     dimen = { w = target_w, h = target_h },
                     wimage,
@@ -2394,6 +2396,7 @@ function Cover._patchList()
                 margin = 0,
                 padding = 0,
                 bordersize = border,
+                dim = self.entry and self.entry.dim, 
                 CenterContainer:new{
                     dimen = { w = target_w, h = target_h },
                     wimage,
