@@ -795,7 +795,15 @@ function M.rebuildBottombar()
     if reader then
         local config = _G.__QUICKUI_CONFIG
         local show_in_reader = config and config.qa_bb_reader_enabled
-        if show_in_reader ~= false then
+        -- check if hide in pdf
+        local hide_in_pdf = config and config.qa_bb_hide_in_pdf
+        local is_pdf = false
+        if reader and reader.document then
+            local file = reader.document.file or ""
+            is_pdf = file:match("%.pdf$") ~= nil
+        end
+        
+        if show_in_reader ~= false and not (hide_in_pdf and is_pdf) then
             local inner_reader = reader[1]
             if inner_reader and inner_reader._bottombar_inner then
                 inner_reader = inner_reader._bottombar_inner

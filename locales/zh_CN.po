@@ -273,6 +273,9 @@ msgstr "长按打开设置"
 msgid "Show in Reader"
 msgstr "在阅读器中显示"
 
+msgid "Hide in PDF"
+msgstr "在PDF中隐藏"
+
 msgid "Bar Style"
 msgstr "栏样式"
 

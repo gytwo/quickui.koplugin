@@ -38,7 +38,7 @@ local DEFAULT_SETTINGS = {
     qa_bb_icon_scale_pct = 100,
     qa_bb_label_scale_pct = 100,
     qa_bb_bottom_margin_pct = 100,
-    qa_bb_transparent = false,
+    qa_bb_transparent = true,
     qa_bb_settings_on_hold = true,
     qa_bb_bg_color = "",
     qa_bb_fg_color = "",
@@ -48,6 +48,7 @@ local DEFAULT_SETTINGS = {
     qa_bb_tabs = {"home", "annotations_viewer", "continue", "reading_insights", "qa_add_bb_tab","search","cloudlibrary_batch_download_books", "zlibrary_search"},
     qa_bb_reader_enabled = true,
     qa_bb_overlap = false,  -- Allow bottom bar to overlap content
+    qa_bb_hide_in_pdf = true,
 
     -- Common Settings
     qa_common_enabled = true,
