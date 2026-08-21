@@ -63,6 +63,7 @@ return {
     "Move Remove button next to Save in built-in action edit dialog",
     "Adjust title and author font size in list view",
     "Fix placeholder cover dim effect not showing when selected in filemanager",
+    "Add 'Hide in PDF' option for bottom bar",
     "Improve Chinese translations",
 },
 }
