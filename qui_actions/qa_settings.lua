@@ -2151,6 +2151,22 @@ function QA.getBottomBarMenuItems()
         })
     end,
 }
+
+    -- 1.2 Hide in PDF 
+    items[#items + 1] = {
+        text = _("Hide in PDF"),
+        checked_func = function()
+            return Utils.getBool("qa_bb_hide_in_pdf", false)
+        end,
+        callback = function(touchmenu_instance)
+            Utils.set("qa_bb_hide_in_pdf", not Utils.getBool("qa_bb_hide_in_pdf", false))
+            if touchmenu_instance then
+                touchmenu_instance:updateItems()
+            end
+            bb.refresh()
+        end,
+    }
+    
     -- 2. Long press to edit
     items[#items + 1] = {
         text = _("Long press to edit"),
