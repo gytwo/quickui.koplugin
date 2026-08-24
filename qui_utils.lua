@@ -8,7 +8,6 @@ local Font = require("ui/font")
 local Screen = require("device").screen
 local _ = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
-local UIManager = require("ui/uimanager")
 
 local Utils = {}
 
@@ -868,45 +867,6 @@ function Utils.patchFileChooserForBottombar()
 end
 
 -- ============================================================
--- Patch BookList for Bottom Navigation Bar
--- ============================================================
-
-function Utils.patchBookListForBottombar()
-    local BookList = require("ui/widget/booklist")
-    if BookList._quickui_patched then return end
-    BookList._quickui_patched = true
-
-    local orig_new = BookList.new
-    BookList.new = function(class, attrs, ...)
-        attrs = attrs or {}
-        local is_booklist = attrs.name == "history" or attrs.name == "collections" or attrs.name == "coll_list"
-        if is_booklist then
-            local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
-            if bb and bb.isEnabled and bb.isEnabled() then
-                local nav_h = bb.TOTAL_H()
-                attrs.height = Screen:getHeight() - nav_h
-                attrs.width = Screen:getWidth()
-                attrs._navbar_height_reduced = true
-            end
-        end
-        local instance = orig_new(class, attrs, ...)
-        
-        -- ★ Register touch zones after BookList is created ★
-        if is_booklist then
-            local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
-            if bb and bb.registerTouchZones then
-                -- BookList needs to be fully initialized before registering zones
-                UIManager:scheduleIn(0, function()
-                    bb.registerTouchZones(instance)
-                end)
-            end
-        end
-        
-        return instance
-    end
-end
-
--- ============================================================
 -- Search Utilities
 -- ============================================================
 
@@ -1006,5 +966,6 @@ function Utils.createSearchButton(on_back, on_search, on_open)
         end,
     }
 end
+
 
 return Utils
