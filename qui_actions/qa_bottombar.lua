@@ -770,13 +770,27 @@ end
 -- Rebuild Bottombar
 -- ============================================================
 
-function M.rebuildBottombar()
+function M.rebuildBottombar(skip_remove)
     if not M.isEnabled() then
         M.removeBottombar()
         return
     end
 
-    M.removeBottombar()
+    if skip_remove then
+        -- On rotation: only clear _bottombar_original_inner, do not execute remove
+        local FM = require("apps/filemanager/filemanager")
+        local fm = FM.instance
+        if fm then
+            fm._bottombar_original_inner = nil
+        end
+        local RUI = require("apps/reader/readerui")
+        local reader = RUI.instance
+        if reader then
+            reader._bottombar_original_inner = nil
+        end
+    else
+        M.removeBottombar()
+    end
     
     -- Wrap FileManager
     local FM = require("apps/filemanager/filemanager")
@@ -1209,7 +1223,7 @@ function M.init()
                 result = orig_onSwapRotation(self)
             end
             if _G.__QUICKUI_CONFIG and _G.__QUICKUI_CONFIG.qa_bb_enabled then
-                M.rebuildBottombar()
+                M.rebuildBottombar(true)
             end
             return result
         end
