@@ -503,7 +503,10 @@ end
 -- Touch Zone Registration
 -- ============================================================
 
-function M.registerTouchZones(fm_self)
+function M.registerTouchZones(plugin_or_widget, widget)
+    local fm_self = widget or plugin_or_widget
+    if not fm_self then return end
+    
     local tabs = getTabs() or {}
     local num_tabs = #tabs
     local screen_w = Screen:getWidth()
@@ -666,70 +669,72 @@ function M.wrapWithBottombar(inner_widget)
     local screen_w = Screen:getWidth()
     local screen_h = Screen:getHeight()
     local nav_h = M.TOTAL_H()
-    
-    -- Only apply overlap mode in reader
+
+    if nav_h <= 0 then return inner_widget end
+
     local is_reader = isReaderWidget(inner_widget)
     local overlap = is_reader and Utils.getBool("qa_bb_overlap", false) or false
 
+    local content_h = screen_h - nav_h
+    if content_h <= 0 then return inner_widget end
+
+    -- Check if this is a BookList (History/Collections) or Menu (coll_list)
+    local is_booklist = inner_widget.is_borderless and inner_widget.name and 
+                        (inner_widget.name == "history" or inner_widget.name == "collections" or inner_widget.name == "coll_list")
+
     if not overlap then
-        -- Non-overlap mode: shrink content to make room for bottom bar
-        local content_h = screen_h - nav_h
-        local content_y = 0
-
-        if inner_widget.dimen then
-            inner_widget.dimen.h = content_h
-            inner_widget.dimen.w = screen_w
-            inner_widget.dimen.y = content_y
-        end
-        if inner_widget.height ~= nil then
-            inner_widget.height = content_h
-        end
-        if inner_widget.y ~= nil then
-            inner_widget.y = content_y
-        end
-
-        local fc = inner_widget.file_chooser or inner_widget
-        if fc then
-            if fc.height ~= nil then
-                fc.height = content_h
+        if is_booklist then
+            -- BookList/Menu: modify container (widget[1]) height
+            local container = inner_widget[1]
+            if container and container.dimen then
+                container.dimen.h = content_h
+                container.dimen.y = 0
             end
-            if fc.y ~= nil then
-                fc.y = content_y
+            -- Trigger refresh via _manager for BookList
+            if inner_widget._manager and inner_widget._manager.updateItemTable then
+                inner_widget._manager:updateItemTable()
             end
-            if fc.dimen then
-                fc.dimen.h = content_h
-                fc.dimen.y = content_y
+            -- For Menu (coll_list), trigger updateItems
+            if inner_widget.updateItems then
+                inner_widget:updateItems()
             end
-
-            local bordersize = fc.bordersize or 0
-            local padding = fc.padding or 0
-            fc.available_height = content_h - bordersize * 2 - padding * 2
-
-            if fc._recalculateDimen then
-                fc:_recalculateDimen()
-            end
-            if fc.updateItems then
-                fc:updateItems()
-            end
-        end
-
-        if inner_widget._bottombar_injected then
+        else
+            -- FM/Reader: original logic
             if inner_widget.dimen then
                 inner_widget.dimen.h = content_h
-                inner_widget.dimen.y = content_y
+                inner_widget.dimen.w = screen_w
+                inner_widget.dimen.y = 0
             end
-            if inner_widget[1] and inner_widget[1].dimen then
-                inner_widget[1].dimen.h = content_h
-                inner_widget[1].dimen.y = content_y
+            if inner_widget.height ~= nil then
+                inner_widget.height = content_h
             end
-            if inner_widget._recalculateDimen then
-                inner_widget:_recalculateDimen()
+            if inner_widget.y ~= nil then
+                inner_widget.y = 0
+            end
+
+            local fc = inner_widget.file_chooser or inner_widget
+            if fc then
+                if fc.height ~= nil then
+                    fc.height = content_h
+                end
+                if fc.y ~= nil then
+                    fc.y = 0
+                end
+                if fc.dimen then
+                    fc.dimen.h = content_h
+                    fc.dimen.y = 0
+                end
+                if fc._recalculateDimen then
+                    fc:_recalculateDimen()
+                end
+                if fc.updateItems then
+                    fc:updateItems()
+                end
             end
         end
     end
-    -- Overlap mode: leave content unchanged, bar floats on top (reader only)
 
-    -- Safely get tabs, always returns a table
+    -- Build bottom bar (shared by all)
     local tabs = getTabs() or {}
     local active_action = (tabs and #tabs > 0) and tabs[1] or nil
     local bar = M.buildBar(active_action)
@@ -749,7 +754,6 @@ function M.wrapWithBottombar(inner_widget)
     og._bottombar_container = og
 
     local is_bare = Utils.getString("qa_bb_style") == "bare"
-    -- Enable transparent background automatically in overlap mode
     local use_transparent = Utils.getBool("qa_bb_transparent", false) or overlap
     local bg = (use_transparent or is_bare) and nil or Blitbuffer.COLOR_WHITE
 
@@ -766,14 +770,29 @@ end
 -- Rebuild Bottombar
 -- ============================================================
 
-function M.rebuildBottombar()
+function M.rebuildBottombar(skip_remove)
     if not M.isEnabled() then
         M.removeBottombar()
         return
     end
 
-    M.removeBottombar()
+    if skip_remove then
+        -- On rotation: only clear _bottombar_original_inner, do not execute remove
+        local FM = require("apps/filemanager/filemanager")
+        local fm = FM.instance
+        if fm then
+            fm._bottombar_original_inner = nil
+        end
+        local RUI = require("apps/reader/readerui")
+        local reader = RUI.instance
+        if reader then
+            reader._bottombar_original_inner = nil
+        end
+    else
+        M.removeBottombar()
+    end
     
+    -- Wrap FileManager
     local FM = require("apps/filemanager/filemanager")
     local fm = FM.instance
     if fm then
@@ -790,12 +809,12 @@ function M.rebuildBottombar()
         M.registerTouchZones(fm)
     end
 
+    -- Wrap Reader
     local RUI = require("apps/reader/readerui")
     local reader = RUI.instance
     if reader then
         local config = _G.__QUICKUI_CONFIG
         local show_in_reader = config and config.qa_bb_reader_enabled
-        -- check if hide in pdf
         local hide_in_pdf = config and config.qa_bb_hide_in_pdf
         local is_pdf = false
         if reader and reader.document then
@@ -834,12 +853,40 @@ function M.rebuildBottombar()
             end
         end
     end
+
+    -- ★ NEW: Wrap History/Collections/coll_list that are already on screen
+    local stack = UIManager._window_stack or {}
+    local INJECT_NAMES = { 
+        history = true, 
+        collections = true, 
+        coll_list = true,
+        homescreen = true,
+    }
+    for _, entry in ipairs(stack) do
+        local w = entry.widget
+        if w and w.covers_fullscreen and w.name and INJECT_NAMES[w.name] then
+            if not w._bottombar_injected then
+                local inner = w[1]
+                if inner and not inner._bottombar_inner then
+                    local wrapped = M.wrapWithBottombar(w)
+                    if wrapped and wrapped ~= w then
+                        w[1] = wrapped
+                        w._bottombar_injected = true
+                        w._bottombar_inner = inner
+                        M.registerTouchZones(w)
+                        UIManager:setDirty(w, "full")
+                    end
+                end
+            end
+        end
+    end
 end
 
 -- ============================================================
 -- Remove Bottombar
 -- ============================================================
 
+--- Remove bottom bar from FileManager, Reader, and all injected fullscreen widgets
 function M.removeBottombar()
     local FM = require("apps/filemanager/filemanager")
     local fm = FM and FM.instance
@@ -910,6 +957,25 @@ function M.removeBottombar()
         reader._bottombar_container = nil
         reader._bottombar_original_inner = nil
         UIManager:setDirty(reader, "ui")
+    end
+
+    -- ★ Clean up bottom bar from all injected fullscreen widgets (History/Collections/coll_list/homescreen)
+    local stack = UIManager._window_stack or {}
+    local INJECT_NAMES = { history = true, collections = true, coll_list = true, homescreen = true }
+    for _, entry in ipairs(stack) do
+        local w = entry.widget
+        if w and w.name and INJECT_NAMES[w.name] and w._bottombar_injected then
+            local inner = w._bottombar_inner
+            if inner and w[1] then
+                w[1] = inner
+            end
+            w._bottombar_injected = nil
+            w._bottombar_inner = nil
+            w._bottombar_container = nil
+            w._bottombar_wrapped = nil
+            w._bottombar_tabs = nil
+            w._navbar_container = nil
+        end
     end
 end
 
@@ -1131,9 +1197,9 @@ end
 
 function M.init()
     Utils.patchFileChooserForBottombar()
+    Utils.patchBookListForBottombar()
     Utils.registerRefreshHandler("qa_bb", M.refresh)
-
-
+    
     -- Expose QuickUI bottom bar height globally for SimpleUI compatibility
     if Utils.getBool("qa_bb_enabled", true) then
         _G.__QUICKUI_BAR_HEIGHT = M.TOTAL_H()
@@ -1157,7 +1223,7 @@ function M.init()
                 result = orig_onSwapRotation(self)
             end
             if _G.__QUICKUI_CONFIG and _G.__QUICKUI_CONFIG.qa_bb_enabled then
-                M.rebuildBottombar()
+                M.rebuildBottombar(true)
             end
             return result
         end
