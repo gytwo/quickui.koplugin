@@ -67,6 +67,7 @@ return {
     "Improve Chinese translations",
 },
 ["1.0.5"] = {
+    "Fix: prevent layout corruption when rotating screen",
     "Added bottombar to history/collections/coll_list",
 },
 }
