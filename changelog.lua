@@ -66,4 +66,7 @@ return {
     "Add 'Hide in PDF' option for bottom bar",
     "Improve Chinese translations",
 },
+["1.0.5"] = {
+    "Added bottombar to history/collections/coll_list",
+},
 }
