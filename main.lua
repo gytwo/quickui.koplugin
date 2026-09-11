@@ -77,9 +77,7 @@ function QuickUI:init()
     local config = _G.__QUICKUI_CONFIG
     local ok
 
-    -- ============================================================
-    -- Module 1: Cover
-    -- ============================================================
+    -- Cover
     if config and config.cover_enabled then
         ok, cover_module = pcall(require, "qui_cover")
         if ok and cover_module and cover_module.init then
@@ -89,9 +87,7 @@ function QuickUI:init()
         end
     end
 
-    -- ============================================================
-    -- Module 2: Quick Actions
-    -- ============================================================
+    -- Quick Actions
     if config and config.qa_common_enabled then
         ok, icon_picker = pcall(require, "qui_actions/qa_icon_picker")
         if not ok then icon_picker = nil end
@@ -113,9 +109,7 @@ function QuickUI:init()
         end
     end
 
-    -- ============================================================
-    -- Module 3: Cloze
-    -- ============================================================
+    -- Cloze
     if config and config.cl_enabled then
         ok, cloze_module = pcall(require, "qui_clozemode")
         if ok and cloze_module and cloze_module.init then
@@ -125,9 +119,7 @@ function QuickUI:init()
         end
     end
 
-    -- ============================================================
-    -- Module 4: Header & Footer
-    -- ============================================================
+    -- Header & Footer
     if config and config.hf_enabled then
         ok, hf_module = pcall(require, "qui_header_footer")
         if ok and hf_module and hf_module.init then
@@ -137,9 +129,7 @@ function QuickUI:init()
         end
     end
 
-    -- ============================================================
-    -- Module 5: Updates (always load)
-    -- ============================================================
+    -- Updates
     ok, updates_module = pcall(require, "qui_updates")
     if ok and updates_module and updates_module.init then
         updates_module.init(self)
@@ -159,9 +149,6 @@ end
 function QuickUI:registerDispatcherActions()
     local config = _G.__QUICKUI_CONFIG
 
-    -- ============================================================
-    -- General (always registered)
-    -- ============================================================
     Dispatcher:registerAction("QuickUI_Settings", {
         category = "none",
         event = "QuickUI_Settings",
@@ -169,9 +156,6 @@ function QuickUI:registerDispatcherActions()
         general = true,
     })
 
-    -- ============================================================
-    -- Cover
-    -- ============================================================
     if config and config.cover_enabled then
         Dispatcher:registerAction("QuickUI_CoverSettings", {
             category = "none",
@@ -181,9 +165,6 @@ function QuickUI:registerDispatcherActions()
         })
     end
 
-    -- ============================================================
-    -- Cloze
-    -- ============================================================
     if config and config.cl_enabled then
         Dispatcher:registerAction("QuickUI_ClozeEnable", {
             category = "none",
@@ -205,9 +186,6 @@ function QuickUI:registerDispatcherActions()
         })
     end
 
-    -- ============================================================
-    -- Header & Footer
-    -- ============================================================
     if config and config.hf_enabled then
         Dispatcher:registerAction("QuickUI_HFSettings", {
             category = "none",
@@ -217,12 +195,8 @@ function QuickUI:registerDispatcherActions()
         })
     end
 
-    -- ============================================================
-    -- Quick Actions (QA)
-    -- ============================================================
     if config and config.qa_common_enabled then
-        -- Always register when QA is enabled
-                Dispatcher:registerAction("QuickUI_SystemIconOverride", {
+        Dispatcher:registerAction("QuickUI_SystemIconOverride", {
             category = "none",
             event = "QuickUI_SystemIconOverride",
             title = _("QuickUI_SystemIconOverride"),
@@ -253,7 +227,6 @@ function QuickUI:registerDispatcherActions()
             general = true,
         })
 
-        -- Panel related (only if qa_panel_enabled)
         if config.qa_panel_enabled then
             Dispatcher:registerAction("QuickUI_PanelSettings", {
                 category = "none",
@@ -269,7 +242,6 @@ function QuickUI:registerDispatcherActions()
             })
         end
 
-        -- Bottom Bar related (only if qa_bb_enabled)
         if config.qa_bb_enabled then
             Dispatcher:registerAction("QuickUI_BottombarToggle", {
                 category = "none",
@@ -487,21 +459,17 @@ end
 -- ============================================================
 
 function QuickUI:showPluginInfo()
-    -- Get current language setting
     local current_lang = G_reader_settings:readSetting("language") or "en"
     local is_chinese = current_lang == "zh_CN" or current_lang == "zh-TW" or current_lang:match("^zh")
 
-    -- Select README file based on language
     local readme_path
     if is_chinese then
         readme_path = _plugin_dir .. "README.zh_CN.md"
-        -- Fallback to English if Chinese README doesn't exist
         if not lfs.attributes(readme_path, "mode") then
             readme_path = _plugin_dir .. "README.md"
         end
     else
         readme_path = _plugin_dir .. "README.md"
-        -- Fallback to Chinese if English README doesn't exist
         if not lfs.attributes(readme_path, "mode") then
             readme_path = _plugin_dir .. "README.zh_CN.md"
         end
@@ -526,12 +494,42 @@ function QuickUI:showPluginInfo()
     UIManager:show(textviewer)
 end
 
+-- ============================================================
+-- 递归解析 sub_item_table：把 function 变成 table
+-- 放在 buildMenuItems 内部和 showQuickUIMenu 内部都会用到
+-- ============================================================
+local function resolveSubItems(tbl, depth)
+    depth = depth or 0
+    if depth > 12 then return tbl end
+    if type(tbl) ~= "table" then return tbl end
+
+    for _, it in ipairs(tbl) do
+        if type(it) == "table" then
+            -- 兼容 sub_item_table_func
+            if type(it.sub_item_table_func) == "function" and it.sub_item_table == nil then
+                local ok, res = pcall(it.sub_item_table_func)
+                if ok and type(res) == "table" then
+                    it.sub_item_table = res
+                end
+            end
+            if type(it.sub_item_table) == "function" then
+                local ok, res = pcall(it.sub_item_table)
+                if ok and type(res) == "table" then
+                    it.sub_item_table = res
+                else
+                    it.sub_item_table = nil
+                end
+            end
+            if type(it.sub_item_table) == "table" then
+                resolveSubItems(it.sub_item_table, depth + 1)
+            end
+        end
+    end
+    return tbl
+end
+
 function QuickUI:buildMenuItems()
     local items = {}
-
-    -- ============================================================
-    -- Enable/Disable switches (always shown)
-    -- ============================================================
 
     table.insert(items, {
         text = _("Enable Quick Actions"),
@@ -617,16 +615,19 @@ function QuickUI:buildMenuItems()
         end,
     })
 
-    -- ============================================================
-    -- Module sub-menus (only shown if module is loaded)
-    -- ============================================================
-
     -- Quick Actions Settings
     if qa_settings then
-        table.insert(items, {
-            text = _("Quick Actions Settings"),
-            sub_item_table = qa_settings.buildRootMenuItems(),
-        })
+        local qa_root = qa_settings.buildRootMenuItems()
+        if type(qa_root) == "function" then
+            qa_root = qa_root()
+        end
+        if type(qa_root) == "table" then
+            resolveSubItems(qa_root)
+            table.insert(items, {
+                text = _("Quick Actions Settings"),
+                sub_item_table = qa_root,
+            })
+        end
     end
 
     -- Cover Settings
@@ -647,6 +648,7 @@ function QuickUI:buildMenuItems()
 
         local cover_items = getFlattenedMenuItems(cover_module, "getMenuItems")
         if cover_items and #cover_items > 0 then
+            resolveSubItems(cover_items)
             table.insert(items, {
                 text = _("Cover Settings"),
                 sub_item_table = cover_items,
@@ -672,6 +674,7 @@ function QuickUI:buildMenuItems()
 
         local cl_items = getFlattenedMenuItems(cloze_module, "getMenuItems")
         if cl_items and #cl_items > 0 then
+            resolveSubItems(cl_items)
             table.insert(items, {
                 text = _("Cloze Settings"),
                 sub_item_table = cl_items,
@@ -697,6 +700,7 @@ function QuickUI:buildMenuItems()
 
         local hf_items = getFlattenedMenuItems(hf_module, "getMenuItems")
         if hf_items and #hf_items > 0 then
+            resolveSubItems(hf_items)
             table.insert(items, {
                 text = _("Header & Footer Settings"),
                 sub_item_table = hf_items,
@@ -704,24 +708,20 @@ function QuickUI:buildMenuItems()
         end
     end
 
-    -- ============================================================
     -- Default Config Management
-    -- ============================================================
-local all_modules = {"qa_panel", "qa_bb", "qa_common", "cover", "cloze", "hf"}
-local all_items = Utils.buildDefaultMenuItems(all_modules, function()
-    refreshQuickPanel()
-    local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
-    if bb and bb.rebuildBottombar then
-        bb.rebuildBottombar()
+    local all_modules = {"qa_panel", "qa_bb", "qa_common", "cover", "cloze", "hf"}
+    local all_items = Utils.buildDefaultMenuItems(all_modules, function()
+        refreshQuickPanel()
+        local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
+        if bb and bb.rebuildBottombar then
+            bb.rebuildBottombar()
+        end
+    end)
+    for _, item in ipairs(all_items) do
+        table.insert(items, item)
     end
-end)
-for _, item in ipairs(all_items) do
-    table.insert(items, item)
-end
-    
-    -- ============================================================
+
     -- Plugin Info
-    -- ============================================================
     table.insert(items, {
         text = _("Plugin Info"),
         callback = function()
@@ -729,9 +729,7 @@ end
         end,
     })
 
-    -- ============================================================
     -- Updates
-    -- ============================================================
     if updates_module and updates_module.checkForUpdates then
         table.insert(items, {
             text = _("Check for Updates") .. "  (" .. _("Current version") .. ": " .. self.VERSION .. ")",
@@ -741,6 +739,7 @@ end
         })
     end
 
+    resolveSubItems(items)
     return items
 end
 
@@ -751,8 +750,9 @@ function QuickUI:addToMainMenu(menu_items)
         sub_item_table = self:buildMenuItems(),
     }
 end
+
 -- ============================================================
--- QuickUI Settings
+-- QuickUI Settings (ButtonDialog based)
 -- ============================================================
 
 function QuickUI:quickuisettings()
@@ -761,12 +761,20 @@ function QuickUI:quickuisettings()
     local Screen = require("device").screen
     local UIManager = require("ui/uimanager")
     local _ = require("gettext")
-    
+
     local _quickui_settings_dialog = nil
-    
+
     local function showQuickUIMenu(item_table, title, parent_stack)
+        -- ★ 防御：function 先调用成 table
+        if type(item_table) == "function" then
+            item_table = item_table()
+        end
+        if type(item_table) ~= "table" then
+            return
+        end
+
         local buttons = {}
-        
+
         if parent_stack and #parent_stack > 0 then
             if #parent_stack > 1 then
                 table.insert(buttons, {
@@ -801,7 +809,7 @@ function QuickUI:quickuisettings()
             })
             table.insert(buttons, {})
         end
-        
+
         for _, item in ipairs(item_table) do
             local display_text
             if item.text_func then
@@ -811,8 +819,22 @@ function QuickUI:quickuisettings()
             else
                 display_text = ""
             end
-            
-            if item.sub_item_table then
+
+            -- ★ 解析 sub_item_table（兼容 function / sub_item_table_func）
+            local sub = item.sub_item_table
+            if type(sub) == "function" then
+                local ok, res = pcall(sub)
+                sub = ok and res or nil
+            end
+            if sub == nil and type(item.sub_item_table_func) == "function" then
+                local ok, res = pcall(item.sub_item_table_func)
+                sub = ok and res or nil
+            end
+            if type(sub) == "table" then
+                resolveSubItems(sub)
+            end
+
+            if type(sub) == "table" then
                 table.insert(buttons, {
                     {
                         text = display_text .. " ▸",
@@ -828,7 +850,7 @@ function QuickUI:quickuisettings()
                                 end
                             end
                             table.insert(new_stack, { title = title, items = item_table })
-                            showQuickUIMenu(item.sub_item_table, display_text, new_stack)
+                            showQuickUIMenu(sub, display_text, new_stack)
                         end
                     }
                 })
@@ -836,7 +858,7 @@ function QuickUI:quickuisettings()
                 local checked = item.checked_func and item.checked_func() or false
                 local enabled = (item.enabled == nil) or (type(item.enabled) == "function" and item.enabled()) or item.enabled
                 local prefix = checked and "✓ " or "  "
-                
+
                 table.insert(buttons, {
                     {
                         text = prefix .. display_text,
@@ -846,15 +868,15 @@ function QuickUI:quickuisettings()
                                 item.callback()
                             end
                             if _quickui_settings_dialog then
-                                 UIManager:close(_quickui_settings_dialog)
-                                 _quickui_settings_dialog = nil
-                               end
+                                UIManager:close(_quickui_settings_dialog)
+                                _quickui_settings_dialog = nil
+                            end
                         end
                     }
                 })
             end
         end
-        
+
         _quickui_settings_dialog = ButtonDialog:new{
             title = title or _("QuickUI"),
             title_align = "center",
@@ -864,7 +886,7 @@ function QuickUI:quickuisettings()
         }
         UIManager:show(_quickui_settings_dialog)
     end
-    
+
     showQuickUIMenu(items, _("QuickUI"), nil)
 end
 
