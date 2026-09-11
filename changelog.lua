@@ -70,4 +70,7 @@ return {
     "Fix: prevent layout corruption when rotating screen",
     "Added bottombar to history/collections/favorites",
 },
+["1.0.6"] = {
+    "Fix crash when tapping an item inside the Header & Footer menu",
+},
 }
