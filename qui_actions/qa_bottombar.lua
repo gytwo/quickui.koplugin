@@ -1063,7 +1063,9 @@ function M.showAddTabMenu(on_back, filtered_actions)
                     UIManager:close(M._add_tab_dialog)
                     M._add_tab_dialog = nil
                 end
-                if settings and settings.showBottombarSettings then
+                if on_back then
+                    on_back()
+                elseif settings and settings.showBottombarSettings then
                     settings.showBottombarSettings()
                 end
             end
