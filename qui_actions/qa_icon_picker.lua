@@ -856,6 +856,11 @@ function QA.showIconPicker(on_select, saved_icon, filter, mode, parent_mode)
     -- Vertical gap inserted between the five sections inside inner_frame.
     local V_GAP = Screen:scaleBySize(10)
 
+    local temp_overrides = {}
+    if mode == "system" then
+        temp_overrides = getSystemTempOverrides()
+    end
+    
     -- ============================================================
     -- Shared page builder: builds ONE page as a VerticalGroup
     -- ============================================================
@@ -1166,11 +1171,6 @@ function QA.showIconPicker(on_select, saved_icon, filter, mode, parent_mode)
         if p < 1 or p > total_pages then return end
         cur_page = p
         refreshGrid()
-    end
-
-    local temp_overrides = {}
-    if mode == "system" then
-        temp_overrides = getSystemTempOverrides()
     end
 
     -- ============================================================
