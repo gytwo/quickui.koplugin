@@ -71,6 +71,9 @@ return {
     "Added bottombar to history/collections/favorites",
 },
 ["1.0.6"] = {
-    "Fix crash when tapping an item inside the Header & Footer menu",
-},
+    "Header & Footer: fix crash when tapping an item inside the menu",
+    "Icon picker: optimize search logic and rework showIconPicker to fix crashes on Android",
+    "Icon picker: add label toggle (eye / eye-off) to show or hide icon names in the grid",
+    "Bottom bar: fix missing bottom bar after screen rotation on Android",
+    },
 }
