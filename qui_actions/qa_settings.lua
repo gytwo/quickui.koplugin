@@ -689,15 +689,8 @@ function QA.showEditActionDialog(action_id, on_done, source)
         }
 
         local buttons = {
-            -- Row 1: icon + filter
+            -- Row 1: filter + icon
             {
-                { text = iconButtonText(), callback = function()
-                    closeSettingsDialog()
-                    icon_picker.showIconPicker(function(new_icon)
-                        current_icon = new_icon
-                        rebuildDialog()
-                    end, current_icon)
-                end },
                 { text = viewButtonText(), callback = function()
                     closeSettingsDialog()
                     local view_buttons = {}
@@ -732,6 +725,13 @@ function QA.showEditActionDialog(action_id, on_done, source)
                         width = math.floor(Screen:getWidth() * 0.7),
                     }
                     UIManager:show(_view_dialog)
+                end },
+                { text = iconButtonText(), callback = function()
+                    closeSettingsDialog()
+                    icon_picker.showIconPicker(function(new_icon)
+                        current_icon = new_icon
+                        rebuildDialog()
+                    end, current_icon)
                 end },
             },
             -- Row 2: sort + remove / state-based add/remove buttons
@@ -1605,22 +1605,8 @@ function QA.showCustomQADialog(qa_id, on_done, source)
                     openActionPicker()
                 end },
             },
-            -- Row 2: icon + filter
+            -- Row 2: filter + icon
             {
-                { text = iconButtonText(), callback = function()
-                    closeSettingsDialog()
-                    icon_picker.showIconPicker(
-                        function(result)
-                            if result then
-                                chosen_icon = result
-                            else
-                                chosen_icon = nil
-                            end
-                            buildSaveDialog(false)
-                        end,
-                        chosen_icon
-                    )
-                end },
                 { text = viewButtonText(), enabled = (current_action_type ~= "menu"), callback = function()
                     if current_action_type == "menu" then return end
                     closeSettingsDialog()
@@ -1657,6 +1643,20 @@ function QA.showCustomQADialog(qa_id, on_done, source)
                     }
                     UIManager:show(_view_dialog)
                 end },
+                { text = iconButtonText(), callback = function()
+                  closeSettingsDialog()
+                  icon_picker.showIconPicker(
+                      function(result)
+                          if result then
+                               chosen_icon = result
+                          else
+                            chosen_icon = nil
+                          end
+                          buildSaveDialog(false)
+                      end,
+                      chosen_icon
+                 )
+             end },
             },
         }
 
