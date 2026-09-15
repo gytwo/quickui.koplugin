@@ -651,10 +651,13 @@ function QA.showEditActionDialog(action_id, on_done, source)
                     if bb and bb.showAddTabMenu then
                         bb.showAddTabMenu(function()
                             if bb.refresh then bb.refresh() end
+                            QA.showEditActionDialog(action_id, on_done, source)
                         end)
                     end
                 else
-                    QA.showAddButtonMenu(nil)
+                    QA.showAddButtonMenu(nil, function()
+                        QA.showEditActionDialog(action_id, on_done, source)
+                    end)
                 end
             end },
             { text = _("New"), callback = function()
@@ -1537,10 +1540,13 @@ function QA.showCustomQADialog(qa_id, on_done, source)
                 if bb and bb.showAddTabMenu then
                     bb.showAddTabMenu(function()
                         if bb.refresh then bb.refresh() end
+                        QA.showCustomQADialog(qa_id, on_done, source)
                     end)
                 end
             else
-                QA.showAddButtonMenu(nil)
+                QA.showAddButtonMenu(nil, function()
+                    QA.showCustomQADialog(qa_id, on_done, source)
+                end)
             end
         end })
 
