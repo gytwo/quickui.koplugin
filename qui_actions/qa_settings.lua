@@ -314,8 +314,8 @@ function QA.showEditActionDialog(action_id, on_done, source)
     local view_options = { "common", "filemanager", "reader" }
     local view_labels = {
         common = _("Common"),
-        filemanager = _("Filemanager"),
-        reader = _("Reader"),
+        filemanager = _("Filemanager Dedicated"),
+        reader = _("Reader Dedicated"),
     }
 
     -- Get current position based on source
@@ -381,6 +381,7 @@ function QA.showEditActionDialog(action_id, on_done, source)
             if idx and idx > 1 then
                 slots[idx], slots[idx-1] = slots[idx-1], slots[idx]
                 Utils.set("qa_panel_slots", slots)
+                QA.refreshQuickPanel() 
             end
         end
     end
@@ -413,6 +414,7 @@ function QA.showEditActionDialog(action_id, on_done, source)
             if idx and idx < #slots then
                 slots[idx], slots[idx+1] = slots[idx+1], slots[idx]
                 Utils.set("qa_panel_slots", slots)
+                QA.refreshQuickPanel() 
             end
         end
     end
@@ -487,7 +489,7 @@ function QA.showEditActionDialog(action_id, on_done, source)
         end
 
         local function viewButtonText()
-            return _("View") .. ": " .. view_labels[current_view]
+            return _("Filter") .. ": " .. view_labels[current_view]
         end
 
         local fields = {
@@ -496,115 +498,250 @@ function QA.showEditActionDialog(action_id, on_done, source)
 
         local pos, total = getCurrentPosition()
 
+        -- Row 2: sort + remove (when in current list) OR state-based add/remove buttons (when not in current list)
+        local nav_row
+        if pos then
+            nav_row = {}
+            table.insert(nav_row, {
+                text = icon_picker.nerdIconChar("nerd:EE91") or "◀",
+                enabled = (pos > 1),
+                callback = function()
+                    closeSettingsDialog()
+                    moveLeft()
+                    rebuildDialog()
+                end
+            })
+            table.insert(nav_row, { text = pos .. "/" .. total, callback = function()
+                closeSettingsDialog()
+                openSortDialog()
+            end })
+            table.insert(nav_row, {
+                text = icon_picker.nerdIconChar("nerd:EE92") or "▶",
+                enabled = (pos < total),
+                callback = function()
+                    closeSettingsDialog()
+                    moveRight()
+                    rebuildDialog()
+                end
+            })
+            table.insert(nav_row, { text = _("Remove"), callback = function()
+                closeSettingsDialog()
+                removeFromList()
+                if on_done then on_done() end
+            end })
+        else
+            -- Check membership independently in panel and bottom bar
+            local function inList(list, id)
+                for __, v in ipairs(list) do
+                    if v == id then return true end
+                end
+                return false
+            end
+
+            local in_panel = inList(Utils.getTable("qa_panel_slots"), action_id)
+            local in_bar = inList(Utils.get("qa_bb_tabs", {}), action_id)
+
+            local function addToPanel()
+                local slots = Utils.getTable("qa_panel_slots")
+                slots[#slots + 1] = action_id
+                Utils.set("qa_panel_slots", slots)
+                QA.refreshQuickPanel()
+            end
+            local function removeFromPanelList()
+                local slots = Utils.getTable("qa_panel_slots")
+                local new = {}
+                for __, v in ipairs(slots) do
+                    if v ~= action_id then new[#new + 1] = v end
+                end
+                Utils.set("qa_panel_slots", new)
+                QA.refreshQuickPanel()
+            end
+            local function addToBar()
+                local tabs = Utils.get("qa_bb_tabs", {})
+                tabs[#tabs + 1] = action_id
+                Utils.set("qa_bb_tabs", tabs)
+                if PLUGIN_STORE.bottombar then PLUGIN_STORE.bottombar.refresh() end
+            end
+            local function removeFromBarList()
+                local tabs = Utils.get("qa_bb_tabs", {})
+                local new = {}
+                for __, v in ipairs(tabs) do
+                    if v ~= action_id then new[#new + 1] = v end
+                end
+                Utils.set("qa_bb_tabs", new)
+                if PLUGIN_STORE.bottombar then PLUGIN_STORE.bottombar.refresh() end
+            end
+
+            if in_panel and in_bar then
+                nav_row = {
+                    { text = _("Remove from Panel"), callback = function()
+                        closeSettingsDialog()
+                        removeFromPanelList()
+                        if on_done then on_done() end
+                    end },
+                    { text = _("Remove from Both"), callback = function()
+                        closeSettingsDialog()
+                        removeFromPanelList()
+                        removeFromBarList()
+                        if on_done then on_done() end
+                    end },
+                    { text = _("Remove from Bottom Bar"), callback = function()
+                        closeSettingsDialog()
+                        removeFromBarList()
+                        if on_done then on_done() end
+                    end },
+                }
+            elseif in_panel then
+                nav_row = {
+                    { text = _("Remove from Panel"), callback = function()
+                        closeSettingsDialog()
+                        removeFromPanelList()
+                        if on_done then on_done() end
+                    end },
+                    { text = _("Add to Bottom Bar"), callback = function()
+                        closeSettingsDialog()
+                        addToBar()
+                        if on_done then on_done() end
+                    end },
+                }
+            elseif in_bar then
+                nav_row = {
+                    { text = _("Remove from Bottom Bar"), callback = function()
+                        closeSettingsDialog()
+                        removeFromBarList()
+                        if on_done then on_done() end
+                    end },
+                    { text = _("Add to Panel"), callback = function()
+                        closeSettingsDialog()
+                        addToPanel()
+                        if on_done then on_done() end
+                    end },
+                }
+            else
+                nav_row = {
+                    { text = _("Add to Panel"), callback = function()
+                        closeSettingsDialog()
+                        addToPanel()
+                        if on_done then on_done() end
+                    end },
+                    { text = _("Add to Both"), callback = function()
+                        closeSettingsDialog()
+                        addToPanel()
+                        addToBar()
+                        if on_done then on_done() end
+                    end },
+                    { text = _("Add to Bottom Bar"), callback = function()
+                        closeSettingsDialog()
+                        addToBar()
+                        if on_done then on_done() end
+                    end },
+                }
+            end
+        end
+
+        -- Last row: cancel / action pool / new / save
         local last_row = {
             { text = _("Cancel"), id = "close", callback = function()
                 closeSettingsDialog()
             end },
+            { text = _("Action Pool"), callback = function()
+                closeSettingsDialog()
+                if source == "bottombar" then
+                    local bb = PLUGIN_STORE.bottombar
+                    if bb and bb.showAddTabMenu then
+                        bb.showAddTabMenu(function()
+                            if bb.refresh then bb.refresh() end
+                        end)
+                    end
+                else
+                    QA.showAddButtonMenu(nil)
+                end
+            end },
+            { text = _("New"), callback = function()
+                closeSettingsDialog()
+                QA.showCustomQADialog(nil, function()
+                    if on_done then on_done() end
+                end, source)
+            end },
+            { text = _("Save"), is_enter_default = true, callback = function()
+                if not _active_dialog then return end
+                local inputs = _active_dialog:getFields()
+                local new_label = inputs[1] or ""
+                if new_label == "" then
+                    UIManager:show(InfoMessage:new{ text = _("Please enter a name"), timeout = 2 })
+                    return
+                end
+                closeSettingsDialog()
+
+                local overrides = Utils.getTable("qa_common_builtin_overrides")
+                if not overrides[action_id] then
+                    overrides[action_id] = {}
+                end
+                overrides[action_id].label = new_label
+                overrides[action_id].icon = current_icon
+                overrides[action_id].view = current_view
+                Utils.set("qa_common_builtin_overrides", overrides)
+                if PLUGIN_STORE.bottombar then
+                     PLUGIN_STORE.bottombar.refresh()
+                end
+                if on_done then on_done() end
+            end },
         }
 
-        if pos then
-            table.insert(last_row, { text = "◀", enabled = (pos > 1), callback = function()
-                closeSettingsDialog()
-                moveLeft()
-                rebuildDialog()
-            end })
-        end
-
-        if pos then
-            table.insert(last_row, { text = pos .. "/" .. total, callback = function()
-                closeSettingsDialog()
-                openSortDialog()
-            end })
-        end
-
-        if pos then
-            table.insert(last_row, { text = "▶", enabled = (pos < total), callback = function()
-                closeSettingsDialog()
-                moveRight()
-                rebuildDialog()
-            end })
-        end
-        
-      if pos then
-            table.insert(last_row, { text = _("Remove"), callback = function()
-            closeSettingsDialog()
-            removeFromList()
-            if on_done then on_done() end
-          end })
-      end
-        
-        table.insert(last_row, { text = _("Save"), is_enter_default = true, callback = function()
-            if not _active_dialog then return end
-            local inputs = _active_dialog:getFields()
-            local new_label = inputs[1] or ""
-            if new_label == "" then
-                UIManager:show(InfoMessage:new{ text = _("Please enter a name"), timeout = 2 })
-                return
-            end
-            closeSettingsDialog()
-
-            local overrides = Utils.getTable("qa_common_builtin_overrides")
-            if not overrides[action_id] then
-                overrides[action_id] = {}
-            end
-            overrides[action_id].label = new_label
-            overrides[action_id].icon = current_icon
-            overrides[action_id].view = current_view
-            Utils.set("qa_common_builtin_overrides", overrides)
-            if PLUGIN_STORE.bottombar then
-                 PLUGIN_STORE.bottombar.refresh()
-            end
-            if on_done then on_done() end
-        end })
-
         local buttons = {
-            { { text = iconButtonText(), callback = function()
-                closeSettingsDialog()
-                icon_picker.showIconPicker(function(new_icon)
-                    current_icon = new_icon
-                    rebuildDialog()
-                end, current_icon)
-            end } },
-            { { text = viewButtonText(), callback = function()
-                closeSettingsDialog()
-                local view_buttons = {}
-                for __, v in ipairs(view_options) do
-                    local _v = v
+            -- Row 1: icon + filter
+            {
+                { text = iconButtonText(), callback = function()
+                    closeSettingsDialog()
+                    icon_picker.showIconPicker(function(new_icon)
+                        current_icon = new_icon
+                        rebuildDialog()
+                    end, current_icon)
+                end },
+                { text = viewButtonText(), callback = function()
+                    closeSettingsDialog()
+                    local view_buttons = {}
+                    for __, v in ipairs(view_options) do
+                        local _v = v
+                        table.insert(view_buttons, {{
+                            text = (current_view == _v and "✓ " or "  ") .. view_labels[_v],
+                            callback = function()
+                                if _view_dialog then
+                                    UIManager:close(_view_dialog)
+                                    _view_dialog = nil
+                                end
+                                current_view = _v
+                                rebuildDialog()
+                            end,
+                        }})
+                    end
                     table.insert(view_buttons, {{
-                        text = (current_view == _v and "✓ " or "  ") .. view_labels[_v],
+                        text = _("Back"),
                         callback = function()
                             if _view_dialog then
                                 UIManager:close(_view_dialog)
                                 _view_dialog = nil
                             end
-                            current_view = _v
                             rebuildDialog()
                         end,
                     }})
-                end
-                table.insert(view_buttons, {{
-                    text = _("Back"),
-                    callback = function()
-                        if _view_dialog then
-                            UIManager:close(_view_dialog)
-                            _view_dialog = nil
-                        end
-                        rebuildDialog()
-                    end,
-                }})
-                _view_dialog = ButtonDialog:new{
-                    title = _("Select View"),
-                    title_align = "center",
-                    buttons = view_buttons,
-                    width = math.floor(Screen:getWidth() * 0.7),
-                }
-                UIManager:show(_view_dialog)
-            end } },
+                    _view_dialog = ButtonDialog:new{
+                        title = _("Select Filter"),
+                        title_align = "center",
+                        buttons = view_buttons,
+                        width = math.floor(Screen:getWidth() * 0.7),
+                    }
+                    UIManager:show(_view_dialog)
+                end },
+            },
+            -- Row 2: sort + remove / state-based add/remove buttons
+            nav_row,
+            -- Row 3: cancel / action pool / new / save
             last_row,
         }
 
         _active_dialog = MultiInputDialog:new{
-            title = source == "bottombar" and _("Edit Bottom Bar Tab") or _("Edit Quick Action"),
+            title = _("Edit Quick Action - Built-in Action"),
             fields = fields,
             tap_close_callback = function()
                 closeSettingsDialog()
@@ -627,7 +764,7 @@ function QA.showCustomQADialog(qa_id, on_done, source)
     local custom = Utils.getTable("qa_common_custom")
     local cfg = qa_id and custom[qa_id] or {}
     local chosen_icon = cfg.icon
-    local dlg_title = qa_id and _("Edit Quick Action") or _("New Quick Action")
+    local dlg_title = qa_id and _("Edit Quick Action - Custom Action") or _("New Quick Action")
     local existing_label = cfg.label or ""
 
     local current_action_type = nil
@@ -663,8 +800,8 @@ function QA.showCustomQADialog(qa_id, on_done, source)
     local view_options = { "common", "filemanager", "reader" }
     local view_labels = {
         common = _("Common"),
-        filemanager = _("Filemanager"),
-        reader = _("Reader"),
+        filemanager = _("Filemanager Dedicated"),
+        reader = _("Reader Dedicated"),
     }
 
     -- Get current position based on source
@@ -737,6 +874,7 @@ function QA.showCustomQADialog(qa_id, on_done, source)
             if idx and idx > 1 then
                 slots[idx], slots[idx-1] = slots[idx-1], slots[idx]
                 Utils.set("qa_panel_slots", slots)
+                QA.refreshQuickPanel() 
             end
         end
     end
@@ -769,6 +907,7 @@ function QA.showCustomQADialog(qa_id, on_done, source)
             if idx and idx < #slots then
                 slots[idx], slots[idx+1] = slots[idx+1], slots[idx]
                 Utils.set("qa_panel_slots", slots)
+                QA.refreshQuickPanel() 
             end
         end
     end
@@ -1198,9 +1337,9 @@ function QA.showCustomQADialog(qa_id, on_done, source)
         local function viewButtonText()
             local is_locked = (current_action_type == "menu")
             if is_locked then
-                return _("View") .. ": " .. view_labels[current_view] .. " (" .. _("locked") .. ")"
+                return _("Filter") .. ": " .. view_labels[current_view] .. " (" .. _("locked") .. ")"
             else
-                return _("View") .. ": " .. view_labels[current_view]
+                return _("Filter") .. ": " .. view_labels[current_view]
             end
         end
 
@@ -1209,7 +1348,153 @@ function QA.showCustomQADialog(qa_id, on_done, source)
         }
 
         local pos, total = getCurrentPosition()
+        local is_new = (qa_id == nil)
 
+        -- Row 3: sort + remove (when in current list) OR state-based add/remove buttons
+        -- Brand new (is_new) hides this row entirely
+        local nav_row = nil
+        if not is_new then
+            if pos then
+                nav_row = {}
+                table.insert(nav_row, {
+                    text = icon_picker.nerdIconChar("nerd:EE91") or "◀",
+                    enabled = (pos > 1),
+                    callback = function()
+                        closeSettingsDialog()
+                        moveLeft()
+                        buildSaveDialog(false)
+                    end
+                })
+                table.insert(nav_row, { text = pos .. "/" .. total, callback = function()
+                    closeSettingsDialog()
+                    openSortDialog()
+                end })
+                table.insert(nav_row, {
+                    text = icon_picker.nerdIconChar("nerd:EE92") or "▶",
+                    enabled = (pos < total),
+                    callback = function()
+                        closeSettingsDialog()
+                        moveRight()
+                        buildSaveDialog(false)
+                    end
+                })
+                table.insert(nav_row, { text = _("Remove"), callback = function()
+                    closeSettingsDialog()
+                    removeFromList()
+                    if on_done then on_done() end
+                end })
+            else
+                -- Check membership independently in panel and bottom bar
+                local function inList(list, id)
+                    for __, v in ipairs(list) do
+                        if v == id then return true end
+                    end
+                    return false
+                end
+
+                local in_panel = inList(Utils.getTable("qa_panel_slots"), qa_id)
+                local in_bar = inList(Utils.get("qa_bb_tabs", {}), qa_id)
+
+                local function addToPanel()
+                    local slots = Utils.getTable("qa_panel_slots")
+                    slots[#slots + 1] = qa_id
+                    Utils.set("qa_panel_slots", slots)
+                    QA.refreshQuickPanel()
+                end
+                local function removeFromPanelList()
+                    local slots = Utils.getTable("qa_panel_slots")
+                    local new = {}
+                    for __, v in ipairs(slots) do
+                        if v ~= qa_id then new[#new + 1] = v end
+                    end
+                    Utils.set("qa_panel_slots", new)
+                    QA.refreshQuickPanel()
+                end
+                local function addToBar()
+                    local tabs = Utils.get("qa_bb_tabs", {})
+                    tabs[#tabs + 1] = qa_id
+                    Utils.set("qa_bb_tabs", tabs)
+                    if PLUGIN_STORE.bottombar then PLUGIN_STORE.bottombar.refresh() end
+                end
+                local function removeFromBarList()
+                    local tabs = Utils.get("qa_bb_tabs", {})
+                    local new = {}
+                    for __, v in ipairs(tabs) do
+                        if v ~= qa_id then new[#new + 1] = v end
+                    end
+                    Utils.set("qa_bb_tabs", new)
+                    if PLUGIN_STORE.bottombar then PLUGIN_STORE.bottombar.refresh() end
+                end
+
+                if in_panel and in_bar then
+                    nav_row = {
+                        { text = _("Remove from Panel"), callback = function()
+                            closeSettingsDialog()
+                            removeFromPanelList()
+                            if on_done then on_done() end
+                        end },
+                        { text = _("Remove from Both"), callback = function()
+                            closeSettingsDialog()
+                            removeFromPanelList()
+                            removeFromBarList()
+                            if on_done then on_done() end
+                        end },
+                        { text = _("Remove from Bottom Bar"), callback = function()
+                            closeSettingsDialog()
+                            removeFromBarList()
+                            if on_done then on_done() end
+                        end },
+                    }
+                elseif in_panel then
+                    nav_row = {
+                        { text = _("Remove from Panel"), callback = function()
+                            closeSettingsDialog()
+                            removeFromPanelList()
+                            if on_done then on_done() end
+                        end },
+                        { text = _("Add to Bottom Bar"), callback = function()
+                            closeSettingsDialog()
+                            addToBar()
+                            if on_done then on_done() end
+                        end },
+                    }
+                elseif in_bar then
+                    nav_row = {
+                        { text = _("Remove from Bottom Bar"), callback = function()
+                            closeSettingsDialog()
+                            removeFromBarList()
+                            if on_done then on_done() end
+                        end },
+                        { text = _("Add to Panel"), callback = function()
+                            closeSettingsDialog()
+                            addToPanel()
+                            if on_done then on_done() end
+                        end },
+                    }
+                else
+                    nav_row = {
+                        { text = _("Add to Panel"), callback = function()
+                            closeSettingsDialog()
+                            addToPanel()
+                            if on_done then on_done() end
+                        end },
+                        { text = _("Add to Both"), callback = function()
+                            closeSettingsDialog()
+                            addToPanel()
+                            addToBar()
+                            if on_done then on_done() end
+                        end },
+                        { text = _("Add to Bottom Bar"), callback = function()
+                            closeSettingsDialog()
+                            addToBar()
+                            if on_done then on_done() end
+                        end },
+                    }
+                end
+            end
+        end
+
+        -- Last row: cancel / delete (if any) / action pool / new (if any) / save
         local last_row = {
             { text = _("Cancel"), id = "close", callback = function()
                 closeSettingsDialog()
@@ -1245,36 +1530,28 @@ function QA.showCustomQADialog(qa_id, on_done, source)
             end })
         end
 
-        if pos then
-            table.insert(last_row, { text = "◀", enabled = (pos > 1), callback = function()
-                closeSettingsDialog()
-                moveLeft()
-                buildSaveDialog(false)
-            end })
-        end
-
-        if pos then
-            table.insert(last_row, { text = pos .. "/" .. total, callback = function()
-                closeSettingsDialog()
-                openSortDialog()
-            end })
-        end
-
-        if pos then
-            table.insert(last_row, { text = "▶", enabled = (pos < total), callback = function()
-                closeSettingsDialog()
-                moveRight()
-                buildSaveDialog(false)
-            end })
-        end
-
-      if pos then
-            table.insert(last_row, { text = _("Remove"), callback = function()
+        table.insert(last_row, { text = _("Action Pool"), callback = function()
             closeSettingsDialog()
-            removeFromList()
-            if on_done then on_done() end
-          end })
-      end
+            if source == "bottombar" then
+                local bb = PLUGIN_STORE.bottombar
+                if bb and bb.showAddTabMenu then
+                    bb.showAddTabMenu(function()
+                        if bb.refresh then bb.refresh() end
+                    end)
+                end
+            else
+                QA.showAddButtonMenu(nil)
+            end
+        end })
+
+        if qa_id then
+            table.insert(last_row, { text = _("New"), callback = function()
+                closeSettingsDialog()
+                QA.showCustomQADialog(nil, function()
+                    if on_done then on_done() end
+                end, source)
+            end })
+        end
 
         table.insert(last_row, { text = _("Save"), is_enter_default = true, callback = function()
             local inputs = _active_dialog:getFields()
@@ -1294,7 +1571,7 @@ function QA.showCustomQADialog(qa_id, on_done, source)
             if current_action_type == "plugin" then
                 default_icon = "nerd:F1B2"
             elseif current_action_type == "dispatcher" then
-                default_icon = "nerd:E235"
+                default_icon = "nerd:F08D"
             elseif current_action_type == "menu" then
                 default_icon = "nerd:E7FB"
             elseif current_action_type == "collections" then
@@ -1321,65 +1598,78 @@ function QA.showCustomQADialog(qa_id, on_done, source)
         end })
 
         local buttons = {
-            { { text = action_label, callback = function()
-                closeSettingsDialog()
-                openActionPicker()
-            end } },
-            { { text = iconButtonText(), callback = function()
-                closeSettingsDialog()
-                icon_picker.showIconPicker(
-                    function(result)
-                        if result then
-                            chosen_icon = result
-                        else
-                            chosen_icon = nil
-                        end
-                        buildSaveDialog(false)
-                    end,
-                    chosen_icon
-                )
-            end } },
-            { { text = viewButtonText(), enabled = (current_action_type ~= "menu"), callback = function()
-                if current_action_type == "menu" then return end
-                closeSettingsDialog()
-                local view_buttons = {}
-                for __, v in ipairs(view_options) do
-                    local _v = v
+            -- Row 1: action (standalone)
+            {
+                { text = action_label, callback = function()
+                    closeSettingsDialog()
+                    openActionPicker()
+                end },
+            },
+            -- Row 2: icon + filter
+            {
+                { text = iconButtonText(), callback = function()
+                    closeSettingsDialog()
+                    icon_picker.showIconPicker(
+                        function(result)
+                            if result then
+                                chosen_icon = result
+                            else
+                                chosen_icon = nil
+                            end
+                            buildSaveDialog(false)
+                        end,
+                        chosen_icon
+                    )
+                end },
+                { text = viewButtonText(), enabled = (current_action_type ~= "menu"), callback = function()
+                    if current_action_type == "menu" then return end
+                    closeSettingsDialog()
+                    local view_buttons = {}
+                    for __, v in ipairs(view_options) do
+                        local _v = v
+                        table.insert(view_buttons, {{
+                            text = (current_view == _v and "✓ " or "  ") .. view_labels[_v],
+                            callback = function()
+                                if _view_dialog then
+                                    UIManager:close(_view_dialog)
+                                    _view_dialog = nil
+                                end
+                                current_view = _v
+                                buildSaveDialog(false)
+                            end,
+                        }})
+                    end
                     table.insert(view_buttons, {{
-                        text = (current_view == _v and "✓ " or "  ") .. view_labels[_v],
+                        text = _("Back"),
                         callback = function()
                             if _view_dialog then
                                 UIManager:close(_view_dialog)
                                 _view_dialog = nil
                             end
-                            current_view = _v
                             buildSaveDialog(false)
                         end,
                     }})
-                end
-                table.insert(view_buttons, {{
-                    text = _("Back"),
-                    callback = function()
-                        if _view_dialog then
-                            UIManager:close(_view_dialog)
-                            _view_dialog = nil
-                        end
-                        buildSaveDialog(false)
-                    end,
-                }})
-                _view_dialog = ButtonDialog:new{
-                    title = _("Select View"),
-                    title_align = "center",
-                    buttons = view_buttons,
-                    width = math.floor(Screen:getWidth() * 0.7),
-                }
-                UIManager:show(_view_dialog)
-            end } },
-            last_row,
+                    _view_dialog = ButtonDialog:new{
+                        title = _("Select Filter"),
+                        title_align = "center",
+                        buttons = view_buttons,
+                        width = math.floor(Screen:getWidth() * 0.7),
+                    }
+                    UIManager:show(_view_dialog)
+                end },
+            },
         }
 
+        -- Row 3: sort + remove / state-based add/remove buttons
+        if nav_row then
+            table.insert(buttons, nav_row)
+        end
+
+        -- Row 4: cancel / delete / action pool / new / save
+        table.insert(buttons, last_row)
+
         _active_dialog = MultiInputDialog:new{
-            title = source == "bottombar" and _("Edit Bottom Bar Tab") or dlg_title,
+            title = dlg_title,
             fields = fields,
             tap_close_callback = function()
                 closeSettingsDialog()
@@ -1505,6 +1795,7 @@ function QA.showAddButtonMenu(touch_menu, on_back, filtered_actions)
                 if touch_menu then
                     touch_menu:updateItems()
                 end
+                QA.refreshQuickPanel()
                 closeSettingsDialog()
                 QA.showAddButtonMenu(touch_menu, on_back)
             end,
@@ -1609,6 +1900,7 @@ function QA.showAddButtonMenu(touch_menu, on_back, filtered_actions)
                 if touch_menu then
                     touch_menu:updateItems()
                 end
+                QA.refreshQuickPanel() 
                 closeSettingsDialog()
                 QA.showAddButtonMenu(touch_menu, on_back)
             end,
@@ -1662,6 +1954,7 @@ function QA.showAddButtonMenu(touch_menu, on_back, filtered_actions)
                     if touch_menu then
                         touch_menu:updateItems()
                     end
+                    QA.refreshQuickPanel() 
                     closeSettingsDialog()
                     QA.showAddButtonMenu(touch_menu, on_back)
                 end,
@@ -1891,6 +2184,7 @@ function QA.getPanelMenuItems()
         text = _("Add Button"),
         close_on_click = true, 
         callback = function()
+                QA.refreshQuickPanel() 
                 QA.showAddButtonMenu(nil, function()
                 QA.showPanelSettings() 
             end)
