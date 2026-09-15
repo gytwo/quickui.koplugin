@@ -842,7 +842,7 @@ function QA.showIconPicker(on_select, saved_icon, filter, mode, parent_mode)
 
     local filter_keyword = ""
     local filtered_icons_list = nil
-    local show_labels = Utils.getBool("qa_icon_show_labels", false)
+    local show_labels = Utils.getBool("qa_common_icon_labels", false)
     local filter_input = nil
     local CLEAR_W = Screen:scaleBySize(56)
 
@@ -1317,7 +1317,7 @@ function QA.showIconPicker(on_select, saved_icon, filter, mode, parent_mode)
     label_btn.ges_events = { TapSelect = { require("ui/gesturerange"):new{ ges = "tap", range = label_btn.dimen } } }
     label_btn.onTapSelect = function()
         show_labels = not show_labels
-        Utils.set("qa_icon_show_labels", show_labels)
+        Utils.set("qa_common_icon_labels", show_labels)
         label_icon_widget:setText(
             show_labels and (QA.nerdIconChar("nerd:E907") or "◉")
                         or (QA.nerdIconChar("nerd:E908") or "◎")
