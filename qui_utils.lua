@@ -62,6 +62,7 @@ local DEFAULT_SETTINGS = {
     qa_common_builtin_overrides = {},
     qa_common_icon_overrides = {},
     qa_common_ui_font_overrides = {},
+    qa_common_icon_labels = false,
 
     -- Cover Settings
     cover_enabled = true,
@@ -303,7 +304,7 @@ function Utils.getDefaultKeys(module_key)
             "qa_common_tab_icon", "qa_common_custom_list", "qa_common_custom",
             "qa_common_builtin_overrides", "qa_common_context_filter",
             "qa_common_auto_add_to_panel", "qa_common_icon_overrides",
-            "qa_common_ui_font_overrides",
+            "qa_common_ui_font_overrides", "qa_common_icon_labels",
         },
         cover = {
             "cover_enabled", "cover_placeholder_style", "cover_badge_size",
