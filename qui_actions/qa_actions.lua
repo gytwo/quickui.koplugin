@@ -1625,11 +1625,10 @@ function QA.registerAllActions()
             -- QA Add Bottom Bar Tab
             QA.registerAction("qa_add_bb_tab", _("QA Add Bottom Bar Tab"), "nerd:F055", false, "common", function(ctx)
                 local bb = require("qui_actions/qa_bottombar")
+                local settings = require("qui_actions/qa_settings")
                 if bb and bb.showAddTabMenu then
                     bb.showAddTabMenu(function()
-                        if bb.refresh then
-                            bb.refresh()
-                        end
+                        settings.showBottombarSettings()
                     end)
                 else
                     UIManager:show(InfoMessage:new{
