@@ -1534,6 +1534,12 @@ msgstr "搜索标签"
 msgid "Search"
 msgstr "搜索"
 
+msgid "Enter name or codepoint to filter icons"
+msgstr "输入名称或码点以过滤图标"
+
+msgid "Page %d of %d"
+msgstr "第 %d / %d 页"
+
 msgid "Results for: \"%s\""
 msgstr "“%s”的搜索结果"
 
