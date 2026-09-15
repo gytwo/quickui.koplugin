@@ -825,7 +825,7 @@ end
 
 function QA.showIconPicker(on_select, saved_icon, filter, mode, parent_mode)
     local sw, sh = Screen:getWidth(), Screen:getHeight()
-    local pad = Screen:scaleBySize(10)
+    local pad = Screen:scaleBySize(16)
     local brd = Screen:scaleBySize(1)
 
     local cache_key = (filter or "all") .. "_" .. (mode or "normal")
