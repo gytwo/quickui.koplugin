@@ -1294,7 +1294,7 @@ function QA.showCustomQADialog(qa_id, on_done, source)
             if current_action_type == "plugin" then
                 default_icon = "nerd:F1B2"
             elseif current_action_type == "dispatcher" then
-                default_icon = "nerd:E235"
+                default_icon = "nerd:F08D"
             elseif current_action_type == "menu" then
                 default_icon = "nerd:E7FB"
             elseif current_action_type == "collections" then
