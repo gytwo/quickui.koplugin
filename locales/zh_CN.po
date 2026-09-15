@@ -1572,3 +1572,42 @@ msgstr "删除快捷操作 \"%s\"？"
 
 msgid "Max %d tabs, only first %d added"
 msgstr "最多 %d 个标签，只添加了前 %d 个"
+
+msgid "Filter"
+msgstr "界面过滤"
+
+msgid "Select Filter"
+msgstr "选择界面过滤"
+
+msgid "Filemanager Dedicated"
+msgstr "文件管理器专用"
+
+msgid "Reader Dedicated"
+msgstr "阅读器专用"
+
+msgid "Edit Quick Action - Built-in Action"
+msgstr "编辑快捷操作-内置动作"
+
+msgid "Edit Quick Action - Custom Action"
+msgstr "编辑快捷操作-自定义动作"
+
+msgid "Action Pool"
+msgstr "动作池"
+
+msgid "Remove from Panel"
+msgstr "从面板移除"
+
+msgid "Remove from Both"
+msgstr "同时移除"
+
+msgid "Remove from Bottom Bar"
+msgstr "从底部栏移除"
+
+msgid "Add to Panel"
+msgstr "添加至面板"
+
+msgid "Add to Both"
+msgstr "同时添加"
+
+msgid "Add to Bottom Bar"
+msgstr "添加至底部栏"
