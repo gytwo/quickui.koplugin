@@ -83,14 +83,289 @@ local function resetSystemTempOverrides()
 end
 
 -- ============================================================
--- Nerd Font Support
+-- Nerd Font glyph-name reader (pure LuaJIT, no FreeType)
+--
+-- Android's bundled libfreetype does not export FT_Get_Glyph_Name,
+-- so we parse the TTF binary ourselves:
+--   offset table -> table directory -> post (2.0) -> cmap (4 / 12)
+-- This yields { codepoint -> glyph name } at runtime, on all platforms.
 -- ============================================================
 
-ffi.cdef[[
-    FT_Error FT_Get_Glyph_Name(FT_Face face, FT_UInt glyph_index, FT_String *buffer, FT_UInt buffer_max);
-]]
+-- Standard Macintosh glyph order (PostScript names for 0-257).
+-- post table 2.0: glyphNameIndex < 258 refers to this list by position.
+local MAC_GLYPH_NAMES = {
+    ".notdef", ".null", "nonmarkingreturn", "space", "exclam", "quotedbl",
+    "numbersign", "dollar", "percent", "ampersand", "quotesingle",
+    "parenleft", "parenright", "asterisk", "plus", "comma", "hyphen",
+    "period", "slash", "zero", "one", "two", "three", "four", "five",
+    "six", "seven", "eight", "nine", "colon", "semicolon", "less",
+    "equal", "greater", "question", "at", "A", "B", "C", "D", "E", "F",
+    "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S",
+    "T", "U", "V", "W", "X", "Y", "Z", "bracketleft", "backslash",
+    "bracketright", "asciicircum", "underscore", "grave", "a", "b",
+    "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o",
+    "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "braceleft",
+    "bar", "braceright", "asciitilde", "Adieresis", "Aring", "Ccedilla",
+    "Eacute", "Ntilde", "Odieresis", "Udieresis", "aacute", "agrave",
+    "acircumflex", "adieresis", "atilde", "aring", "ccedilla", "eacute",
+    "egrave", "ecircumflex", "edieresis", "iacute", "igrave",
+    "icircumflex", "idieresis", "ntilde", "oacute", "ograve",
+    "ocircumflex", "odieresis", "otilde", "uacute", "ugrave",
+    "ucircumflex", "udieresis", "dagger", "degree", "cent", "sterling",
+    "section", "bullet", "paragraph", "germandbls", "registered",
+    "copyright", "trademark", "acute", "dieresis", "notequal", "AE",
+    "Oslash", "infinity", "plusminus", "lessequal", "greaterequal",
+    "yen", "mu", "partialdiff", "summation", "product", "pi",
+    "integral", "ordfeminine", "ordmasculine", "Omega", "ae", "oslash",
+    "questiondown", "exclamdown", "logicalnot", "radical", "florin",
+    "approxequal", "Delta", "guillemotleft", "guillemotright",
+    "ellipsis", "nonbreakingspace", "Agrave", "Atilde", "Otilde", "OE",
+    "oe", "endash", "emdash", "quotedblleft", "quotedblright",
+    "quoteleft", "quoteright", "divide", "lozenge", "ydieresis",
+    "Ydieresis", "fraction", "currency", "guilsinglleft",
+    "guilsinglright", "fi", "fl", "daggerdbl", "periodcentered",
+    "quotesinglbase", "quotedblbase", "perthousand", "Acircumflex",
+    "Ecircumflex", "Aacute", "Edieresis", "Egrave", "Iacute",
+    "Icircumflex", "Idieresis", "Igrave", "Oacute", "Ocircumflex",
+    "apple", "Ograve", "Uacute", "Ucircumflex", "Ugrave", "dotlessi",
+    "circumflex", "tilde", "macron", "breve", "dotaccent", "ring",
+    "cedilla", "hungarumlaut", "ogonek", "caron", "Lslash", "lslash",
+    "Scaron", "scaron", "Zcaron", "zcaron", "brokenbar", "Eth", "eth",
+    "Yacute", "yacute", "Thorn", "thorn", "minus", "multiply",
+    "onesuperior", "twosuperior", "threesuperior", "onehalf",
+    "onequarter", "threequarters", "franc", "Gbreve", "gbreve",
+    "Idotaccent", "Scedilla", "scedilla", "Cacute", "cacute", "Ccaron",
+    "ccaron", "dcroat",
+}
 
-local ft2 = ffi.loadlib("freetype", "6")
+local function _readFile(path)
+    local f = io.open(path, "rb")
+    if not f then return nil end
+    local data = f:read("*all")
+    f:close()
+    if not data or #data < 12 then return nil end
+    return data
+end
+
+local function _u16(data, off)
+    local b1, b2 = data:byte(off, off + 1)
+    if not b1 or not b2 then return nil end
+    return b1 * 256 + b2
+end
+
+local function _u32(data, off)
+    local b1, b2, b3, b4 = data:byte(off, off + 3)
+    if not b1 or not b4 then return nil end
+    return ((b1 * 256 + b2) * 256 + b3) * 256 + b4
+end
+
+local function _readTableDirectory(data)
+    local numTables = _u16(data, 5)
+    if not numTables then return nil end
+    local tables = {}
+    local pos = 13
+    for _ = 1, numTables do
+        local tag = data:sub(pos, pos + 3)
+        local offset = _u32(data, pos + 8)
+        local length = _u32(data, pos + 12)
+        if tag and offset and length then
+            tables[tag] = { offset = offset + 1, length = length }
+        end
+        pos = pos + 16
+    end
+    return tables
+end
+
+local function _parsePostTable(data, post_off)
+    local version = _u32(data, post_off)
+    if version ~= 0x00020000 then
+        logger.warn("QuickUI NerdFont: post table is not 2.0 (version=" ..
+            string.format("0x%08X", version) .. ")")
+        return nil
+    end
+    local numGlyphs = _u16(data, post_off + 32)
+    if not numGlyphs or numGlyphs == 0 then return nil end
+
+    local index_base = post_off + 34
+    local names_base = index_base + numGlyphs * 2
+
+    local indices = {}
+    local max_extra_index = 0
+    for i = 0, numGlyphs - 1 do
+        local idx = _u16(data, index_base + i * 2)
+        indices[i] = idx
+        if idx and idx >= 258 then
+            local rel = idx - 258
+            if rel > max_extra_index then max_extra_index = rel end
+        end
+    end
+
+    local extra_names = {}
+    local pos = names_base
+    for _ = 0, max_extra_index do
+        local len = data:byte(pos)
+        if not len then break end
+        extra_names[#extra_names + 1] = data:sub(pos + 1, pos + len)
+        pos = pos + 1 + len
+    end
+
+    local glyph_names = {}
+    for i = 0, numGlyphs - 1 do
+        local idx = indices[i]
+        if idx then
+            if idx < 258 then
+                glyph_names[i] = MAC_GLYPH_NAMES[idx + 1]
+            else
+                glyph_names[i] = extra_names[idx - 258 + 1]
+            end
+        end
+    end
+    return glyph_names
+end
+
+local function _parseCmapSubtable4(data, base)
+    local segCountX2 = _u16(data, base + 6)
+    if not segCountX2 then return nil end
+    local segCount = segCountX2 / 2
+    local endBase = base + 14
+    local startBase = endBase + segCountX2 + 2
+    local deltaBase = startBase + segCountX2
+    local rangeBase = deltaBase + segCountX2
+
+    local map = {}
+    for i = 0, segCount - 1 do
+        local endCode = _u16(data, endBase + i * 2)
+        local startCode = _u16(data, startBase + i * 2)
+        local idDelta = _u16(data, deltaBase + i * 2)
+        local idRangeOffset = _u16(data, rangeBase + i * 2)
+        if startCode and endCode and startCode <= endCode then
+            for cp = startCode, endCode do
+                if cp ~= 0xFFFF then
+                    local gid
+                    if idRangeOffset == 0 then
+                        gid = (cp + idDelta) % 65536
+                    else
+                        local ro_addr = rangeBase + i * 2 + idRangeOffset + (cp - startCode) * 2
+                        local raw = _u16(data, ro_addr)
+                        if raw and raw ~= 0 then
+                            gid = (raw + idDelta) % 65536
+                        end
+                    end
+                    if gid and gid ~= 0 then
+                        map[cp] = gid
+                    end
+                end
+            end
+        end
+    end
+    return map
+end
+
+local function _parseCmapSubtable12(data, base)
+    local nGroups = _u32(data, base + 12)
+    if not nGroups then return nil end
+    local map = {}
+    local pos = base + 16
+    for _ = 1, nGroups do
+        local startChar = _u32(data, pos)
+        local endChar = _u32(data, pos + 4)
+        local startGid = _u32(data, pos + 8)
+        if startChar and endChar then
+            for cp = startChar, endChar do
+                map[cp] = startGid + (cp - startChar)
+            end
+        end
+        pos = pos + 12
+    end
+    return map
+end
+
+local function _parseCmapTable(data, cmap_off)
+    local numTables = _u16(data, cmap_off + 2)
+    if not numTables then return nil end
+    local best, best_score = nil, -1
+    for i = 0, numTables - 1 do
+        local rec = cmap_off + 4 + i * 8
+        local platformID = _u16(data, rec)
+        local encodingID = _u16(data, rec + 2)
+        local subOff = _u32(data, rec + 4)
+        if platformID and subOff then
+            local sub_base = cmap_off + subOff
+            local fmt = _u16(data, sub_base)
+            local score = -1
+            if platformID == 3 and encodingID == 10 and fmt == 12 then
+                score = 100
+            elseif platformID == 3 and encodingID == 1 and fmt == 4 then
+                score = 90
+            elseif platformID == 0 and (fmt == 4 or fmt == 12) then
+                score = 80
+            end
+            if score > best_score then
+                best_score = score
+                best = { base = sub_base, fmt = fmt }
+            end
+        end
+    end
+    if not best then return nil end
+    if best.fmt == 4 then
+        return _parseCmapSubtable4(data, best.base)
+    elseif best.fmt == 12 then
+        return _parseCmapSubtable12(data, best.base)
+    end
+    return nil
+end
+
+-- Locate KOReader's bundled Nerd Font file.
+local function _findNerdFontFile()
+    local candidates = {}
+    local ok_ds, DataStorage = pcall(require, "datastorage")
+    if ok_ds and DataStorage then
+        local base = DataStorage:getDataDir()
+        candidates[#candidates + 1] = base .. "/fonts/nerdfonts/symbols.ttf"
+        candidates[#candidates + 1] = base .. "/fonts/symbols.ttf"
+    end
+    candidates[#candidates + 1] = "fonts/nerdfonts/symbols.ttf"
+    candidates[#candidates + 1] = "./fonts/nerdfonts/symbols.ttf"
+    for _i, p in ipairs(candidates) do
+        if lfs.attributes(p, "mode") == "file" then return p end
+    end
+    return nil
+end
+
+-- Runtime cache: codepoint -> glyph name
+local _nerd_glyph_names = nil
+
+local function _ensureNerdGlyphNames()
+    if _nerd_glyph_names then return _nerd_glyph_names end
+    _nerd_glyph_names = {}
+    local path = _findNerdFontFile()
+    if not path then
+        logger.warn("QuickUI NerdFont: symbols.ttf not found")
+        return _nerd_glyph_names
+    end
+    local data = _readFile(path)
+    if not data then return _nerd_glyph_names end
+    local tables = _readTableDirectory(data)
+    if not tables then return _nerd_glyph_names end
+    local post = tables["post"]
+    local cmap = tables["cmap"]
+    if not post or not cmap then return _nerd_glyph_names end
+    local glyph_names = _parsePostTable(data, post.offset)
+    if not glyph_names then return _nerd_glyph_names end
+    local cp_to_gid = _parseCmapTable(data, cmap.offset)
+    if not cp_to_gid then return _nerd_glyph_names end
+    for cp, gid in pairs(cp_to_gid) do
+        local name = glyph_names[gid]
+        if name and name ~= "" then
+            _nerd_glyph_names[cp] = name
+        end
+    end
+    return _nerd_glyph_names
+end
+
+-- ============================================================
+-- Nerd Font Support
+-- ============================================================
 
 function QA.nerdIconChar(icon_value)
     if type(icon_value) ~= "string" then return nil end
@@ -114,85 +389,27 @@ function QA.isNerdIcon(icon_value)
     return QA.nerdIconChar(icon_value) ~= nil
 end
 
-local function isValidNerdChar(cp)
-    if not cp or type(cp) ~= "number" then return false end
-    local face = Font:getFace("symbols", 12)
-    if not face or not face.ftsize then return false end
-    return face.ftsize:hasGlyph(cp)
-end
-
 local function getNerdGlyphName(cp)
     if not cp or type(cp) ~= "number" then return nil end
-    local face = Font:getFace("symbols", 12)
-    if not face or not face.ftsize then return nil end
-    local ft_face = face.ftsize.face
-    if not ft_face then return nil end
-    local glyph_index = ft2.FT_Get_Char_Index(ft_face, cp)
-    if glyph_index == 0 then return nil end
-    local buffer = ffi.new("FT_String[128]")
-    local err = ft2.FT_Get_Glyph_Name(ft_face, glyph_index, buffer, 128)
-    if err ~= 0 then
-        return nil
-    end
-    return ffi.string(buffer)
+    local names = _ensureNerdGlyphNames()
+    return names[cp]
 end
 
 local function getNerdIcons()
+    local names = _ensureNerdGlyphNames()
     local icons = {}
-    local seen = {}
-    local name_cache = {}
-
-    local ranges = {
-        {0x23FB, 0x23FE},
-        {0xE700, 0xE7FF},
-        {0xF000, 0xF3FF},
-        {0xF500, 0xF8FF},
-        {0xE800, 0xE8FF},
-        {0xE000, 0xE09F},
-        {0xE100, 0xE2FF},
-        {0xE400, 0xE6FF},
-        {0xF400, 0xF4FF},
-        {0xE300, 0xE3FF},
-        {0xE0A0, 0xE0FF},
-    }
-
-    for _, range in ipairs(ranges) do
-        for cp = range[1], range[2] do
-            if cp >= 0xD800 and cp <= 0xDFFF then goto continue end
-            if isValidNerdChar(cp) then
-                local hex = string.format("%04X", cp)
-                local key = "nerd:" .. hex
-                if not seen[key] then
-                    seen[key] = true
-                    local glyph_name = getNerdGlyphName(cp)
-                    name_cache[key] = glyph_name
-                end
-            end
-            ::continue::
-        end
+    for cp, name in pairs(names) do
+        local hex = string.format("%04X", cp)
+        icons[#icons + 1] = {
+            type = "nerd",
+            hex = hex,
+            value = "nerd:" .. hex,
+            name = name,
+        }
     end
-
-    for _, range in ipairs(ranges) do
-        for cp = range[1], range[2] do
-            if cp >= 0xD800 and cp <= 0xDFFF then goto continue2 end
-            if isValidNerdChar(cp) then
-                local hex = string.format("%04X", cp)
-                local key = "nerd:" .. hex
-                if seen[key] then
-                    local name = name_cache[key]
-                    table.insert(icons, {
-                        type = "nerd",
-                        hex = hex,
-                        value = key,
-                        name = name,
-                    })
-                    seen[key] = nil
-                end
-            end
-            ::continue2::
-        end
-    end
-
+    table.sort(icons, function(a, b)
+        return (a.name or ""):lower() < (b.name or ""):lower()
+    end)
     return icons
 end
 
@@ -874,16 +1091,38 @@ function QA.showIconPicker(on_select, saved_icon, filter, mode, parent_mode)
             end
         end
 
+        -- Keep the original Kindle layout (portrait 7x5, landscape 9x4).
+        -- Only reshape for very tall/narrow phone screens.
+        local aspect = sw / sh
+
         if sw > sh then
-            cols = 9
-            rows = 4
+            -- Landscape
             frame_h = math.floor(sh * 0.85)
+            if aspect <= 1.4 then
+                -- Kindle-ish landscape (4:3 ~ 1.33): 8x4
+                cols = 8
+                rows = 4
+            else
+                -- Phone landscape (16:9 ~ 1.78 and wider): 9x4
+                cols = 9
+                rows = 4
+            end
         else
-            cols = 7
-            rows = 5
+            -- Portrait
             frame_h = math.floor(sh * 0.70)
+            if aspect <= 0.62 then
+                cols = 5
+                rows = 7
+            elseif aspect <= 0.70 then
+                cols = 6
+                rows = 6
+            else
+                cols = 6
+                rows = 5
+            end
         end
         per_page = cols * rows
+
         h_gap = Screen:scaleBySize(15)
         v_gap = Screen:scaleBySize(15)
         frame_w = math.floor(sw * 0.90)
@@ -895,7 +1134,7 @@ function QA.showIconPicker(on_select, saved_icon, filter, mode, parent_mode)
         local available_h = frame_h - pad - title_bar_h - button_bar_h - footer_h - pad
         cell_h = math.max(44, math.floor((available_h - (rows - 1) * v_gap) / rows))
         icon_sz = math.floor(cell_h * 0.55)
-        font_size = math.floor(icon_sz * 0.85)
+        font_size = math.floor(icon_sz * 0.70)
         cell_pad = math.max(4, math.floor(cell_h * 0.2))
         grid_w = cols * cell_w + (cols - 1) * h_gap
         grid_h = cell_h * rows + (rows - 1) * v_gap
