@@ -75,5 +75,7 @@ return {
     "Icon picker: optimize search logic and rework showIconPicker to fix crashes on Android",
     "Icon picker: add label toggle (eye / eye-off) to show or hide icon names in the grid",
     "Bottom bar: fix missing bottom bar after screen rotation on Android",
+    "Quick Actions editor: add 'New' and 'Action Pool' buttons to action edit dialogs",
+    "Quick Actions editor: refresh panel and bottom bar immediately after add/remove/reorder",
     },
 }
