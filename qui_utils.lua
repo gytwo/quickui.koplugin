@@ -1072,6 +1072,62 @@ function Utils.patchBookListForBottombar()
 end
 
 -- ============================================================
+-- Patch SimpleUI for Bottom Navigation Bar
+--
+-- SimpleUI is an optional third-party plugin — unlike FileManager /
+-- ReaderUI / BookList (all built into KOReader), it may not be installed.
+-- Everything here must therefore go through pcall(require) and bail out
+-- silently when SimpleUI is absent, so QuickUI never breaks on its behalf.
+--
+-- Two hook points:
+--   ScreenEngine._open              — first show of any screen
+--   ScreenEngine.rebuildAllLayouts  — rotation / theme / wallpaper rebuilds,
+--                                     which replace _navbar_container in place
+--                                     without going through _open.
+-- ============================================================
+function Utils.patchSimpleUIHomescreenForBottombar()
+    local ok, ScreenEngine = pcall(require, "engines/sui_screen_engine")
+    if not ok or not ScreenEngine then return end        -- SimpleUI not installed
+    if type(ScreenEngine._open) ~= "function" then return end
+    if ScreenEngine._quickui_bb_patched then return end  -- idempotent
+    ScreenEngine._quickui_bb_patched = true
+
+    local function inject(w)
+        local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
+        if bb and bb.injectIntoScreenWidget and w then
+            bb.injectIntoScreenWidget(w)
+        end
+    end
+
+    -- Hook 1: first show
+    local orig_open = ScreenEngine._open
+    ScreenEngine._open = function(instance_cfg, on_qa_tap, on_goal_tap)
+        local w = orig_open(instance_cfg, on_qa_tap, on_goal_tap)
+        inject(w)
+        return w
+    end
+
+    -- Hook 2: in-place rebuilds (rotation, style/wallpaper changes)
+    local orig_rebuild = ScreenEngine.rebuildAllLayouts
+    if orig_rebuild then
+        ScreenEngine.rebuildAllLayouts = function(...)
+            local r = orig_rebuild(...)
+            local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
+            if bb and bb.injectIntoScreenWidget then
+                for _i, id in ipairs(ScreenEngine.liveScreenIds()) do
+                    local inst = ScreenEngine.getInstance(id)
+                    if inst then
+                        -- Container was rebuilt — allow re-injection.
+                        inst._quickui_bb_injected = nil
+                        bb.injectIntoScreenWidget(inst)
+                    end
+                end
+            end
+            return r
+        end
+    end
+end
+-- ============================================================
 -- Search Utilities
 -- ============================================================
 
