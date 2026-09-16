@@ -521,17 +521,46 @@ function M.registerTouchZones(plugin_or_widget, widget)
         return
     end
 
-    -- Unregister old zones (both tab zones and the settings zone)
-    local old_zones = {}
-    for i = 1, num_tabs do
-        old_zones[#old_zones + 1] = { id = "bb_tab_" .. i }
-        old_zones[#old_zones + 1] = { id = "bb_tab_hold_" .. i }
-    end
-    old_zones[#old_zones + 1] = { id = "bb_hold_settings" }
-    if fm_self.unregisterTouchZones then
-        fm_self:unregisterTouchZones(old_zones)
+    -- ============================================================
+    -- Clear ALL previously registered bottom-bar zones.
+    -- Use the "^bb_" prefix instead of a count, so removing the
+    -- rightmost tab cannot leave stale zones behind.
+    -- Mirrors M.removeBottombar()'s FileManager cleanup.
+    -- ============================================================
+    if fm_self._zones then
+        for id, _ in pairs(fm_self._zones) do
+            if type(id) == "string" and id:match("^bb_") then
+                fm_self._zones[id] = nil
+            end
+        end
     end
 
+    if fm_self.touch_zone_dg then
+        -- Collect first, then remove (don't mutate while iterating)
+        local to_remove = {}
+        for id, _ in pairs(fm_self._zones or {}) do
+            if type(id) == "string" and id:match("^bb_") then
+                to_remove[#to_remove + 1] = id
+            end
+        end
+        for _, id in ipairs(to_remove) do
+            fm_self.touch_zone_dg:removeNode(id)
+        end
+    end
+
+    -- Rebuild the ordered zone list without any bb_ zones
+    fm_self._ordered_touch_zones = {}
+    if fm_self.touch_zone_dg then
+        for _, zone_id in ipairs(fm_self.touch_zone_dg:serialize()) do
+            if fm_self._zones and fm_self._zones[zone_id] then
+                table.insert(fm_self._ordered_touch_zones, fm_self._zones[zone_id])
+            end
+        end
+    end
+
+    -- ============================================================
+    -- Register fresh zones for the current tab set
+    -- ============================================================
     local zones = {}
 
     -- Tab zones first (tap + hold for each tab)
