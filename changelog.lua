@@ -76,9 +76,9 @@ return {
     "Icon picker: add label toggle (eye / eye-off) to show or hide icon names in the grid",
     "Quick Actions editor: add 'New' and 'Action Pool' buttons to action edit dialogs",
     "Quick Actions editor: refresh panel and bottom bar immediately after add/remove/reorder",
-    "Preset managemen: add 'Apply preset' to 'Action Pool' (uses saved preset, falls back to defaults if none)",
+    "Preset managemen: add 'Apply preset' to 'Action Pool' ( falls back to defaults if none)",
     "Bottom bar: fix missing bottom bar after screen rotation on Android",
+    "Bottom bar: fix missing bottom bar when entering History/Collections from another fullscreen view",
     "Bottom bar: fix crash in History/Collections when handling tabs (add/move/sort/etc.)",
-    "Bottom bar: inject bottom bar into History/Collections before first paint to avoid double flash",
     },
 }
