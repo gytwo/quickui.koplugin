@@ -821,6 +821,64 @@ function M.wrapWithBottombar(inner_widget)
 end
 
 -- ============================================================
+-- Inject into a SimpleUI ScreenWidget
+--
+-- SimpleUI's Homescreen (engines/sui_screen_engine.lua) wraps its content
+-- in an OverlapGroup stored at w._navbar_container, with its own bar at
+-- w._navbar_bar_idx. When SimpleUI's bar is disabled, that slot is empty
+-- and SimpleUI has already reserved the height via
+-- _G.__QUICKUI_BAR_HEIGHT, so all we do here is append our bar to the
+-- OverlapGroup and register our touch zones.
+--
+-- Safe to call on any widget: bails out silently when the widget is not a
+-- SimpleUI screen (no _navbar_container / no _navbar_content_h), when the
+-- bar is disabled, or when it has already been injected.
+-- ============================================================
+function M.injectIntoScreenWidget(w)
+    if not Utils.getBool("qa_bb_enabled", true) then return end
+    if not w or not w._navbar_container then return end
+    -- _navbar_content_h is always set by sui_core.applyNavbarState() on a
+    -- genuine SimpleUI screen — use it as the identification marker instead
+    -- of name, which is shared with QuickUI's own homescreen widget.
+    if not w._navbar_content_h then return end
+    if w._quickui_bb_injected then return end
+
+    local nav_h = M.TOTAL_H()
+    if nav_h <= 0 then return end
+
+    -- Reuse SimpleUI's own content height so our bar sits exactly in the
+    -- reserved band; never recompute from Screen:getHeight() here.
+    local bar = M.buildBar(nil)
+    bar.overlap_offset = { 0, Screen:getHeight() - nav_h }
+
+    local container = w._navbar_container
+    container[#container + 1] = bar
+
+    w._quickui_bb_bar      = bar
+    w._quickui_bb_injected = true
+
+    M.registerTouchZones(w)
+end
+
+-- Removes a previously injected bar (used when the bar is disabled at
+-- runtime, before SimpleUI rebuilds its own container).
+function M.removeFromScreenWidget(w)
+    if not w or not w._quickui_bb_injected then return end
+    local container = w._navbar_container
+    local bar = w._quickui_bb_bar
+    if container and bar then
+        for i = #container, 1, -1 do
+            if container[i] == bar then
+                table.remove(container, i)
+                break
+            end
+        end
+    end
+    w._quickui_bb_bar      = nil
+    w._quickui_bb_injected = nil
+end
+
+-- ============================================================
 -- Rebuild Bottombar
 -- ============================================================
 
@@ -958,7 +1016,6 @@ function M.rebuildBottombar(skip_remove)
         history = true,
         collections = true,
         coll_list = true,
-        homescreen = true,
     }
     for _, entry in ipairs(stack) do
         local w = entry.widget
@@ -1095,7 +1152,23 @@ end
 -- ============================================================
 
 function M.refresh()
+    -- Keep SimpleUI's reserved height in sync — it reads this live on every
+    -- getContentHeight() call, so the value must reflect the current size.
+    _G.__QUICKUI_BAR_HEIGHT = M.isEnabled() and M.TOTAL_H() or 0
+
     M.rebuildBottombar()
+
+    -- Re-inject into any live SimpleUI screen. rebuildBottombar() only
+    -- handles FM/ReaderUI/BookList; SimpleUI screens need their own pass.
+    local ok, ScreenEngine = pcall(require, "engines/sui_screen_engine")
+    if not (ok and ScreenEngine and ScreenEngine.liveScreenIds) then return end
+    for _i, id in ipairs(ScreenEngine.liveScreenIds()) do
+        local inst = ScreenEngine.getInstance(id)
+        if inst then
+            M.removeFromScreenWidget(inst)   -- drop the stale bar first
+            M.injectIntoScreenWidget(inst)
+        end
+    end
 end
 
 -- ============================================================
@@ -1328,6 +1401,7 @@ function M.init()
     Utils.patchFileChooserForBottombar()
     Utils.patchReaderUIForBottombar()
     Utils.patchBookListForBottombar()
+    Utils.patchSimpleUIHomescreenForBottombar()
     Utils.registerRefreshHandler("qa_bb", M.refresh)
     
     -- Expose QuickUI bottom bar height globally for SimpleUI compatibility
