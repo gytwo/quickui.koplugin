@@ -80,5 +80,6 @@ return {
     "Bottom bar: fix missing bottom bar after screen rotation on Android",
     "Bottom bar: fix missing bottom bar when entering History/Collections from another fullscreen view",
     "Bottom bar: fix crash in History/Collections when handling tabs (add/move/sort/etc.)",
+    "Bottom bar: improve bottom bar show/hide experience in ReaderUI",
     },
 }
