@@ -1135,6 +1135,22 @@ function M.showAddTabMenu(on_back, filtered_actions)
 
     table.insert(buttons, {})
 
+    -- Apply preset: use saved preset if available, otherwise fall back to defaults
+    table.insert(buttons, {
+        {
+            text = _("Apply preset (QA bb)"),
+            callback = function()
+                Utils.applyDefault({"qa_common", "qa_bb"})
+                if M._add_tab_dialog then
+                    UIManager:close(M._add_tab_dialog)
+                    M._add_tab_dialog = nil
+                end
+                M.showAddTabMenu(on_back)
+            end,
+        }
+    })
+    table.insert(buttons, {})
+    
     -- Action list
     for __, action in ipairs(available) do
         local is_checked = tab_set[action.id] or false
