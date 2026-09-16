@@ -506,7 +506,7 @@ end
 function M.registerTouchZones(plugin_or_widget, widget)
     local fm_self = widget or plugin_or_widget
     if not fm_self then return end
-    
+
     local tabs = getTabs() or {}
     local num_tabs = #tabs
     local screen_w = Screen:getWidth()
@@ -521,7 +521,7 @@ function M.registerTouchZones(plugin_or_widget, widget)
         return
     end
 
-    -- Always register the settings hold zone, even when no tabs
+    -- Unregister old zones (both tab zones and the settings zone)
     local old_zones = {}
     for i = 1, num_tabs do
         old_zones[#old_zones + 1] = { id = "bb_tab_" .. i }
@@ -533,31 +533,8 @@ function M.registerTouchZones(plugin_or_widget, widget)
     end
 
     local zones = {}
-    local overrides = { "tap_left_bottom_corner", "tap_right_bottom_corner" }
 
-    -- Register hold settings zone regardless of tab count
-    zones[#zones + 1] = {
-        id = "bb_hold_settings",
-        ges = "hold_release",
-        overrides = { "readerhighlight_hold" },
-        screen_zone = {
-            ratio_x = 0,
-            ratio_y = bar_y / screen_h,
-            ratio_w = 1,
-            ratio_h = nav_h / screen_h,
-        },
-        handler = function()
-            if Utils.getBool("qa_bb_settings_on_hold", true) then
-                local settings = require("qui_actions.qa_settings")
-                if settings and settings.showBottombarSettings then
-                    settings.showBottombarSettings()
-                end
-            end
-            return true
-        end,
-    }
-
-    -- Only register tab zones if there are tabs
+    -- Tab zones first (tap + hold for each tab)
     if num_tabs > 0 then
         local widths = M.getTabWidths(num_tabs, usable_w)
         local cumulative = 0
@@ -572,7 +549,7 @@ function M.registerTouchZones(plugin_or_widget, widget)
             zones[#zones + 1] = {
                 id = "bb_tab_" .. i,
                 ges = "tap",
-                overrides = overrides,
+                overrides = { "tap_left_bottom_corner", "tap_right_bottom_corner" },
                 screen_zone = {
                     ratio_x = x_start / screen_w,
                     ratio_y = bar_y / screen_h,
@@ -592,7 +569,12 @@ function M.registerTouchZones(plugin_or_widget, widget)
             zones[#zones + 1] = {
                 id = "bb_tab_hold_" .. i,
                 ges = "hold",
-                overrides = overrides,
+                overrides = {
+                    "tap_left_bottom_corner",
+                    "tap_right_bottom_corner",
+                    "bb_hold_settings",
+                    "readerhighlight_hold",
+                },
                 screen_zone = {
                     ratio_x = x_start / screen_w,
                     ratio_y = bar_y / screen_h,
@@ -631,6 +613,29 @@ function M.registerTouchZones(plugin_or_widget, widget)
             }
         end
     end
+
+    -- Register hold-settings zone LAST so tab hold zones take priority
+    -- when their screen_zones overlap.
+    zones[#zones + 1] = {
+        id = "bb_hold_settings",
+        ges = "hold",
+        overrides = { "readerhighlight_hold" },
+        screen_zone = {
+            ratio_x = 0,
+            ratio_y = bar_y / screen_h,
+            ratio_w = 1,
+            ratio_h = nav_h / screen_h,
+        },
+        handler = function()
+            if Utils.getBool("qa_bb_settings_on_hold", true) then
+                local settings = require("qui_actions.qa_settings")
+                if settings and settings.showBottombarSettings then
+                    settings.showBottombarSettings()
+                end
+            end
+            return true
+        end,
+    }
 
     if fm_self.registerTouchZones then
         fm_self:registerTouchZones(zones)
