@@ -939,6 +939,7 @@ function Utils.patchBookListForBottombar()
     BookList.new = function(class, attrs, ...)
         attrs = attrs or {}
         local is_booklist = attrs.name == "history" or attrs.name == "collections" or attrs.name == "coll_list"
+
         if is_booklist then
             local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
             if bb and bb.isEnabled and bb.isEnabled() then
@@ -948,19 +949,37 @@ function Utils.patchBookListForBottombar()
                 attrs._navbar_height_reduced = true
             end
         end
+
         local instance = orig_new(class, attrs, ...)
-        
-        -- ★ Register touch zones after BookList is created ★
+
         if is_booklist then
             local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
-            if bb and bb.registerTouchZones then
-                -- BookList needs to be fully initialized before registering zones
+            if bb and bb.isEnabled and bb.isEnabled() then
+                -- Inject the bottom bar BEFORE UIManager:show runs,
+                -- so the very first paint already includes the bar (single flash).
+                local inner = instance[1]
+                if inner and not inner._bottombar_inner then
+                    inner._bottombar_injected_container = true
+                    local wrapped = bb.wrapWithBottombar(inner)
+                    if wrapped and wrapped ~= inner then
+                        instance[1] = wrapped
+                        instance._bottombar_injected = true
+                        instance._bottombar_inner = inner
+                    else
+                        inner._bottombar_injected_container = nil
+                    end
+                end
+
+                -- Register touch zones after the widget is on screen
+                -- (needs dimen to be settled).
                 UIManager:scheduleIn(0, function()
-                    bb.registerTouchZones(instance)
+                    if bb.registerTouchZones then
+                        bb.registerTouchZones(instance)
+                    end
                 end)
             end
         end
-        
+
         return instance
     end
 end
