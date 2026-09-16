@@ -82,6 +82,7 @@ return {
     "Bottom bar: fix crash in History/Collections when handling tabs (add/move/sort/etc.)",
     "Bottom bar: fix touch zone residue after removing the rightmost tab in History/Collections"
     "Bottom bar: improve bottom bar show/hide experience in ReaderUI",
+    "Compatibility: Improved compatibility with SimpleUI Homescreen (see README for setup details)",
     "Updates: fix occasional crash when checking for updates",
     },
 }
