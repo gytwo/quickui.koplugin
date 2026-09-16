@@ -1207,6 +1207,21 @@ msgstr "没有已保存的 %s 预设"
 msgid "All settings reset to defaults"
 msgstr "所有设置已恢复默认"
 
+msgid "Configuration not loaded"
+msgstr "配置未加载"
+
+msgid "No saved preset for: %s.\n\nApply default settings instead?"
+msgstr "以下模块没有保存的预设：%s。\n\n是否改为应用默认设置？"
+
+msgid "Apply Default"
+msgstr "应用默认"
+
+msgid "Apply preset (QA panel)"
+msgstr "应用预设（面板）"
+
+msgid "Apply preset (QA bb)"
+msgstr "应用预设（底部栏）"
+
 # ============================================================
 # Miscellaneous
 # ============================================================
