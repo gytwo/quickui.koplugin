@@ -18,6 +18,7 @@ local lfs = require("libs/libkoreader-lfs")
 local _ = require("gettext")
 local Device = require("device")
 local Screen = Device.screen
+local util = require("util") 
 
 local Updates = {}
 
