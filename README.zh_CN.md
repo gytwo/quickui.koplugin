@@ -450,6 +450,47 @@ quickui.koplugin/
 | **KOReader** | ≥ v2026.03 |
 | **设备** | 前光/色温功能需要设备支持 |
 
+### QuickUI 搭配 SimpleUI 主屏幕使用方法
+
+如果你既喜欢 QuickUI 快捷方式的便利性，又喜欢 SimpleUI 主屏幕带来的美观性，可以同时安装这两个插件。
+
+**版本要求：** QuickUI ≥ 1.0.6，SimpleUI ≥ 2.1.1
+
+安装好两个插件后，需要先修改 SimpleUI 中的一个文件。找到 `simpleui.koplugin/infra/sui_core.lua`，查找 `function M.getContentHeight()`，完整替换这个函数后重启 KOReader 即可。
+
+具体来说，将：
+
+```lua
+function M.getContentHeight()
+    local topbar_on = SUISettings:nilOrTrue("simpleui_topbar_enabled")
+    return Screen:getHeight() - _BB().TOTAL_H() - (topbar_on and _TB().TOTAL_TOP_H() or 0)
+end
+```
+
+替换为：
+
+```lua
+function M.getContentHeight()
+    local topbar_on = SUISettings:nilOrTrue("simpleui_topbar_enabled")
+    local simpleui_bar_h = _BB().TOTAL_H()
+    local quickui_bar_h = 0
+    if _G.__QUICKUI_BAR_HEIGHT and type(_G.__QUICKUI_BAR_HEIGHT) == "number" then
+        quickui_bar_h = _G.__QUICKUI_BAR_HEIGHT
+    end
+    local total_bar_h = simpleui_bar_h + quickui_bar_h    
+    return Screen:getHeight() - total_bar_h - (topbar_on and _TB().TOTAL_TOP_H() or 0)
+end
+```
+
+重启设备后，你会发现 QuickUI 和 SimpleUI 的底部栏会重叠，关闭 SimpleUI 的导航栏或者 QuickUI 的底部栏都可以避免重叠问题。
+既然我们的目的是同时享受 QuickUI 快捷方式的便利性和 SimpleUI 主屏幕的美观性，推荐关闭：
+
+- SimpleUI 的导航栏（对应 QuickUI 的底部栏）
+- SimpleUI 的快捷设置栏（对应 QuickUI 的顶部面板）
+- SimpleUI 的书库（对应 QuickUI 的封面视觉设置）
+
+其他功能重复的地方一般没有明显冲突，但你可以根据需要自行判断是否进行选择性禁用。
+
 ---
 
 ## 🧑‍💻 开发者信息
