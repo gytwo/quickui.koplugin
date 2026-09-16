@@ -1915,6 +1915,22 @@ function QA.showAddButtonMenu(touch_menu, on_back, filtered_actions)
 
     table.insert(buttons, {})
 
+    -- Apply preset: use saved preset if available, otherwise fall back to defaults
+    table.insert(buttons, {
+        {
+            text = _("Apply preset (QA panel)"),
+            callback = function()
+                Utils.applyDefault({"qa_common", "qa_panel"})
+                if touchmenu_instance then touchmenu_instance:updateItems() end
+                if touch_menu then touch_menu:updateItems() end
+                QA.refreshQuickPanel()
+                closeSettingsDialog()
+                QA.showAddButtonMenu(touch_menu, on_back)
+            end,
+        }
+    })
+    table.insert(buttons, {})
+    
     for i = 1, #available do
         local action = available[i]
         local is_checked = slot_set[action.id] or false
