@@ -666,6 +666,11 @@ end
 function M.wrapWithBottombar(inner_widget)
     if not Utils.getBool("qa_bb_enabled", true) then return inner_widget end
 
+    -- Guard: if inner_widget is already a bottombar container, avoid double-wrapping
+    if inner_widget._bottombar_container then
+        return inner_widget
+    end
+
     local screen_w = Screen:getWidth()
     local screen_h = Screen:getHeight()
     local nav_h = M.TOTAL_H()
@@ -679,24 +684,30 @@ function M.wrapWithBottombar(inner_widget)
     if content_h <= 0 then return inner_widget end
 
     -- Check if this is a BookList (History/Collections) or Menu (coll_list)
-    local is_booklist = inner_widget.is_borderless and inner_widget.name and 
+    local is_booklist = inner_widget.is_borderless and inner_widget.name and
                         (inner_widget.name == "history" or inner_widget.name == "collections" or inner_widget.name == "coll_list")
+
+    -- Injection scenario: the injected inner container should also be treated as a BookList
+    local is_injected = inner_widget._bottombar_injected_container == true
+    if is_injected then
+        is_booklist = true
+    end
 
     if not overlap then
         if is_booklist then
-            -- BookList/Menu: modify container (widget[1]) height
-            local container = inner_widget[1]
+            -- Injection case: inner IS the container itself, adjust it directly.
+            -- Non-injection case: adjust inner_widget[1].
+            local container = is_injected and inner_widget or inner_widget[1]
             if container and container.dimen then
                 container.dimen.h = content_h
                 container.dimen.y = 0
             end
-            -- Trigger refresh via _manager for BookList
-            if inner_widget._manager and inner_widget._manager.updateItemTable then
-                inner_widget._manager:updateItemTable()
+            local mgr_owner = inner_widget
+            if mgr_owner._manager and mgr_owner._manager.updateItemTable then
+                mgr_owner._manager:updateItemTable()
             end
-            -- For Menu (coll_list), trigger updateItems
-            if inner_widget.updateItems then
-                inner_widget:updateItems()
+            if mgr_owner.updateItems then
+                mgr_owner:updateItems()
             end
         else
             -- FM/Reader: original logic
@@ -854,11 +865,11 @@ function M.rebuildBottombar(skip_remove)
         end
     end
 
-    -- ★ NEW: Wrap History/Collections/coll_list that are already on screen
+    -- NEW: Wrap History/Collections/coll_list that are already on screen
     local stack = UIManager._window_stack or {}
-    local INJECT_NAMES = { 
-        history = true, 
-        collections = true, 
+    local INJECT_NAMES = {
+        history = true,
+        collections = true,
         coll_list = true,
         homescreen = true,
     }
@@ -868,13 +879,19 @@ function M.rebuildBottombar(skip_remove)
             if not w._bottombar_injected then
                 local inner = w[1]
                 if inner and not inner._bottombar_inner then
-                    local wrapped = M.wrapWithBottombar(w)
-                    if wrapped and wrapped ~= w then
+                    -- Mark the inner container so wrapWithBottombar knows this is an injection scenario
+                    inner._bottombar_injected_container = true
+
+                    -- Key fix: pass inner, NOT w, to avoid creating a self-reference
+                    local wrapped = M.wrapWithBottombar(inner)
+                    if wrapped and wrapped ~= inner then
                         w[1] = wrapped
                         w._bottombar_injected = true
                         w._bottombar_inner = inner
                         M.registerTouchZones(w)
                         UIManager:setDirty(w, "full")
+                    else
+                        inner._bottombar_injected_container = nil
                     end
                 end
             end
@@ -975,6 +992,8 @@ function M.removeBottombar()
             w._bottombar_wrapped = nil
             w._bottombar_tabs = nil
             w._navbar_container = nil
+            -- New: clear the injection marker on the inner container
+            if inner then inner._bottombar_injected_container = nil end
         end
     end
 end
