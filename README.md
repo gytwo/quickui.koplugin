@@ -453,6 +453,47 @@ Supports **downgrading** to any historical version.
 | **KOReader** | ≥ v2026.03 |
 | **Device** | Frontlight/warmth controls require device support |
 
+### Using QuickUI with the SimpleUI Homescreen
+
+If you like the convenience of QuickUI's quick actions and the look of the SimpleUI Homescreen, you can install both plugins together.
+
+**Requirements:** QuickUI ≥ 1.0.6, SimpleUI ≥ 2.1.1
+
+After installing both plugins, you need to modify one file in SimpleUI first. Open `simpleui.koplugin/infra/sui_core.lua`, find `function M.getContentHeight()`, replace that function entirely, then restart KOReader.
+
+Specifically, replace:
+
+```lua
+function M.getContentHeight()
+    local topbar_on = SUISettings:nilOrTrue("simpleui_topbar_enabled")
+    return Screen:getHeight() - _BB().TOTAL_H() - (topbar_on and _TB().TOTAL_TOP_H() or 0)
+end
+```
+
+with:
+
+```lua
+function M.getContentHeight()
+    local topbar_on = SUISettings:nilOrTrue("simpleui_topbar_enabled")
+    local simpleui_bar_h = _BB().TOTAL_H()
+    local quickui_bar_h = 0
+    if _G.__QUICKUI_BAR_HEIGHT and type(_G.__QUICKUI_BAR_HEIGHT) == "number" then
+        quickui_bar_h = _G.__QUICKUI_BAR_HEIGHT
+    end
+    local total_bar_h = simpleui_bar_h + quickui_bar_h    
+    return Screen:getHeight() - total_bar_h - (topbar_on and _TB().TOTAL_TOP_H() or 0)
+end
+```
+
+After restarting the device, you will find that the QuickUI and SimpleUI bottom bars overlap. Disabling either SimpleUI's navigation bar or QuickUI's bottom bar avoids the overlap.
+Since our goal is to enjoy both the convenience of QuickUI's quick actions and the look of the SimpleUI Homescreen, the recommended setup is to disable:
+
+- SimpleUI's navigation bar (the counterpart to QuickUI's bottom bar)
+- SimpleUI's quick settings bar (the counterpart to QuickUI's top panel)
+- SimpleUI's library (the counterpart to QuickUI's cover visual settings)
+
+Other overlapping features generally do not conflict noticeably, but you can decide whether to disable any of them selectively as needed.
+
 ---
 
 ## 🧑‍💻 Developer Info
