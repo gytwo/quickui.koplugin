@@ -786,58 +786,41 @@ function M.wrapWithBottombar(inner_widget)
 end
 
 -- ============================================================
--- resizeReaderForBottomBar
--- ============================================================
--- Resize the reader so its content area reflows around (or away from) the bottom bar.
--- Respects qa_bb_overlap: when overlap is enabled, content keeps full height.
-local function resizeReaderForBottomBar(reader, show)
-    if not reader then return end
-
-    local screen_h = Screen:getHeight()
-    local nav_h = 0
-
-    -- Only subtract nav_h if showing AND not in overlap mode
-    if show and not Utils.getBool("qa_bb_overlap", false) then
-        nav_h = M.TOTAL_H()
-    end
-
-    local new_h = screen_h - nav_h
-
-    -- Skip if already correct size (avoid redundant reflows)
-    if reader.dimen and reader.dimen.h == new_h then
-        return
-    end
-
-    local new_dimen = Geom:new{
-        x = 0,
-        y = 0,
-        w = Screen:getWidth(),
-        h = new_h,
-    }
-
-    reader.dimen = new_dimen
-
-    -- ReaderView:onSetDimensions resets layout and triggers recalculate(),
-    -- which reflows the document content into the new area.
-    if reader.view and reader.view.onSetDimensions then
-        reader.view:onSetDimensions(new_dimen)
-    end
-    if reader.onScreenResize then
-        reader:onScreenResize(new_dimen)
-    end
-end
-
--- ============================================================
 -- Rebuild Bottombar
 -- ============================================================
 
 function M.rebuildBottombar(skip_remove)
+    -- ============================================================
+    -- Fully disabled: tear down everything and restore full height
+    -- ============================================================
     if not M.isEnabled() then
         M.removeBottombar()
+
+        local RUI = require("apps/reader/readerui")
+        local reader = RUI.instance
+        if reader and reader.dimen and reader.dimen.h ~= Screen:getHeight() then
+            local full_dimen = Geom:new{
+                x = 0, y = 0,
+                w = Screen:getWidth(),
+                h = Screen:getHeight(),
+            }
+            reader.dimen = full_dimen
+            if reader.view and reader.view.onSetDimensions then
+                reader.view:onSetDimensions(full_dimen)
+            end
+            if reader.onScreenResize then
+                reader:onScreenResize(full_dimen)
+            end
+            UIManager:setDirty(reader, "full")
+        end
         return
     end
 
+    -- ============================================================
+    -- Tear down existing wrappers (do NOT touch reader height)
+    -- ============================================================
     if skip_remove then
+        -- On rotation: only clear _bottombar_original_inner, do not execute remove
         local FM = require("apps/filemanager/filemanager")
         local fm = FM.instance
         if fm then
@@ -852,7 +835,9 @@ function M.rebuildBottombar(skip_remove)
         M.removeBottombar()
     end
 
+    -- ============================================================
     -- Wrap FileManager
+    -- ============================================================
     local FM = require("apps/filemanager/filemanager")
     local fm = FM.instance
     if fm then
@@ -869,7 +854,9 @@ function M.rebuildBottombar(skip_remove)
         M.registerTouchZones(fm)
     end
 
+    -- ============================================================
     -- Wrap Reader
+    -- ============================================================
     local RUI = require("apps/reader/readerui")
     local reader = RUI.instance
     if reader then
@@ -883,67 +870,64 @@ function M.rebuildBottombar(skip_remove)
         end
 
         local should_show = show_in_reader ~= false and not (hide_in_pdf and is_pdf)
-        local currently_shown = reader._bottombar_container ~= nil
-
-        local overlap_now = Utils.getBool("qa_bb_overlap", false)
-        local overlap_changed = reader._bottombar_overlap_last ~= nil
-                                and reader._bottombar_overlap_last ~= overlap_now
-        reader._bottombar_overlap_last = overlap_now
 
         if should_show then
+            -- Reach the true original inner (unwrap any nested wrappers)
             local inner_reader = reader[1]
             while inner_reader and inner_reader._bottombar_inner do
                 inner_reader = inner_reader._bottombar_inner
             end
+            reader._bottombar_original_inner = inner_reader
 
-            if not reader._bottombar_original_inner then
-                reader._bottombar_original_inner = inner_reader
-            else
-            end
-
+            -- Wrap bottom bar around the original inner
             local new_wrapped_reader = M.wrapWithBottombar(inner_reader)
-
             reader[1] = new_wrapped_reader
             reader._bottombar_container = new_wrapped_reader
 
-            if not currently_shown or overlap_changed then
-                resizeReaderForBottomBar(reader, true)
+            -- Shrink reader height (unless overlap is enabled).
+            -- Skip onSetDimensions if height is already correct.
+            if not Utils.getBool("qa_bb_overlap", false) then
+                local target_h = Screen:getHeight() - M.TOTAL_H()
+                    local new_dimen = Geom:new{
+                        x = 0, y = 0,
+                        w = Screen:getWidth(),
+                        h = target_h,
+                    }
+                    reader.dimen = new_dimen
+                    if reader.view and reader.view.onSetDimensions then
+                        reader.view:onSetDimensions(new_dimen)
+                    end
+                    if reader.onScreenResize then
+                        reader:onScreenResize(new_dimen)
+                    end
             end
 
             M.registerTouchZones(reader)
         else
-            if reader._bottombar_original_inner then
-                local inner = reader._bottombar_original_inner
-                reader[1] = inner
-                reader._bottombar_container = nil
-                reader._bottombar_original_inner = nil
-                reader._bottombar_injected = nil
-                if inner then
-                    inner._bottombar_injected_container = nil
+            -- Not showing: restore full height if still shrunk.
+            local target_h = Screen:getHeight()
+            if reader.dimen and reader.dimen.h ~= target_h then
+                local full_dimen = Geom:new{
+                    x = 0, y = 0,
+                    w = Screen:getWidth(),
+                    h = target_h,
+                }
+                reader.dimen = full_dimen
+                if reader.view and reader.view.onSetDimensions then
+                    reader.view:onSetDimensions(full_dimen)
                 end
-
-                if currently_shown or overlap_changed then
-                    resizeReaderForBottomBar(reader, false)
-                end
-
-                if reader.unregisterTouchZones then
-                    local tabs = M.getTabs() or {}
-                    local zones = {}
-                    for i = 1, #tabs do
-                        zones[#zones + 1] = { id = "bb_tab_" .. i }
-                        zones[#zones + 1] = { id = "bb_tab_hold_" .. i }
-                    end
-                    zones[#zones + 1] = { id = "bb_hold_settings" }
-                    reader:unregisterTouchZones(zones)
+                if reader.onScreenResize then
+                    reader:onScreenResize(full_dimen)
                 end
             end
         end
 
         UIManager:setDirty(reader, "full")
-    else
     end
 
-    -- Wrap History/Collections/coll_list that are already on screen
+    -- ============================================================
+    -- Wrap History/Collections/coll_list already on screen
+    -- ============================================================
     local stack = UIManager._window_stack or {}
     local INJECT_NAMES = {
         history = true,
@@ -980,8 +964,12 @@ end
 -- ============================================================
 
 --- Remove bottom bar from FileManager, Reader, and all injected fullscreen widgets
+-- Tear down the bottom bar widget tree and clear all touch zones.
+-- Does NOT touch reader height (caller handles that).
 function M.removeBottombar()
-
+    -- ============================================================
+    -- FileManager
+    -- ============================================================
     local FM = require("apps/filemanager/filemanager")
     local fm = FM and FM.instance
     if fm and fm._bottombar_original_inner then
@@ -1016,11 +1004,11 @@ function M.removeBottombar()
         UIManager:setDirty(fm, "ui")
     end
 
+    -- ============================================================
+    -- Reader (widget tree only, height is caller's responsibility)
+    -- ============================================================
     local RUI = require("apps/reader/readerui")
     local reader = RUI and RUI.instance
-    if reader then
-    end
-
     if reader and reader._bottombar_original_inner then
         if reader._zones then
             for id, _ in pairs(reader._zones) do
@@ -1046,15 +1034,17 @@ function M.removeBottombar()
                 end
             end
         end
-        
+
         reader[1] = reader._bottombar_original_inner
         reader._bottombar_container = nil
         reader._bottombar_original_inner = nil
         reader._bottombar_overlap_last = nil
-        resizeReaderForBottomBar(reader, false)   
         UIManager:setDirty(reader, "ui")
     end
 
+    -- ============================================================
+    -- History / Collections / coll_list / homescreen
+    -- ============================================================
     local stack = UIManager._window_stack or {}
     local INJECT_NAMES = { history = true, collections = true, coll_list = true, homescreen = true }
     for _, entry in ipairs(stack) do
