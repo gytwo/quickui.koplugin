@@ -927,6 +927,93 @@ function Utils.patchFileChooserForBottombar()
 end
 
 -- ============================================================
+-- Patch ReaderUI for Bottom Navigation Bar
+-- ============================================================
+function Utils.patchReaderUIForBottombar()
+    local ReaderUI = require("apps/reader/readerui")
+    if ReaderUI._quickui_bottombar_patched then return end
+    ReaderUI._quickui_bottombar_patched = true
+
+    local Geom = require("ui/geometry")
+    local orig_new = ReaderUI.new
+
+    ReaderUI.new = function(class, attrs, ...)
+        attrs = attrs or {}
+
+        -- ============================================================
+        -- Same gating logic as rebuildBottombar:
+        --   1. Bottom bar globally enabled
+        --   2. "Show in reader" is not false
+        --   3. Not (hide_in_pdf AND current doc is PDF)
+        -- ============================================================
+        local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
+        local should_inject = false
+        local shrink_height = false
+        local nav_h = 0
+
+        if bb and bb.isEnabled and bb.isEnabled() then
+            local config = _G.__QUICKUI_CONFIG
+            local show_in_reader = config and config.qa_bb_reader_enabled
+            local hide_in_pdf = config and config.qa_bb_hide_in_pdf
+            local is_pdf = false
+            if attrs.document and attrs.document.file then
+                is_pdf = attrs.document.file:match("%.pdf$") ~= nil
+            end
+
+            if show_in_reader ~= false and not (hide_in_pdf and is_pdf) then
+                should_inject = true
+                nav_h = bb.TOTAL_H()
+                -- Only shrink reader height when overlap is NOT enabled
+                if not Utils.getBool("qa_bb_overlap", false) then
+                    shrink_height = true
+                end
+            end
+        end
+
+        -- Shrink the reader's dimen BEFORE ReaderView is created,
+        -- so CREngine/PDF layout uses the reduced height from the start.
+        -- Skip when overlap mode is enabled (content should go under the bar).
+        if should_inject and shrink_height and nav_h > 0 and attrs.dimen then
+            local d = attrs.dimen
+            attrs.dimen = Geom:new{
+                x = d.x or 0,
+                y = d.y or 0,
+                w = d.w or Screen:getWidth(),
+                h = (d.h or Screen:getHeight()) - nav_h,
+            }
+        end
+
+        local instance = orig_new(class, attrs, ...)
+
+        if should_inject then
+            -- Inject the bottom bar widget into reader[1]
+            local inner = instance[1]
+            if inner and not inner._bottombar_inner then
+                inner._bottombar_injected_container = true
+                local wrapped = bb.wrapWithBottombar(inner)
+                if wrapped and wrapped ~= inner then
+                    instance[1] = wrapped
+                    instance._bottombar_injected = true
+                    instance._bottombar_inner = inner
+                    instance._bottombar_original_inner = inner
+                else
+                    inner._bottombar_injected_container = nil
+                end
+            end
+
+            -- Register touch zones after the reader is on screen
+            UIManager:scheduleIn(0, function()
+                if bb.registerTouchZones then
+                    bb.registerTouchZones(instance)
+                end
+            end)
+        end
+
+        return instance
+    end
+end
+
+-- ============================================================
 -- Patch BookList for Bottom Navigation Bar
 -- ============================================================
 
