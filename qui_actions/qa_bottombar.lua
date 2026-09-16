@@ -539,6 +539,7 @@ function M.registerTouchZones(plugin_or_widget, widget)
     zones[#zones + 1] = {
         id = "bb_hold_settings",
         ges = "hold_release",
+        overrides = { "readerhighlight_hold" },
         screen_zone = {
             ratio_x = 0,
             ratio_y = bar_y / screen_h,
@@ -872,55 +873,45 @@ function M.rebuildBottombar(skip_remove)
         local should_show = show_in_reader ~= false and not (hide_in_pdf and is_pdf)
 
         if should_show then
-            -- Reach the true original inner (unwrap any nested wrappers)
             local inner_reader = reader[1]
             while inner_reader and inner_reader._bottombar_inner do
                 inner_reader = inner_reader._bottombar_inner
             end
             reader._bottombar_original_inner = inner_reader
 
-            -- Wrap bottom bar around the original inner
             local new_wrapped_reader = M.wrapWithBottombar(inner_reader)
             reader[1] = new_wrapped_reader
             reader._bottombar_container = new_wrapped_reader
 
-            -- Shrink reader height (unless overlap is enabled).
-            -- Skip onSetDimensions if height is already correct.
-            if not Utils.getBool("qa_bb_overlap", false) then
-                local target_h = Screen:getHeight() - M.TOTAL_H()
-                    local new_dimen = Geom:new{
-                        x = 0, y = 0,
-                        w = Screen:getWidth(),
-                        h = target_h,
-                    }
-                    reader.dimen = new_dimen
-                    if reader.view and reader.view.onSetDimensions then
-                        reader.view:onSetDimensions(new_dimen)
-                    end
-                    if reader.onScreenResize then
-                        reader:onScreenResize(new_dimen)
-                    end
-            end
-
             M.registerTouchZones(reader)
-        else
-            -- Not showing: restore full height if still shrunk.
-            local target_h = Screen:getHeight()
-            if reader.dimen and reader.dimen.h ~= target_h then
-                local full_dimen = Geom:new{
-                    x = 0, y = 0,
-                    w = Screen:getWidth(),
-                    h = target_h,
-                }
-                reader.dimen = full_dimen
-                if reader.view and reader.view.onSetDimensions then
-                    reader.view:onSetDimensions(full_dimen)
-                end
-                if reader.onScreenResize then
-                    reader:onScreenResize(full_dimen)
-                end
-            end
         end
+
+        -- Unified: always reflow to the target height
+        local target_h
+        if should_show and not Utils.getBool("qa_bb_overlap", false) then
+            target_h = Screen:getHeight() - M.TOTAL_H()
+        else
+            target_h = Screen:getHeight()
+        end
+
+        -- Keep ReaderUI (reader) fullscreen so bottom-bar touch zones
+        -- near the screen bottom are still dispatched to it.
+        reader.dimen = Geom:new{
+            x = 0, y = 0,
+            w = Screen:getWidth(),
+            h = Screen:getHeight(),
+        }
+
+        -- Only shrink ReaderView so content avoids the bar.
+        local view_dimen = Geom:new{
+            x = 0, y = 0,
+            w = Screen:getWidth(),
+            h = target_h,
+        }
+        if reader.view and reader.view.onSetDimensions then
+            reader.view:onSetDimensions(view_dimen)
+        end
+        -- Do NOT call reader:onScreenResize (it would shrink reader.dimen too).
 
         UIManager:setDirty(reader, "full")
     end
