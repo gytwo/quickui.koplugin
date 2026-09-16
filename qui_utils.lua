@@ -371,62 +371,124 @@ function Utils.saveDefault(module_key)
     Notification:notify(string.format(_("%s preset saved"), Utils.moduleDisplayName(module_key)))
 end
 
-function Utils.applyDefault(module_key)
+function Utils.applyDefault(module_keys)
     local config = _G.__QUICKUI_CONFIG
     if not config then
         local Notification = require("ui/widget/notification")
-        Notification:notify(_("No saved preset"))
+        Notification:notify(_("Configuration not loaded"))
         return false
     end
 
-    local default = config[module_key .. "_preset"]
-    if not default or type(default) ~= "table" or next(default) == nil then
-        local Notification = require("ui/widget/notification")
-        Notification:notify(string.format(_("No saved %s preset"), Utils.moduleDisplayName(module_key)))
-        return false
-    end
-
-    for k, v in pairs(default) do
-        if type(v) == "table" then
-            config[k] = Utils.deepCopy(v)
-        else
-            config[k] = v
+    -- Check which keys actually have a saved preset
+    local has_preset = {}
+    local any_preset = false
+    for _, key in ipairs(module_keys) do
+        local preset = config[key .. "_preset"]
+        if type(preset) == "table" and next(preset) ~= nil then
+            has_preset[key] = true
+            any_preset = true
         end
     end
-    Utils.saveConfig()
 
-    local handler = _refresh_handlers[module_key]
-    if handler then handler() end
+    -- If none of the keys have a preset, ask once whether to fall back to defaults
+    if not any_preset then
+        local names = {}
+        for _, key in ipairs(module_keys) do
+            names[#names + 1] = Utils.moduleDisplayName(key)
+        end
+        local ConfirmBox = require("ui/widget/confirmbox")
+        UIManager:show(ConfirmBox:new{
+            text = string.format(_("No saved preset for: %s.\n\nApply default settings instead?"),
+                table.concat(names, ", ")),
+            ok_text = _("Apply Default"),
+            cancel_text = _("Cancel"),
+            ok_callback = function()
+                Utils.resetDefault(module_keys)
+            end,
+        })
+        return false
+    end
 
-    local Notification = require("ui/widget/notification")
-    Notification:notify(string.format(_("%s preset applied"), Utils.moduleDisplayName(module_key)))
-    return true
-end
-
-function Utils.resetDefault(module_key)
-    local config = _G.__QUICKUI_CONFIG
-    if not config then return end
-
-    local defaults = DEFAULT_SETTINGS
-    local keys = Utils.getDefaultKeys(module_key)
-
-    for _, key in ipairs(keys) do
-        if defaults[key] ~= nil then
-            if type(defaults[key]) == "table" then
-                config[key] = Utils.deepCopy(defaults[key])
-            else
-                config[key] = defaults[key]
+    -- Apply preset for keys that have one; silently reset keys that don't
+    for _, key in ipairs(module_keys) do
+        if has_preset[key] then
+            local preset = config[key .. "_preset"]
+            for k, v in pairs(preset) do
+                if type(v) == "table" then
+                    config[k] = Utils.deepCopy(v)
+                else
+                    config[k] = v
+                end
+            end
+        else
+            -- Silently reset this key without notifying
+            local defaults = DEFAULT_SETTINGS
+            for _, k in ipairs(Utils.getDefaultKeys(key)) do
+                if defaults[k] ~= nil then
+                    if type(defaults[k]) == "table" then
+                        config[k] = Utils.deepCopy(defaults[k])
+                    else
+                        config[k] = defaults[k]
+                    end
+                end
             end
         end
     end
 
     Utils.saveConfig()
 
-    local handler = _refresh_handlers[module_key]
-    if handler then handler() end
+    -- Trigger refresh handlers for all affected keys
+    for _, key in ipairs(module_keys) do
+        local handler = _refresh_handlers[key]
+        if handler then handler() end
+    end
 
+    -- One single notification for the whole batch
+    local names = {}
+    for _, key in ipairs(module_keys) do
+        names[#names + 1] = Utils.moduleDisplayName(key)
+    end
     local Notification = require("ui/widget/notification")
-    Notification:notify(string.format(_("%s reset to default"), Utils.moduleDisplayName(module_key)))
+    Notification:notify(string.format(_("%s preset applied"), table.concat(names, ", ")))
+
+    return true
+end
+
+function Utils.resetDefault(module_keys)
+    local config = _G.__QUICKUI_CONFIG
+    if not config then return end
+
+    local defaults = DEFAULT_SETTINGS
+
+    for _, key in ipairs(module_keys) do
+        for _, k in ipairs(Utils.getDefaultKeys(key)) do
+            if defaults[k] ~= nil then
+                if type(defaults[k]) == "table" then
+                    config[k] = Utils.deepCopy(defaults[k])
+                else
+                    config[k] = defaults[k]
+                end
+            end
+        end
+    end
+
+    Utils.saveConfig()
+
+    -- Trigger refresh handlers for all affected keys
+    for _, key in ipairs(module_keys) do
+        local handler = _refresh_handlers[key]
+        if handler then handler() end
+    end
+
+    -- One single notification for the whole batch
+    local names = {}
+    for _, key in ipairs(module_keys) do
+        names[#names + 1] = Utils.moduleDisplayName(key)
+    end
+    local Notification = require("ui/widget/notification")
+    Notification:notify(string.format(_("%s reset to default"), table.concat(names, ", ")))
+
+    return true
 end
 
 -- qui_utils.lua
@@ -483,9 +545,7 @@ function Utils.buildDefaultMenuItems(module_keys, refresh_callback)
     table.insert(items, {
         text = _("Apply preset") .. suffix,
         callback = function()
-            for _, key in ipairs(module_keys) do
-                Utils.applyDefault(key)
-            end
+            Utils.applyDefault(module_keys)
             if refresh_callback then refresh_callback() end
         end,
     })
@@ -494,9 +554,7 @@ function Utils.buildDefaultMenuItems(module_keys, refresh_callback)
     table.insert(items, {
         text = _("Reset to default") .. suffix,
         callback = function()
-            for _, key in ipairs(module_keys) do
-                Utils.resetDefault(key)
-            end
+            Utils.resetDefault(module_keys)
             if refresh_callback then refresh_callback() end
         end,
     })
