@@ -491,6 +491,45 @@ end
 
 其他功能重复的地方一般没有明显冲突，但你可以根据需要自行判断是否进行选择性禁用。
 
+如果发现历史记录/收藏界面quickui的底部栏被挤出屏幕下方，有两种解决方法
+1、关闭simpleui的状态栏后重启koreader
+2、继续修改`simpleui.koplugin/infra/sui_core.lua`文件
+具体来说，将`sui_core.lua` 中 `wrapWithNavbar`的
+
+```lua
+    inner_widget.overlap_offset = { 0, topbar_top }
+    if inner_widget.dimen then
+        inner_widget.dimen.h = content_h
+        inner_widget.dimen.w = screen_w
+    else
+        inner_widget.dimen = Geom():new{ w = screen_w, h = content_h }
+    end
+```
+
+替换为：
+
+```lua
+    -- 历史记录界面quickui导航栏被simpleui状态栏往下挤出屏幕的问题
+    if inner_widget._bottombar_container then
+        local og = inner_widget._bottombar_container
+        if og and og[1] then
+            local content = og[1]
+            content.overlap_offset = { 0, topbar_top }
+            if content.dimen then
+                content.dimen.h = content.dimen.h - topbar_top
+            end
+        end
+    else
+        inner_widget.overlap_offset = { 0, topbar_top }
+        if inner_widget.dimen then
+            inner_widget.dimen.h = content_h
+            inner_widget.dimen.w = screen_w
+        else
+            inner_widget.dimen = Geom():new{ w = screen_w, h = content_h }
+        end
+    end
+```
+
 ---
 
 ## 🧑‍💻 开发者信息
