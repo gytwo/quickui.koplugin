@@ -494,6 +494,45 @@ Since our goal is to enjoy both the convenience of QuickUI's quick actions and t
 
 Other overlapping features generally do not conflict noticeably, but you can decide whether to disable any of them selectively as needed.
 
+If the QuickUI bottom bar is pushed off the bottom of the screen in History / Collections, there are two ways to fix it:
+
+1. Turn off the SimpleUI status bar and restart KOReader.
+2. Continue editing `simpleui.koplugin/infra/sui_core.lua`.
+
+Specifically, in `sui_core.lua`, replace the following part of `wrapWithNavbar`:
+```lua
+    inner_widget.overlap_offset = { 0, topbar_top }
+    if inner_widget.dimen then
+        inner_widget.dimen.h = content_h
+        inner_widget.dimen.w = screen_w
+    else
+        inner_widget.dimen = Geom():new{ w = screen_w, h = content_h }
+    end
+```
+
+with:
+
+```lua
+    -- Fix for the QuickUI bottom bar in History / Collections being pushed off the bottom of the screen by the SimpleUI status bar.
+    if inner_widget._bottombar_container then
+        local og = inner_widget._bottombar_container
+        if og and og[1] then
+            local content = og[1]
+            content.overlap_offset = { 0, topbar_top }
+            if content.dimen then
+                content.dimen.h = content.dimen.h - topbar_top
+            end
+        end
+    else
+        inner_widget.overlap_offset = { 0, topbar_top }
+        if inner_widget.dimen then
+            inner_widget.dimen.h = content_h
+            inner_widget.dimen.w = screen_w
+        else
+            inner_widget.dimen = Geom():new{ w = screen_w, h = content_h }
+        end
+    end
+```
 ---
 
 ## 🧑‍💻 Developer Info
