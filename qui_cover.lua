@@ -1862,8 +1862,6 @@ function Cover._patchMosaic()
         if not (self.entry.is_file or self.entry.file) and self.mandatory then
             local dir_path = self.entry and self.entry.path
             if not dir_path then return end
-                    logger.info("QUI_FOLDER_ENTER",
-                        "dir_path=", tostring(dir_path))
                     
             local cfg = getFolderConfig()
             local mode = cfg.cover_mode
