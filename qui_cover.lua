@@ -513,8 +513,9 @@ local function drawProgressBadge(bb, cover_left, cover_top, cover_w, percent_fin
     if not getBool("cover_show_progress") then return end
     if not percent_finished then return end
 
-    local pct = math.floor(100 * percent_finished)
-    if pct <= 0 or pct >= 100 then return end
+    local pct = math.floor(100 * percent_finished + 0.5)
+    if pct < 0 then pct = 0 end
+    if pct > 100 then pct = 100 end
 
     local corner_mark_size = 20
     local badge_scale = getBadgeScale()
@@ -528,16 +529,34 @@ local function drawProgressBadge(bb, cover_left, cover_top, cover_w, percent_fin
 
     paintPentagon(bb, bdg_x - 2, bdg_y - 2, bw + 4, bh + 4, Blitbuffer.COLOR_BLACK)
     paintPentagon(bb, bdg_x, bdg_y, bw, bh, bg_color)
+
+    -- 选标签：≤0 和 ≥100 用 Nerd Font 图标，其余用百分比
+    local label
+    local is_icon = false
+    if pct <= 0 then
+        label = "\u{F1DB}"      -- 未读 / 空白图标
+        is_icon = true
+    elseif pct >= 100 then
+        label = "\u{E82b}"      -- 完成 / 对勾图标
+        is_icon = true
+    else
+        label = pct .. "%"
+    end
+
     local tw = TextWidget:new{
-        text = pct .. "%",
-        face = Font:getFace("cfont", math.max(7, math.floor(eff_size * 0.24))),
-        bold = true,
+        text    = label,
+        face    = is_icon
+                    and Font:getFace("symbols", math.floor(eff_size * 0.4))
+                    or  Font:getFace("cfont",   math.max(7, math.floor(eff_size * 0.24))),
+        bold    = not is_icon,
         fgcolor = fg_color,
-        padding = 0
+        padding = 0,
     }
     local tw_sz = tw:getSize()
     local rect_h = math.floor(bh * 30 / 42)
-    tw:paintTo(bb, bdg_x + math.floor((bw - tw_sz.w) / 2), bdg_y + math.floor((rect_h - tw_sz.h) / 2))
+    tw:paintTo(bb,
+        bdg_x + math.floor((bw     - tw_sz.w) / 2),
+        bdg_y + math.floor((rect_h - tw_sz.h) / 2))
     tw:free()
 end
 
