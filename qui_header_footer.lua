@@ -67,36 +67,6 @@ local S = {
     PROGRESS_DECIMALS = "hf_progress_decimals",
 }
 
--- Default values
-local DEFAULTS = {
-    [S.HEADER_ENABLED] = true,
-    [S.FOOTER_ENABLED] = true,
-    [S.PDF_ENABLED] = false,
-
-    [S.TOP_LEFT] = "none",
-    [S.TOP_CENTER] = "time",
-    [S.TOP_RIGHT] = "none",
-    [S.BOTTOM_LEFT] = "none",
-    [S.BOTTOM_CENTER] = "page",
-    [S.BOTTOM_RIGHT] = "none",
-
-    [S.HEADER_FONT_FACE] = "Noto Sans",
-    [S.HEADER_FONT_SIZE] = 14,
-    [S.HEADER_FONT_BOLD] = false,
-
-    [S.FOOTER_FONT_FACE] = "Noto Sans",
-    [S.FOOTER_FONT_SIZE] = 14,
-    [S.FOOTER_FONT_BOLD] = false,
-
-    [S.HEADER_TOP_PADDING] = 10,
-    [S.FOOTER_BOTTOM_PADDING] = 10,
-    [S.LEFT_OFFSET] = 0,
-    [S.RIGHT_OFFSET] = 0,
-
-    [S.TIME_FORMAT] = "24h",
-    [S.PROGRESS_DECIMALS] = 2,
-}
-
 -- ============================================================
 -- Configuration Helpers
 -- ============================================================
@@ -106,7 +76,7 @@ local function cfg(key)
     if config and config[key] ~= nil then
         return config[key]
     end
-    return DEFAULTS[key]
+    return Utils.getDefaultSettings()[key]
 end
 
 local function setCfg(key, value)
@@ -119,6 +89,15 @@ local function setCfg(key, value)
     if ReaderUI and ReaderUI.instance then
         UIManager:setDirty(ReaderUI.instance, "full")
     end
+end
+
+local function isReaderBarShown()
+    if not (_G.__QUICKUI_BAR_HEIGHT and type(_G.__QUICKUI_BAR_HEIGHT) == "number"
+            and _G.__QUICKUI_BAR_HEIGHT > 0) then
+        return false
+    end
+    local config = _G.__QUICKUI_CONFIG
+    return config and config.qa_bb_reader_enabled ~= false
 end
 
 local function getFontFace(name, size)
@@ -301,7 +280,7 @@ function HeaderFooter.init(plugin)
             drawBar(bb, x, y + cfg(S.HEADER_TOP_PADDING), lval, cval, rval, ff, fs, bold, sw, left_margin, right_margin)
         end
 
-        if footer_enabled then
+        if footer_enabled and not isReaderBarShown()  then
             local ff = cfg(S.FOOTER_FONT_FACE)
             local fs = cfg(S.FOOTER_FONT_SIZE)
             local bold = cfg(S.FOOTER_FONT_BOLD)
