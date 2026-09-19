@@ -88,7 +88,7 @@ return {
 ["1.0.7"] = {
     "Add Dispatcher action: toggle bottom bar in reader",
     "Header & Footer: hide footer while the QuickUI bottom bar is shown in the reader",
-    "Cover: show status icons on the progress badge at 0% and 100%"",
+    "Cover: show status icons on the progress badge at 0% and 100%",
     "Cover: support SimpleUI virtual paths for folder covers (Mosaic & List)",
 },
 }
