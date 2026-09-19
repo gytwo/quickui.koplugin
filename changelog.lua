@@ -85,4 +85,7 @@ return {
     "Compatibility: Improved compatibility with SimpleUI Homescreen (see README or Plugin Info for setup details)",
     "Updates: fix occasional crash when checking for updates",
     },
+["1.0.7"] = {
+    "Add Dispatcher action: toggle bottom bar in reader",
+},
 }
