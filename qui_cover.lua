@@ -1743,7 +1743,7 @@ function Cover._patchMosaic()
 
     function MosaicMenuItem:update(...)
         local filepath = self.entry.path or self.entry.file
-
+                
         if self.entry and self.entry.is_go_up then
             local border = 1
             local max_w = self.width - 2 * border
@@ -1862,7 +1862,9 @@ function Cover._patchMosaic()
         if not (self.entry.is_file or self.entry.file) and self.mandatory then
             local dir_path = self.entry and self.entry.path
             if not dir_path then return end
-
+                    logger.info("QUI_FOLDER_ENTER",
+                        "dir_path=", tostring(dir_path))
+                    
             local cfg = getFolderConfig()
             local mode = cfg.cover_mode
 
@@ -1887,8 +1889,32 @@ function Cover._patchMosaic()
             local covers = loadExplicitCovers(dir_path)
             local max_covers = (mode == "gallery" or mode == "stack") and 4 or 1
 
+            local is_virtual = dir_path:find("/.simpleui%-browse/") ~= nil
+
             if not covers or #covers == 0 then
-                covers = collectCovers(dir_path, max_covers, portrait_w, portrait_h)
+                if is_virtual and self.menu and self.menu.genItemTableFromPath then
+                    local ok_bim, BookInfoManager = pcall(require, "bookinfomanager")
+                    if ok_bim and BookInfoManager then
+                        covers = {}
+                        local ok_entries, entries = pcall(function()
+                            return self.menu:genItemTableFromPath(dir_path)
+                        end)
+                        if ok_entries and entries then
+                            for _, e in ipairs(entries) do
+                                if #covers >= max_covers then break end
+                                if (e.is_file or e.file) and e.path then
+                                    local bi = BookInfoManager:getBookInfo(e.path, true)
+                                    if bi and bi.cover_bb and bi.has_cover and bi.cover_fetched
+                                            and not bi.ignore_cover then
+                                        covers[#covers + 1] = { data = bi.cover_bb, w = bi.cover_w, h = bi.cover_h }
+                                    end
+                                end
+                            end
+                        end
+                    end
+                else
+                    covers = collectCovers(dir_path, max_covers, portrait_w, portrait_h)
+                end
             elseif #covers < max_covers then
                 local combined = {}
                 for _i, c in ipairs(covers) do table.insert(combined, c) end
@@ -1899,6 +1925,11 @@ function Cover._patchMosaic()
 
             local folder_name = dir_path:match("([^/]+)/?$") or dir_path
             folder_name = folder_name:gsub("/$", "")
+            -- SimpleUI virtual paths encode the value segment with a "=" prefix
+            -- (e.g. ".../author/=CPA"). Strip it for display.
+            if folder_name:sub(1, 1) == "=" then
+                folder_name = folder_name:sub(2)
+            end
 
             local scaled_covers = {}
             for _i, c in ipairs(covers) do
@@ -2227,8 +2258,32 @@ function Cover._patchList()
             local covers = loadExplicitCovers(dir_path)
             local max_covers = (mode == "gallery" or mode == "stack") and 4 or 1
 
+            local is_virtual = dir_path:find("/.simpleui%-browse/") ~= nil
+
             if not covers or #covers == 0 then
-                covers = collectCovers(dir_path, max_covers, target_w, target_h)
+                if is_virtual and self.menu and self.menu.genItemTableFromPath then
+                    local ok_bim, BookInfoManager = pcall(require, "bookinfomanager")
+                    if ok_bim and BookInfoManager then
+                        covers = {}
+                        local ok_entries, entries = pcall(function()
+                            return self.menu:genItemTableFromPath(dir_path)
+                        end)
+                        if ok_entries and entries then
+                            for _, e in ipairs(entries) do
+                                if #covers >= max_covers then break end
+                                if (e.is_file or e.file) and e.path then
+                                    local bi = BookInfoManager:getBookInfo(e.path, true)
+                                    if bi and bi.cover_bb and bi.has_cover and bi.cover_fetched
+                                            and not bi.ignore_cover then
+                                        covers[#covers + 1] = { data = bi.cover_bb, w = bi.cover_w, h = bi.cover_h }
+                                    end
+                                end
+                            end
+                        end
+                    end
+                else
+                    covers = collectCovers(dir_path, max_covers, target_w, target_h)
+                end
             elseif #covers < max_covers then
                 local combined = {}
                 for _i, c in ipairs(covers) do table.insert(combined, c) end
@@ -2239,6 +2294,11 @@ function Cover._patchList()
 
             local folder_name = dir_path:match("([^/]+)/?$") or dir_path
             folder_name = folder_name:gsub("/$", "")
+            -- SimpleUI virtual paths encode the value segment with a "=" prefix
+            -- (e.g. ".../author/=CPA"). Strip it for display.
+            if folder_name:sub(1, 1) == "=" then
+                folder_name = folder_name:sub(2)
+            end
 
             local scaled_covers = {}
             for _i, c in ipairs(covers) do
@@ -2522,7 +2582,7 @@ function Cover._patchList()
 
     function ListMenuItem:paintTo(bb, x, y)
         orig_paintTo(self, bb, x, y)
-
+        
         local target = self._cover_frame
         if not target or not target.dimen then
             return
@@ -2532,12 +2592,13 @@ function Cover._patchList()
         local cover_top = target.dimen.y
         local cover_w = target.dimen.w
         local cover_h = target.dimen.h
-        local filepath = self.filepath
+        local filepath = self.entry.path or self.entry.file
 
         local corner_mark_size = 20
         local badge_scale = getBadgeScale()
-
-        if not self.is_directory and filepath then
+        local is_dir = not (self.entry and (self.entry.is_file or self.entry.file))
+        
+        if not is_dir and filepath then
             drawFavoriteStar(bb, cover_left, cover_top, cover_w, filepath)
             drawProgressBadge(bb, cover_left, cover_top, cover_w, self.percent_finished)
             drawNewBanner(bb, cover_left, cover_top, cover_w, cover_h, self.status)
