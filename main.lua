@@ -261,6 +261,12 @@ function QuickUI:registerDispatcherActions()
                 title = _("QuickUI_AddBottomBarTab"),
                 general = true,
             })
+            Dispatcher:registerAction("QuickUI_ReaderBottombarToggle", {
+                category = "none",
+                event = "QuickUI_ReaderBottombarToggle",
+                title = _("QuickUI_ReaderBottombarToggle"),
+                reader = true,
+            })
         end
     end
 end
@@ -429,6 +435,29 @@ function QuickUI:onQuickUI_AddBottomBarTab()
                 bb.refresh()
             end
         end)
+    end
+    return true
+end
+
+function QuickUI:onQuickUI_ReaderBottombarToggle()
+    local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
+    if not bb then
+        Notification:notify(_("Bottom Bar module is disabled"))
+        return true
+    end
+
+    local RUI = require("apps/reader/readerui")
+    if not (RUI and RUI.instance and not RUI.instance.tearing_down) then
+        Notification:notify(_("Please open a book first"))
+        return true
+    end
+
+    local config = _G.__QUICKUI_CONFIG
+    config.qa_bb_reader_enabled = not config.qa_bb_reader_enabled
+    Utils.saveConfig()
+
+    if bb.refresh then
+        bb.refresh()
     end
     return true
 end
