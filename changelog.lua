@@ -87,5 +87,6 @@ return {
     },
 ["1.0.7"] = {
     "Add Dispatcher action: toggle bottom bar in reader",
+    "Header & Footer: hide footer while the QuickUI bottom bar is shown in the reader",
 },
 }
