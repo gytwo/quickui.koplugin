@@ -1534,6 +1534,9 @@ msgstr "QuickUI-底部栏设置"
 msgid "QuickUI_AddBottomBarTab"
 msgstr "QuickUI-添加底部栏按钮"
 
+msgid "QuickUI_ReaderBottombarToggle"
+msgstr "QuickUI-切换阅读器底部栏"
+
 msgid "Search..."
 msgstr "搜索..."
 
