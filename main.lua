@@ -796,7 +796,7 @@ function QuickUI:buildMenuItems()
     end
 
     -- Default Config Management
-    local all_modules = {"qa_panel", "qa_bb", "qa_common", "cover", "cloze", "hf"}
+    local all_modules = {"qa_panel", "qa_bb", "qa_common", "qa_vb", "cover", "cloze", "hf"}
     local all_items = Utils.buildDefaultMenuItems(all_modules, function()
         refreshQuickPanel()
         local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
