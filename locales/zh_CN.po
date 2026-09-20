@@ -1629,3 +1629,6 @@ msgstr "同时添加"
 
 msgid "Add to Bottom Bar"
 msgstr "添加至底部栏"
+
+msgid "Action name..."
+msgstr "动作名称..."
