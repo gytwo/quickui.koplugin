@@ -64,6 +64,19 @@ local DEFAULT_SETTINGS = {
     qa_common_ui_font_overrides = {},
     qa_common_icon_labels = false,
 
+    -- Vertical Bar Settings
+    qa_vb_enabled = false,
+    qa_vb_side = "right",
+    qa_vb_slots = {"wifi", "night", "rotate", "screenshot", "search", "continue"},
+    qa_vb_labels = true,
+    qa_vb_size_pct = 100,
+    qa_vb_icon_scale_pct = 100,
+    qa_vb_label_scale_pct = 100,
+    qa_vb_button_hold_edit = true,
+    qa_vb_settings_on_hold = true,
+    qa_vb_bg = "white",
+    qa_vb_animation = "fast",
+    
     -- Cover Settings
     cover_enabled = true,
     cover_placeholder_style = "simple",
@@ -300,6 +313,11 @@ function Utils.getDefaultKeys(module_key)
             "qa_bb_accent_color", "qa_bb_labels", "qa_bb_tabs", "qa_bb_reader_enabled",
             "qa_bb_overlap",
         },
+        qa_vb = {
+            "qa_vb_enabled", "qa_vb_side", "qa_vb_slots", "qa_vb_labels",
+            "qa_vb_size_pct", "qa_vb_icon_scale_pct", "qa_vb_label_scale_pct",
+            "qa_vb_button_hold_edit", "qa_vb_settings_on_hold","qa_vb_bg", "qa_vb_animation",
+        },
         qa_common = {
             "qa_common_tab_icon", "qa_common_custom_list", "qa_common_custom",
             "qa_common_builtin_overrides", "qa_common_context_filter",
@@ -505,8 +523,8 @@ function Utils.buildDefaultMenuItems(module_keys, refresh_callback)
     if n == 1 then
         suffix = " (" .. module_keys[1] .. ")"
     else
-        local qa_modules = {qa_common=true, qa_panel=true, qa_bb=true}
-        local all_modules = {qa_common=true, qa_panel=true, qa_bb=true, cover=true, cloze=true, hf=true}
+        local qa_modules = {qa_common=true, qa_panel=true, qa_bb=true, qa_vb=true}
+        local all_modules = {qa_common=true, qa_panel=true, qa_bb=true, qa_vb=true, cover=true, cloze=true, hf=true}
 
         local is_qa = true
         local is_all = true
@@ -519,9 +537,9 @@ function Utils.buildDefaultMenuItems(module_keys, refresh_callback)
             end
         end
 
-        if is_all and n == 6 then
+        if is_all and n == 7 then
             suffix = " (All)"
-        elseif is_qa and n == 3 then
+        elseif is_qa and n == 4 then
             suffix = " (QA)"
         else
             suffix = " (" .. table.concat(module_keys, " & ") .. ")"
