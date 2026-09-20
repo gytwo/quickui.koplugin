@@ -92,5 +92,6 @@ return {
     "Cover: support SimpleUI virtual paths for folder covers (Mosaic & List)",
     "Bottom bar: inject into FileManager via FileManager.setupLayout (one-shot injection)",
     "Bottom bar: show on filesearch results screen",
+    "Quick Actions: add built-in actions for SimpleUI library browse modes (Authors / Series / Tags)",
 },
 }
