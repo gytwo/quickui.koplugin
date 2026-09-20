@@ -101,11 +101,21 @@ local SlimSlider = require("ui/widget/widget"):extend{
 }
 
 function SlimSlider:init()
-    self.dimen = Geom:new{ w = self.width, h = self.height }
+        self.dimen = Geom:new{
+        x = -10000,
+        y = -10000,
+        w = self.width,
+        h = self.height,
+    }
 end
 
 function SlimSlider:getSize()
-    return Geom:new{ w = self.width, h = self.height }
+    return Geom:new{
+        x = -10000,
+        y = -10000,
+        w = self.width,
+        h = self.height,
+    }
 end
 
 function SlimSlider:setValue(v)
@@ -156,7 +166,9 @@ function QA.buildPanel(touch_menu)
     local icon_size = math.floor(btn_size * 0.52)
     local label_fs = math.max(6, math.floor(15 * (Utils.getNumber("qa_panel_label_scale_pct") / 100)))
     local label_face = Utils.getFontFace("cfont", label_fs)
-    local medium_face = Utils.getFontFace("ffont", Utils.scaleBySize(14))
+    local medium_face = Utils.getFontFace("ffont", Utils.scaleBySize(
+    math.max(6, math.floor(12 * (Utils.getNumber("qa_panel_label_scale_pct") / 100)))
+))
     local border_sz = 1
     local shape = Utils.getString("qa_panel_shape")
     if shape == "" then shape = "round" end
@@ -528,7 +540,7 @@ function QA.buildPanel(touch_menu)
         refs.setBrightness = setBrightness
     end
 
-    -- Warmth slider
+     -- Warmth slider
     if Utils.getBool("qa_panel_warmth") and Device:hasNaturalLight() then
         local powerd = Device:getPowerDevice()
         local nl = {
@@ -563,6 +575,11 @@ function QA.buildPanel(touch_menu)
             enabled = true,
         }
 
+        -- Remember the current warmth value when it is "on", so OFF→ON can restore it.
+        local nl_saved = (nl.cur > nl.min) and nl.cur or nl.max
+        -- Forward declaration so setWarmth can reference the toggle button.
+        local nl_toggle_btn
+
         local function setWarmth(warmth)
             if warmth == nl.cur then return end
             warmth = math.max(nl.min, math.min(nl.max, warmth))
@@ -571,6 +588,10 @@ function QA.buildPanel(touch_menu)
             nl_slider:setValue(nl.cur)
             if nl_label then
                 nl_label:setText(_("Warmth") .. ": " .. tostring(nl.cur))
+            end
+            -- Keep the toggle button label in sync.
+            if nl_toggle_btn then
+                nl_toggle_btn:setText(nl.cur > nl.min and "ON" or "OFF")
             end
             UIManager:setDirty(touch_menu.show_parent, "ui")
         end
@@ -591,9 +612,17 @@ function QA.buildPanel(touch_menu)
             framebg = nil,
         }
 
-        local nl_max_btn = Button:new{
-            text = _("Max"), width = max_btn_w, show_parent = touch_menu.show_parent,
-            callback = function() setWarmth(nl.max) end,
+        nl_toggle_btn = Button:new{
+            text = nl.cur > nl.min and "ON" or "OFF",
+            width = max_btn_w, show_parent = touch_menu.show_parent,
+            callback = function()
+                if nl.cur > nl.min then
+                    nl_saved = nl.cur
+                    setWarmth(nl.min)
+                else
+                    setWarmth(nl_saved)
+                end
+            end,
             bordersize = 0,
             background = nil,
             framebg = nil,
@@ -607,7 +636,7 @@ function QA.buildPanel(touch_menu)
             HorizontalSpan:new{ width = slider_gap },
             nl_plus,
             HorizontalSpan:new{ width = slider_gap },
-            nl_max_btn,
+            nl_toggle_btn,
         }
 
         local warmth_group = VerticalGroup:new{ align = "center" }
@@ -620,6 +649,10 @@ function QA.buildPanel(touch_menu)
 
         table.insert(panel, CenterContainer:new{ dimen = Geom:new{ w = panel_w, h = warmth_group:getSize().h }, warmth_group })
         refs.nl_slider = nl_slider
+        -- Expose setWarmth so the TouchMenu tap/swipe/pan handlers can route
+        -- slider drags through it (instead of calling powerd:setWarmth directly)
+        -- and keep the ON/OFF button label in sync while dragging.
+        refs.setWarmth = setWarmth
     end
 
     table.insert(panel, VerticalSpan:new{ width = Screen:scaleBySize(14) })
@@ -803,9 +836,8 @@ function QA.patchTouchMenu()
             end
             if self._qs_refs.nl_slider and self._qs_refs.nl_slider.dimen and ges_ev.pos:intersectWith(self._qs_refs.nl_slider.dimen) then
                 local new_val = self._qs_refs.nl_slider:getValueFromPosition(ges_ev.pos)
-                if new_val then
-                    local powerd = Device:getPowerDevice()
-                    powerd:setWarmth(powerd:fromNativeWarmth(math.floor(new_val + 0.5)))
+                if new_val and self._qs_refs.setWarmth then
+                    self._qs_refs.setWarmth(math.floor(new_val + 0.5))
                     return true
                 end
             end
@@ -834,9 +866,8 @@ function QA.patchTouchMenu()
             end
             if self._qs_refs.nl_slider and self._qs_refs.nl_slider.dimen and ges_ev.pos:intersectWith(self._qs_refs.nl_slider.dimen) then
                 local new_val = self._qs_refs.nl_slider:getValueFromPosition(ges_ev.pos)
-                if new_val then
-                    local powerd = Device:getPowerDevice()
-                    powerd:setWarmth(powerd:fromNativeWarmth(math.floor(new_val + 0.5)))
+                if new_val and self._qs_refs.setWarmth then
+                    self._qs_refs.setWarmth(math.floor(new_val + 0.5))
                     return true
                 end
             end
@@ -867,9 +898,8 @@ function QA.patchTouchMenu()
             end
             if self._qs_refs.nl_slider and self._qs_refs.nl_slider.dimen and ges_ev.pos:intersectWith(self._qs_refs.nl_slider.dimen) then
                 local new_val = self._qs_refs.nl_slider:getValueFromPosition(ges_ev.pos)
-                if new_val then
-                    local powerd = Device:getPowerDevice()
-                    powerd:setWarmth(powerd:fromNativeWarmth(math.floor(new_val + 0.5)))
+                if new_val and self._qs_refs.setWarmth then
+                    self._qs_refs.setWarmth(math.floor(new_val + 0.5))
                     return true
                 end
             end
