@@ -1650,6 +1650,42 @@ function QA.registerAllActions()
         end)
         
         -- ============================================================
+        -- Vertical Bar actions
+        -- ============================================================
+        QA.registerAction("qa_vb_toggle", _("Toggle Vertical Bar"), "nerd:ED69", false, "common", function(ctx)
+            local vb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.verticalbar
+            if vb and vb.toggle then
+                vb.toggle()
+            else
+                UIManager:show(InfoMessage:new{
+                    text = _("Vertical Bar module is disabled"), timeout = 2 })
+            end
+        end)
+
+        QA.registerAction("qa_vb_settings", _("Vertical Bar Settings"), "nerd:E8D8", false, "common", function(ctx)
+            if ctx and ctx.touch_menu then ctx.touch_menu:onClose() end
+            local settings = require("qui_actions/qa_settings")
+            if settings and settings.showVerticalBarSettings then
+                settings.showVerticalBarSettings()
+            end
+        end)
+
+        QA.registerAction("qa_add_vb_button", _("Add Vertical Bar Button"), "nerd:F055", false, "common", function(ctx)
+            local vb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.verticalbar
+            if vb and vb.showAddButtonMenu then
+                vb.showAddButtonMenu(function()
+                    local settings = require("qui_actions/qa_settings")
+                    if settings and settings.showVerticalBarSettings then
+                        settings.showVerticalBarSettings()
+                    end
+                end)
+            else
+                UIManager:show(InfoMessage:new{
+                    text = _("Vertical Bar module is disabled"), timeout = 2 })
+            end
+        end)
+        
+        -- ============================================================
         -- Panel actions (qa_panel_enabled)
         -- ============================================================
         if config.qa_panel_enabled then
