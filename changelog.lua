@@ -90,5 +90,7 @@ return {
     "Header & Footer: hide footer while the QuickUI bottom bar is shown in the reader",
     "Cover: show status icons on the progress badge at 0% and 100%",
     "Cover: support SimpleUI virtual paths for folder covers (Mosaic & List)",
+    "Bottom bar: inject into FileManager via FileManager.setupLayout (one-shot injection)",
+    "Bottom bar: show on filesearch results screen",
 },
 }
