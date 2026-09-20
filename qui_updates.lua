@@ -581,7 +581,7 @@ local function doCheckUpdates(source)
 
         if isNewerVersion(current_version, latest_version) then
             local source_text = " (" .. source_used .. ")"
-            local message = string.format(_("New version found: %s%s\nCurrent version: %s\n\nDownload and install update?"),
+            local message = string.format(_("New version found: %s%s\nCurrent version: %s"),
                 latest_version, source_text, current_version)
             -- Display release notes from GitHub/Gitee if available
             if release_body and release_body ~= "" then
