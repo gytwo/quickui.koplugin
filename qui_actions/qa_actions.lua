@@ -1505,6 +1505,86 @@ function QA.registerAllActions()
     end)
 
     -- ============================================================
+    -- SimpleUI library browse actions (Authors / Series / Tags)
+    -- Thin wrappers over SimpleUI's features/library/sui_library_browse.
+    -- No-op gracefully when SimpleUI isn't installed or the feature is off.
+    -- ============================================================
+    do
+        local function _simpleUI_BM()
+            local m = package.loaded["features/library/sui_library_browse"]
+            if type(m) ~= "table" then return nil end
+            if type(m.isEnabled)        ~= "function"
+               or type(m.navigateTo)    ~= "function"
+               or type(m.navigateToRoot) ~= "function" then
+                return nil
+            end
+            return m
+        end
+
+        local function _simpleUI_liveFM()
+            local FM = package.loaded["apps/filemanager/filemanager"]
+            return FM and FM.instance
+        end
+
+        local function _browseAction(ctx, mode)
+            local su = ctx.show_unavailable or function(msg)
+                UIManager:show(InfoMessage:new{ text = msg, timeout = 2 })
+            end
+
+            local BM = _simpleUI_BM()
+            if not BM or not BM.isEnabled() then
+                su(_("Please check that SimpleUI is installed and 'Browse by Author / Series / Tags' is enabled."))
+                return
+            end
+
+            -- Resolve the FM reference BEFORE closing anything. The FM stays
+            -- valid across the SimpleUI screen teardown — SimpleUI's own
+            -- sui_bottombar.navigate() relies on exactly the same invariant.
+            local fm = _simpleUI_liveFM() or ctx.fm
+            local fc = fm and fm.file_chooser
+            if not fc then return end
+
+            -- Close any SimpleUI screen (Homescreen / Custom Screen) on top
+            -- so the FM becomes the visible screen — same as
+            -- sui_bottombar.navigate's `if hs_open then ... UIManager:close(hs_inst) ... end`.
+            local ok_se, ScreenEngine = pcall(require, "engines/sui_screen_engine")
+            if ok_se and ScreenEngine and ScreenEngine.liveScreenIds then
+                for _i, id in ipairs(ScreenEngine.liveScreenIds()) do
+                    local inst = ScreenEngine.getInstance(id)
+                    if inst then
+                        inst._navbar_closing_intentionally = true
+                        pcall(function() UIManager:close(inst) end)
+                        inst._navbar_closing_intentionally = nil
+                    end
+                end
+            end
+
+            -- Navigate synchronously — the FM's file_chooser is already live.
+            if ctx.already_active then
+                BM.navigateToRoot(fc, fm, mode)
+            else
+                BM.navigateTo(fm, mode)
+            end
+        end
+
+        QA.registerAction(
+            "Sui-author", _("Sui-author"),
+            "nerd:ED2F", false, "filemanager",
+            function(ctx) _browseAction(ctx, "author") end
+        )
+        QA.registerAction(
+            "Sui-series", _("Sui-series"),
+            "nerd:ED18", false, "filemanager",
+            function(ctx) _browseAction(ctx, "series") end
+        )
+        QA.registerAction(
+            "Sui-tags", _("Sui-tags"),
+            "nerd:F02C", false, "filemanager",
+            function(ctx) _browseAction(ctx, "tags") end
+        )
+    end
+
+    -- ============================================================
     -- QuickUI Settings actions (qa_common_enabled)
     -- ============================================================
     if config and config.qa_common_enabled then
