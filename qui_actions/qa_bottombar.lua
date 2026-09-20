@@ -929,24 +929,16 @@ function M.rebuildBottombar(skip_remove)
     end
 
     -- ============================================================
-    -- Wrap FileManager
+    -- Refresh FileManager (injection handled by setupLayout wrapper)
     -- ============================================================
     local FM = require("apps/filemanager/filemanager")
     local fm = FM.instance
-    if fm then
-        local inner = fm[1]
-        if inner and inner._bottombar_inner then
-            inner = inner._bottombar_inner
-        end
-        fm._bottombar_original_inner = inner
-
-        local new_wrapped = M.wrapWithBottombar(inner)
-        fm[1] = new_wrapped
-        fm._bottombar_container = new_wrapped
-        UIManager:setDirty(fm, "full")
-        M.registerTouchZones(fm)
+    if fm and fm.setupLayout then
+        -- 清除注入标记，让 setupLayout 里的 wrapper 重跑注入逻辑
+        fm._bottombar_injected = nil
+        fm:setupLayout()
     end
-
+    
     -- ============================================================
     -- Wrap Reader
     -- ============================================================
