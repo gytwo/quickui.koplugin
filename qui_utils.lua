@@ -876,6 +876,7 @@ function Utils.patchFileChooserForBottombar()
     if FileChooser._quickui_bottombar_patched then return end
     FileChooser._quickui_bottombar_patched = true
 
+    -- ── 缩高度（原有逻辑不变） ──────────────────────────────
     local orig_init = FileChooser.init
     FileChooser.init = function(fc_self, ...)
         if fc_self.height == nil and fc_self.width == nil then
@@ -897,12 +898,8 @@ function Utils.patchFileChooserForBottombar()
             local screen_h = Screen:getHeight()
             local nav_h = bb.TOTAL_H()
             local content_h = screen_h - nav_h
-            if fc_self.height ~= content_h then
-                fc_self.height = content_h
-            end
-            if fc_self.y ~= 0 then
-                fc_self.y = 0
-            end
+            if fc_self.height ~= content_h then fc_self.height = content_h end
+            if fc_self.y ~= 0 then fc_self.y = 0 end
         end
         return orig_recalc(fc_self, ...)
     end
@@ -914,16 +911,46 @@ function Utils.patchFileChooserForBottombar()
             local screen_h = Screen:getHeight()
             local nav_h = bb.TOTAL_H()
             local content_h = screen_h - nav_h
-            if fc_self.height ~= content_h then
-                fc_self.height = content_h
-            end
-            if fc_self.y ~= 0 then
-                fc_self.y = 0
-            end
+            if fc_self.height ~= content_h then fc_self.height = content_h end
+            if fc_self.y ~= 0 then fc_self.y = 0 end
         end
         return orig_update(fc_self, ...)
     end
 
+    -- ★ 新增：一次性注入，等价于 ReaderUI 的 patchReaderUIForBottombar ──
+    local FileManager = require("apps/filemanager/filemanager")
+    if not FileManager._quickui_fm_inject_patched then
+        FileManager._quickui_fm_inject_patched = true
+        local orig_setup = FileManager.setupLayout
+        FileManager.setupLayout = function(fm_self)
+            orig_setup(fm_self)
+
+            local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
+            if not (bb and bb.isEnabled and bb.isEnabled()) then return end
+
+            -- 已经注入过则跳过（幂等）
+            if fm_self._bottombar_injected then return end
+
+            -- 拿 fm_self[1] 作为 inner。如果它已经被 QuickUI 包过（比如
+            -- rebuildBottombar 先跑过一次），剥到真正的 inner。
+            local inner = fm_self[1]
+            if inner and inner._bottombar_inner then
+                inner = inner._bottombar_inner
+            end
+            if not inner then return end
+
+            local wrapped = bb.wrapWithBottombar(inner)
+            if wrapped and wrapped ~= inner then
+                fm_self[1] = wrapped
+                fm_self._bottombar_injected = true
+                fm_self._bottombar_inner = inner
+                fm_self._bottombar_original_inner = inner
+                UIManager:scheduleIn(0, function()
+                    if bb.registerTouchZones then bb.registerTouchZones(fm_self) end
+                end)
+            end
+        end
+    end
 end
 
 -- ============================================================
@@ -1025,7 +1052,7 @@ function Utils.patchBookListForBottombar()
     local orig_new = BookList.new
     BookList.new = function(class, attrs, ...)
         attrs = attrs or {}
-        local is_booklist = attrs.name == "history" or attrs.name == "collections" or attrs.name == "coll_list"
+        local is_booklist = attrs.name == "history" or attrs.name == "collections" or attrs.name == "coll_list" or attrs.name == "filesearcher" 
 
         if is_booklist then
             local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
