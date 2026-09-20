@@ -268,6 +268,25 @@ function QuickUI:registerDispatcherActions()
                 reader = true,
             })
         end
+        
+        Dispatcher:registerAction("QuickUI_VerticalBarToggle", {
+            category = "none",
+            event = "QuickUI_VerticalBarToggle",
+            title = _("QuickUI_VerticalBarToggle"),
+            general = true,
+        })
+        Dispatcher:registerAction("QuickUI_VerticalBarSettings", {
+            category = "none",
+            event = "QuickUI_VerticalBarSettings",
+            title = _("QuickUI_VerticalBarSettings"),
+            general = true,
+        })
+        Dispatcher:registerAction("QuickUI_AddVerticalBarButton", {
+            category = "none",
+            event = "QuickUI_AddVerticalBarButton",
+            title = _("QuickUI_AddVerticalBarButton"),
+            general = true,
+        })
     end
 end
 
@@ -458,6 +477,45 @@ function QuickUI:onQuickUI_ReaderBottombarToggle()
 
     if bb.refresh then
         bb.refresh()
+    end
+    return true
+end
+
+function QuickUI:onQuickUI_VerticalBarToggle()
+    local vb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.verticalbar
+    if not vb then
+        Notification:notify(_("Vertical Bar module is disabled"))
+        return true
+    end
+    if vb.toggle then
+        vb.toggle()
+    end
+    return true
+end
+
+function QuickUI:onQuickUI_VerticalBarSettings()
+    if not qa_settings then
+        Notification:notify(_("Quick Actions module is disabled"))
+        return true
+    end
+    if qa_settings.showVerticalBarSettings then
+        qa_settings.showVerticalBarSettings()
+    end
+    return true
+end
+
+function QuickUI:onQuickUI_AddVerticalBarButton()
+    local vb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.verticalbar
+    if not vb then
+        Notification:notify(_("Vertical Bar module is disabled"))
+        return true
+    end
+    if vb.showAddButtonMenu then
+        vb.showAddButtonMenu(function()
+            if qa_settings and qa_settings.showVerticalBarSettings then
+                qa_settings.showVerticalBarSettings()
+            end
+        end)
     end
     return true
 end
