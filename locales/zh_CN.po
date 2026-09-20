@@ -1057,11 +1057,48 @@ msgid "GitHub (Latest)"
 msgstr "GitHub（最新版）"
 
 msgid "GitHub (Pre-release)"
-msgid_plural "GitHub (Pre-release)"
-msgstr[0] "GitHub（预发布版）"
+msgstr "GitHub（预发布版）"
 
 msgid "Gitee (Latest)"
 msgstr "Gitee（最新版）"
+
+# update source dialog
+# 新版确认对话框
+msgid "New version found: %s%s\nCurrent version: %s\n\nDownload and install update?"
+msgstr "发现新版本：%s%s\n当前版本：%s\n\n是否下载并安装更新？"
+
+msgid "Current version is up to date (%s)\n\nDowngrade to a previous version?"
+msgstr "当前版本已是最新（%s）\n\n是否回退到历史版本？"
+
+msgid "Downgrade"
+msgstr "回退"
+
+msgid "Downgrade to %s"
+msgstr "回退到 %s"
+
+msgid "Current version: %s (re-download)"
+msgstr "当前版本：%s（重新下载）"
+
+msgid "Download and install update?"
+msgstr "是否下载并安装更新？"
+
+msgid "New version found: %s%s\nCurrent version: %s"
+msgstr "发现新版本：%s%s\n当前版本：%s"
+
+msgid "New version found: %s%s\nCurrent version: %s\n\nDownload and install update?"
+msgstr "发现新版本：%s%s\n当前版本：%s\n\n是否下载并安装更新？"
+
+msgid "Update installed successfully. KOReader needs to restart to apply changes. Restart now?"
+msgstr "更新安装成功。需要重启 KOReader 才能生效。是否立即重启？"
+
+msgid "Download failed, please check network connection and try again"
+msgstr "下载失败，请检查网络连接后重试"
+
+msgid "Automatic installation failed. Please manually extract %splugins/quickui.koplugin.zip to the plugins directory and restart"
+msgstr "自动安装失败。请手动将 %splugins/quickui.koplugin.zip 解压到插件目录后重启"
+
+msgid "No network connection, cannot check for updates"
+msgstr "无网络连接，无法检查更新"
 
 # ============================================================
 # UI Font Switcher
@@ -1632,3 +1669,49 @@ msgstr "添加至底部栏"
 
 msgid "Action name..."
 msgstr "动作名称..."
+
+msgid "Sui-author"
+msgstr "Sui-作者"
+
+msgid "Sui-series"
+msgstr "Sui-系列"
+
+msgid "Sui-tags"
+msgstr "Sui-标签"
+
+msgid "Please check that SimpleUI is installed and 'Browse by Author / Series / Tags' is enabled."
+msgstr "请检查是否已安装 SimpleUI 并启用了「按作者/系列/标签浏览」。"
+
+# ============================================================
+# Module disabled / not available hints
+# ============================================================
+
+msgid "Quick Actions module is disabled"
+msgstr "快捷操作模块已禁用"
+
+msgid "Cover module is disabled"
+msgstr "封面美化模块已禁用"
+
+msgid "Cloze module is disabled"
+msgstr "遮盖模式模块已禁用"
+
+msgid "Header/Footer module is disabled"
+msgstr "页眉页脚模块已禁用"
+
+msgid "Bottom Bar module is disabled"
+msgstr "底部栏模块已禁用"
+
+msgid "Bottom Bar module not available"
+msgstr "底部栏模块不可用"
+
+msgid "Bottom Bar module not fully loaded"
+msgstr "底部栏模块未完全加载"
+
+msgid "Panel settings not available"
+msgstr "面板设置不可用"
+
+msgid "Bottom Bar settings not available"
+msgstr "底部栏设置不可用"
+
+msgid "Quick Actions module not available"
+msgstr "快捷操作模块不可用"
