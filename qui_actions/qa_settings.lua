@@ -1844,6 +1844,7 @@ function QA.showAddButtonMenu(touch_menu, on_back, filtered_actions)
                 if touch_menu then
                     touch_menu:updateItems()
                 end
+                QA.refreshQuickPanel()
                 closeSettingsDialog()
                 QA.showAddButtonMenu(touch_menu, on_back)
             end,
