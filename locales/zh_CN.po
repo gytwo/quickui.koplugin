@@ -1682,36 +1682,129 @@ msgstr "Sui-标签"
 msgid "Please check that SimpleUI is installed and 'Browse by Author / Series / Tags' is enabled."
 msgstr "请检查是否已安装 SimpleUI 并启用了「按作者/系列/标签浏览」。"
 
+
 # ============================================================
-# Module disabled / not available hints
+# Module-not-available messages (all bars)
 # ============================================================
+
+msgid "Bottom Bar module not available"
+msgstr "底部栏模块不可用"
+
+msgid "Bottom Bar module not available (enable it first)"
+msgstr "底部栏模块不可用（请先启用）"
+
+msgid "Vertical Bar module not available"
+msgstr "竖向栏模块不可用"
+
+msgid "Vertical Bar module not available (enable it first)"
+msgstr "竖向栏模块不可用（请先启用）"
+
+msgid "Bottom Bar module is disabled"
+msgstr "底部栏模块已禁用"
+
+msgid "Vertical Bar module is disabled"
+msgstr "竖向栏模块已禁用"
 
 msgid "Quick Actions module is disabled"
 msgstr "快捷操作模块已禁用"
 
 msgid "Cover module is disabled"
-msgstr "封面美化模块已禁用"
+msgstr "封面模块已禁用"
 
 msgid "Cloze module is disabled"
-msgstr "遮盖模式模块已禁用"
+msgstr "遮盖模块已禁用"
 
 msgid "Header/Footer module is disabled"
 msgstr "页眉页脚模块已禁用"
 
-msgid "Bottom Bar module is disabled"
-msgstr "底部栏模块已禁用"
-
-msgid "Bottom Bar module not available"
-msgstr "底部栏模块不可用"
+msgid "Panel module not available"
+msgstr "面板模块不可用"
 
 msgid "Bottom Bar module not fully loaded"
-msgstr "底部栏模块未完全加载"
+msgstr "底部栏模块尚未完全加载"
 
-msgid "Panel settings not available"
-msgstr "面板设置不可用"
 
-msgid "Bottom Bar settings not available"
-msgstr "底部栏设置不可用"
+# ============================================================
+# Vertical Bar (侧边栏)
+# ============================================================
 
-msgid "Quick Actions module not available"
-msgstr "快捷操作模块不可用"
+msgid "Add"
+msgstr "添加"
+
+msgid "Vertical Bar"
+msgstr "侧边栏"
+
+msgid "Vertical Bar Settings"
+msgstr "侧边栏设置"
+
+msgid "Vertical Bar module not available"
+msgstr "侧边栏模块不可用"
+
+msgid "Vertical Bar module not available (enable it first)"
+msgstr "侧边栏模块不可用（请先启用）"
+
+msgid "Vertical Bar module is disabled"
+msgstr "侧边栏模块已禁用"
+
+msgid "Toggle Vertical Bar"
+msgstr "侧边栏开关"
+
+msgid "Add Vertical Bar Button"
+msgstr "添加侧边栏按钮"
+
+msgid "Enable Vertical Bar"
+msgstr "启用侧边栏"
+
+msgid "Side"
+msgstr "位置"
+
+msgid "Background"
+msgstr "背景"
+
+msgid "Light Gray"
+msgstr "浅灰"
+
+msgid "Animation"
+msgstr "动画"
+
+msgid "Fast"
+msgstr "快"
+
+msgid "Medium"
+msgstr "中"
+
+msgid "Slow"
+msgstr "慢"
+
+msgid "Arrange Buttons"
+msgstr "排列按钮"
+
+msgid "Bar Size"
+msgstr "栏大小"
+
+msgid "Icon Size"
+msgstr "图标大小"
+
+msgid "Label Size"
+msgstr "标签大小"
+
+msgid "No buttons configured"
+msgstr "未配置按钮"
+
+msgid "Apply preset (QA vb)"
+msgstr "应用预设（侧边栏）"
+
+msgid "QuickUI_VerticalBarToggle"
+msgstr "QuickUI-侧边栏开关"
+
+msgid "QuickUI_VerticalBarSettings"
+msgstr "QuickUI-侧边栏设置"
+
+msgid "QuickUI_AddVerticalBarButton"
+msgstr "QuickUI-添加侧边栏按钮"
+
+msgid "Add to Vertical Bar"
+msgstr "添加到侧边栏"
+
+msgid "Remove from Vertical Bar"
+msgstr "从侧边栏移除"
