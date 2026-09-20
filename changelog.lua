@@ -93,5 +93,6 @@ return {
     "Bottom bar: inject into FileManager via FileManager.setupLayout (one-shot injection)",
     "Bottom bar: show on filesearch results screen",
     "Quick Actions: add built-in actions for SimpleUI library browse modes (Authors / Series / Tags)",
+    "Panel: warmth slider now matches frontlight (ON/OFF button, scaled value labels, instant refresh for 'Show Slider Value')",
 },
 }
