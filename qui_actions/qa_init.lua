@@ -18,6 +18,7 @@ local icon_picker_module = nil
 local menu_recorder_module = nil
 local uifont_module = nil
 local bottombar_module = nil
+local verticalbar_module = nil   -- 只在这里声明一次
 
 function QA.init(plugin)
 
@@ -31,7 +32,6 @@ function QA.init(plugin)
         ok, panel_module = pcall(require, "qui_actions.qa_panel")
         if ok and panel_module and panel_module.init then
             panel_module.init(plugin)
-        else
         end
     end
 
@@ -98,18 +98,35 @@ function QA.init(plugin)
     -- ============================================================
     -- Bottom Bar (only if qa_bb_enabled)
     -- ============================================================
-if config and config.qa_bb_enabled then
-    ok, bottombar_module = pcall(require, "qui_actions.qa_bottombar")
-    if ok and bottombar_module and bottombar_module.init then
-        bottombar_module.init()
-        _G.__QUICKUI_PLUGIN_STORE.bottombar = bottombar_module
-    else
-        logger.warn("QuickUI QA: Bottom Bar module failed to load")
+    if config and config.qa_bb_enabled then
+        ok, bottombar_module = pcall(require, "qui_actions.qa_bottombar")
+        if ok and bottombar_module and bottombar_module.init then
+            bottombar_module.init()
+            _G.__QUICKUI_PLUGIN_STORE.bottombar = bottombar_module
+        else
+            logger.warn("QuickUI QA: Bottom Bar module failed to load")
+        end
     end
-end
+
+    -- ============================================================
+    -- Vertical Bar (only if qa_vb_enabled)
+    -- ============================================================
+    if config and config.qa_vb_enabled then
+        ok, verticalbar_module = pcall(require, "qui_actions.qa_vertical_bar")
+        if ok and verticalbar_module and verticalbar_module.init then
+            verticalbar_module.init()
+            _G.__QUICKUI_PLUGIN_STORE.verticalbar = verticalbar_module
+        else
+            logger.warn("QuickUI QA: Vertical Bar module failed to load")
+        end
+    end
 
     if settings_module and settings_module.setBottombar then
         settings_module.setBottombar(bottombar_module)
+    end
+
+    if settings_module and settings_module.setVerticalBar then
+        settings_module.setVerticalBar(verticalbar_module)
     end
 
     if panel_module and panel_module.patchTouchMenu then
@@ -196,6 +213,10 @@ function QA.getBottombarModule()
     return bottombar_module
 end
 
+function QA.getVerticalBarModule()
+    return verticalbar_module
+end
+
 function QA.showPanelSettings()
     if settings_module and settings_module.showPanelSettings then
         settings_module.showPanelSettings()
@@ -205,6 +226,12 @@ end
 function QA.showBottombarSettings()
     if settings_module and settings_module.showBottombarSettings then
         settings_module.showBottombarSettings()
+    end
+end
+
+function QA.showVerticalBarSettings()
+    if settings_module and settings_module.showVerticalBarSettings then
+        settings_module.showVerticalBarSettings()
     end
 end
 
