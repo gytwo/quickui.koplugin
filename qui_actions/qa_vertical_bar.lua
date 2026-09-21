@@ -910,21 +910,46 @@ function M.showAddButtonMenu(on_back, filtered_actions)
     table.insert(buttons, {
         {
             text_func = function()
-                if #slots > 0 then
-                    return "☑ " .. _("Deselect All")
-                else
-                    return "☐ " .. _("Select All")
-                end
-            end,
-            callback = function()
-                local new_slots = {}
-                if #slots > 0 then
-                    new_slots = {}
-                else
-                    for __, action in ipairs(available) do
-                        table.insert(new_slots, action.id)
+                -- Determine: are all actions in `available` already in slots?
+                for __, action in ipairs(available) do
+                    if not slot_set[action.id] then
+                        return "☐ " .. _("Select All")
                     end
                 end
+                return "☑ " .. _("Deselect All")
+            end,
+            callback = function()
+                -- Re-check (text_func ran at render time; state may have changed since)
+                local all_checked = true
+                for __, action in ipairs(available) do
+                    if not slot_set[action.id] then
+                        all_checked = false
+                        break
+                    end
+                end
+
+                local new_slots
+                if all_checked then
+                    -- Deselect all: remove only items from `available`, keep the rest
+                    new_slots = {}
+                    for __, id in ipairs(slots) do
+                        local in_available = false
+                        for __, action in ipairs(available) do
+                            if action.id == id then in_available = true; break end
+                        end
+                        if not in_available then new_slots[#new_slots + 1] = id end
+                    end
+                else
+                    -- Select all: keep existing, add missing ones from `available`
+                    new_slots = {}
+                    for __, id in ipairs(slots) do new_slots[#new_slots + 1] = id end
+                    for __, action in ipairs(available) do
+                        if not slot_set[action.id] then
+                            new_slots[#new_slots + 1] = action.id
+                        end
+                    end
+                end
+
                 Utils.set("qa_vb_slots", new_slots)
                 M.refresh()
                 if _add_dialog then
