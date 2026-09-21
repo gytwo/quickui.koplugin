@@ -20,8 +20,6 @@ local DEFAULT_SETTINGS = {
     -- Panel Settings
     qa_panel_enabled = true,
     qa_panel_slots = {"wifi", "night", "rotate", "screenshot", "QuickUI_CoverSettings","system_icon_override", "ui_font_switch", "QuickUI_ClozeSettings", "QuickUI_HFSettings", "fontlist", "restart", "qa_settings","interface_filter", "qa_add_panel_button", "qa_new"},
-    qa_panel_frontlight = true,
-    qa_panel_warmth = true,
     qa_panel_shape = "round",
     qa_panel_bg = "flat",
     qa_panel_labels = true,
@@ -29,7 +27,16 @@ local DEFAULT_SETTINGS = {
     qa_panel_settings_on_hold = true,
     qa_panel_button_size_pct = 100,
     qa_panel_button_hold_edit = true,
-    qa_panel_slider_show_value = false,
+    qa_panel_frontlight          = true,
+    qa_panel_warmth              = true,
+    qa_panel_slider_show_value   = false,
+    qa_panel_reader_font_size    = true,
+    qa_panel_reader_line_spacing = true,
+    qa_panel_reader_gamma        = false,
+    qa_panel_reader_margins_h    = false,
+    qa_panel_reader_margin_top   = false,
+    qa_panel_reader_margin_bot   = false,
+    qa_panel_reader_zoom         = false,
 
     -- Bottom Bar Settings
     qa_bb_enabled = true,
@@ -304,6 +311,9 @@ function Utils.getDefaultKeys(module_key)
             "qa_panel_bg", "qa_panel_labels", "qa_panel_label_scale_pct",
             "qa_panel_button_size_pct", "qa_panel_button_hold_edit",
             "qa_panel_settings_on_hold",
+            "qa_panel_reader_font_size", "qa_panel_reader_line_spacing",
+            "qa_panel_reader_gamma", "qa_panel_reader_margins_h",
+            "qa_panel_reader_margin_top", "qa_panel_reader_margin_bot","qa_panel_reader_zoom",
         },
         qa_bb = {
             "qa_bb_enabled", "qa_bb_mode", "qa_bb_style", "qa_bb_size_pct",
