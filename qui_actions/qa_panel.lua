@@ -773,7 +773,7 @@ function QA.buildPanel(touch_menu)
                     height = btn_h,
                     minimum = opts.min,
                     maximum = opts.max,
-                    value = opts.get(),
+                    value = opts.get() or opts.min,
                     show_parent = touch_menu.show_parent,
                     enabled = true,
                 }
@@ -810,11 +810,14 @@ function QA.buildPanel(touch_menu)
 
                 local apply, refresh
 
+                local _init_val = opts.get()
+                if _init_val == nil then _init_val = opts.min end
+
                 local initial_text
                 if opts.precision then
-                    initial_text = string.format(opts.precision, opts.get())
+                    initial_text = string.format(opts.precision, _init_val)
                 else
-                    initial_text = tostring(opts.get())
+                    initial_text = tostring(_init_val)
                 end
 
                 local value_btn = Button:new{
@@ -834,7 +837,7 @@ function QA.buildPanel(touch_menu)
                         local spin
                         spin = SpinWidget:new{
                             title_text = opts.label,
-                            value = opts.get(),
+                            value = opts.get() or opts.min,
                             value_min = opts.min,
                             value_max = opts.max,
                             value_step = opts.step or 1,
@@ -879,6 +882,7 @@ function QA.buildPanel(touch_menu)
                 }
 
                 refresh = function(v)
+                    if v == nil then v = opts.min end
                     slider:setValue(v)
                     if opts.precision then
                         value_btn:setText(string.format(opts.precision, v), value_w)
@@ -889,6 +893,7 @@ function QA.buildPanel(touch_menu)
                 end
 
                 apply = function(v)
+                    if v == nil then return end
                     local real = opts.set(v)
                     refresh(real or v)
                 end
@@ -933,25 +938,23 @@ function QA.buildPanel(touch_menu)
             -- EPUB / TXT / FB2 分支
             -- ============================================================
             if is_cre then
+            if is_cre then
                 addReaderSlider{
-                    key = "pdf_contrast",
-                    label = _("Contrast"),
-                    min = 0.8, max = 50,
-                    step = 0.1,
-                    precision = "%.1f",
+                    key = "font_size",
+                    label = _("Font Size"),
+                    min = 12, max = 90,
+                    step = 1,
                     default = function()
-                        return readDefault("kopt_contrast", "DKOPTREADER_CONFIG_CONTRAST", 1.0)
+                        return readDefault("copt_font_size", "DCREREADER_CONFIG_DEFAULT_FONT_SIZE", 22)
                     end,
-                    global_key = "kopt_contrast",
-                    get = function() return reader.document.configurable.contrast end,
+                    global_key = "copt_font_size",
+                    get = function() return reader.font.configurable.font_size end,
                     set = function(v)
-                        v = math.max(0.8, math.min(50, v))
-                        reader.document.configurable.contrast = v
-                        reader.view.state.gamma = v
-                        reader:handleEvent(Event:new("RedrawCurrentPage"))
-                        return v
+                        v = math.max(12, math.min(90, math.floor(v + 0.5)))
+                        reader.font:onSetFontSize(v)
+                        return reader.font.configurable.font_size
                     end,
-                    enabled_key = "qa_panel_reader_gamma",
+                    enabled_key = "qa_panel_reader_font_size",
                 }
 
                 addReaderSlider{
@@ -1002,7 +1005,10 @@ function QA.buildPanel(touch_menu)
                     end,
                     global_key = "copt_h_page_margins",
                     global_is_pair = true,
-                    get = function() return reader.font.configurable.h_page_margins[1] end,
+                    get = function()
+                        local m = reader.font.configurable.h_page_margins
+                        return type(m) == "table" and m[1] or 10
+                    end,
                     set = function(v)
                         v = math.max(0, math.min(140, math.floor(v + 0.5)))
                         reader.typeset:onSetPageHorizMargins({ v, v })
@@ -1088,7 +1094,8 @@ function QA.buildPanel(touch_menu)
                     end,
                     enabled_key = "qa_panel_reader_zoom",
                     should_show = function()
-                        return reader.document.configurable.zoom_mode_genus < 3
+                        local g = reader.document.configurable.zoom_mode_genus
+                        return g ~= nil and g < 3
                     end,
                 }
 
@@ -1109,7 +1116,8 @@ function QA.buildPanel(touch_menu)
                     end,
                     enabled_key = "qa_panel_reader_zoom",
                     should_show = function()
-                        return reader.document.configurable.zoom_mode_genus < 3
+                        local g = reader.document.configurable.zoom_mode_genus
+                        return g ~= nil and g < 3
                     end,
                 }
 
@@ -1132,7 +1140,7 @@ function QA.buildPanel(touch_menu)
                     enabled_key = "qa_panel_reader_zoom",
                     should_show = function()
                         local g = reader.document.configurable.zoom_mode_genus
-                        return g == 1 or g == 2
+                        return g ~= nil and (g == 1 or g == 2)
                     end,
                 }
 
@@ -1154,7 +1162,8 @@ function QA.buildPanel(touch_menu)
                     end,
                     enabled_key = "qa_panel_reader_zoom",
                     should_show = function()
-                        return reader.document.configurable.zoom_mode_genus == 0
+                        local g = reader.document.configurable.zoom_mode_genus
+                        return g ~= nil and g == 0
                     end,
                 }
             end
