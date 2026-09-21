@@ -938,7 +938,6 @@ function QA.buildPanel(touch_menu)
             -- EPUB / TXT / FB2 分支
             -- ============================================================
             if is_cre then
-            if is_cre then
                 addReaderSlider{
                     key = "font_size",
                     label = _("Font Size"),
