@@ -1089,8 +1089,8 @@ function QA.buildPanel(touch_menu)
                     get = function() return reader.document.configurable.zoom_overlap_h end,
                     set = function(v)
                         v = math.max(0, math.min(84, math.floor(v + 0.5)))
-                        reader:handleEvent(Event:new("SetZoomPan", { kopt_zoom_overlap_h = v }))
-                        return v
+                        reader:handleEvent(Event:new("SetZoomPan", { zoom_overlap_h = v }))
+                        return reader.document.configurable.zoom_overlap_h
                     end,
                     enabled_key = "qa_panel_reader_zoom",
                     should_show = function()
@@ -1111,8 +1111,8 @@ function QA.buildPanel(touch_menu)
                     get = function() return reader.document.configurable.zoom_overlap_v end,
                     set = function(v)
                         v = math.max(0, math.min(84, math.floor(v + 0.5)))
-                        reader:handleEvent(Event:new("SetZoomPan", { kopt_zoom_overlap_v = v }))
-                        return v
+                        reader:handleEvent(Event:new("SetZoomPan", { zoom_overlap_v = v }))
+                        return reader.document.configurable.zoom_overlap_v
                     end,
                     enabled_key = "qa_panel_reader_zoom",
                     should_show = function()
@@ -1134,8 +1134,9 @@ function QA.buildPanel(touch_menu)
                     get = function() return reader.document.configurable.zoom_range_number end,
                     set = function(v)
                         v = math.max(0.1, math.min(8, v))
-                        reader:handleEvent(Event:new("SetZoomPan", { kopt_zoom_range_number = v }))
-                        return v
+                        reader.document.configurable.zoom_range_number = v
+                        reader:handleEvent(Event:new("DefineZoom"))
+                        return reader.document.configurable.zoom_range_number
                     end,
                     enabled_key = "qa_panel_reader_zoom",
                     should_show = function()
@@ -1158,7 +1159,7 @@ function QA.buildPanel(touch_menu)
                     set = function(v)
                         v = math.max(0.1, math.min(20, v))
                         reader:handleEvent(Event:new("SetZoomPan", { kopt_zoom_factor = v }))
-                        return v
+                        return reader.document.configurable.zoom_factor
                     end,
                     enabled_key = "qa_panel_reader_zoom",
                     should_show = function()
