@@ -1811,3 +1811,6 @@ msgstr "从侧边栏移除"
 
 msgid "Sliders"
 msgstr "滑块"
+
+msgid "Reset to %s"
+msgstr "重置为 %s"
