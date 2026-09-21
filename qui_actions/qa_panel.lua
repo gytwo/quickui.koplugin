@@ -974,24 +974,6 @@ function QA.buildPanel(touch_menu)
                 }
 
                 addReaderSlider{
-                    key = "gamma",
-                    label = _("Contrast"),
-                    min = 10, max = 56,
-                    default = function()
-                        return readDefault("copt_font_gamma", nil, 15)
-                    end,
-                    global_key = "copt_font_gamma",
-                    get = function() return reader.font.configurable.font_gamma end,
-                    set = function(v)
-                        v = math.max(10, math.min(56, math.floor(v + 0.5)))
-                        reader.document:setGammaIndex(v)
-                        reader:handleEvent(Event:new("UpdatePos"))
-                        return v
-                    end,
-                    enabled_key = "qa_panel_reader_gamma",
-                }
-
-                addReaderSlider{
                     key = "h_margin",
                     label = _("L/R Margins"),
                     min = 0, max = 140,
@@ -1049,6 +1031,25 @@ function QA.buildPanel(touch_menu)
                     end,
                     enabled_key = "qa_panel_reader_margin_bot",
                 }
+                
+                addReaderSlider{
+                    key = "gamma",
+                    label = _("Contrast"),
+                    min = 10, max = 56,
+                    step = 1,
+                    default = function()
+                        return readDefault("copt_font_gamma", nil, 15)
+                    end,
+                    global_key = "copt_font_gamma",
+                    get = function() return reader.font.configurable.font_gamma end,
+                    set = function(v)
+                        v = math.max(10, math.min(56, math.floor(v + 0.5)))
+                        reader:handleEvent(Event:new("SetFontGamma", v))
+                        return reader.font.configurable.font_gamma
+                    end,
+                    enabled_key = "qa_panel_reader_gamma",
+                }
+                
             end
 
             -- ============================================================
