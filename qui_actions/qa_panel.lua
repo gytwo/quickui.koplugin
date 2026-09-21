@@ -51,6 +51,7 @@ _G.__QUICKUI_PLUGIN_STORE = PLUGIN_STORE
 
 local QA = {}
 local _qs_refs = nil
+local _panel_page = 1   -- current page index for the paginated panel
 
 
 -- ============================================================
@@ -153,6 +154,10 @@ function SlimSlider:paintTo(bb, x, y)
     tx = math.max(x, math.min(x + self.width - thumb_w, tx))
     bb:paintRect(tx, cy - math.floor(thumb_h / 2), thumb_w, thumb_h, Blitbuffer.COLOR_BLACK)
 end
+
+-- ============================================================
+-- Build the Quick Actions Panel
+-- ============================================================
 
 -- ============================================================
 -- Build the Quick Actions Panel
@@ -368,10 +373,21 @@ function QA.buildPanel(touch_menu)
     local n = #visible_slots
     local fixed_gap = Screen:scaleBySize(8)
     local max_per_row = math.max(1, math.floor((inner_w + fixed_gap) / (btn_size + fixed_gap)))
+
+    -- Fixed 3 rows per page
+    local ROWS_PER_PAGE = 3
+    local slots_per_page = ROWS_PER_PAGE * max_per_row
+    local total_pages    = math.max(1, math.ceil(n / slots_per_page))
+
+    _panel_page = math.max(1, math.min(_panel_page or 1, total_pages))
+
+    local first = (n > 0) and ((_panel_page - 1) * slots_per_page + 1) or 1
+    local last  = math.min(first + slots_per_page - 1, n)
+
     local rows = {}
-    for i = 1, n, max_per_row do
+    for i = first, last, max_per_row do
         local row_slots = {}
-        for j = i, math.min(i + max_per_row - 1, n) do
+        for j = i, math.min(i + max_per_row - 1, last) do
             table.insert(row_slots, visible_slots[j])
         end
         table.insert(rows, row_slots)
@@ -422,11 +438,75 @@ function QA.buildPanel(touch_menu)
         })
     end
 
+    -- Pager row (only when more than one page exists)
+    if total_pages > 1 then
+        local pager_h = Screen:scaleBySize(36)
+        local chevron_btn_w = Screen:scaleBySize(48)  -- narrow: icon only
+
+        -- KOReader native chevron icons (RTL-aware)
+        local chevron_left  = "chevron.left"
+        local chevron_right = "chevron.right"
+        if BD.mirroredUILayout() then
+            chevron_left, chevron_right = chevron_right, chevron_left
+        end
+
+        local prev_btn = Button:new{
+            icon = chevron_left,
+            width = chevron_btn_w,
+            height = pager_h,
+            bordersize = 0,
+            enabled = _panel_page > 1,
+            show_parent = touch_menu.show_parent,
+            callback = function()
+                if _panel_page > 1 then
+                    _panel_page = _panel_page - 1
+                    touch_menu:updateItems()
+                end
+            end,
+        }
+
+        local next_btn = Button:new{
+            icon = chevron_right,
+            width = chevron_btn_w,
+            height = pager_h,
+            bordersize = 0,
+            enabled = _panel_page < total_pages,
+            show_parent = touch_menu.show_parent,
+            callback = function()
+                if _panel_page < total_pages then
+                    _panel_page = _panel_page + 1
+                    touch_menu:updateItems()
+                end
+            end,
+        }
+
+        local page_label = TextWidget:new{
+            text = _panel_page .. "/" .. total_pages,
+            face = label_face,
+        }
+
+        local pager_row = HorizontalGroup:new{
+            align = "center",
+            prev_btn,
+            CenterContainer:new{
+                dimen = Geom:new{ w = inner_w - 2 * chevron_btn_w, h = pager_h },
+                page_label,
+            },
+            next_btn,
+        }
+
+        table.insert(rows_vg, VerticalSpan:new{ width = Screen:scaleBySize(6) })
+        table.insert(rows_vg, CenterContainer:new{
+            dimen = Geom:new{ w = inner_w, h = pager_h },
+            pager_row,
+        })
+    end
+
     local panel = VerticalGroup:new{
         align = "center",
         VerticalSpan:new{ width = Screen:scaleBySize(20) },
         CenterContainer:new{ dimen = Geom:new{ w = panel_w, h = rows_vg:getSize().h }, rows_vg },
-        VerticalSpan:new{ width = Screen:scaleBySize(16) },
+        VerticalSpan:new{ width = Screen:scaleBySize(4) },   -- reduced: pager → first slider
     }
 
     -- Frontlight slider
@@ -445,7 +525,7 @@ function QA.buildPanel(touch_menu)
         local fl_label = nil
         if Utils.getBool("qa_panel_slider_show_value") then
             fl_label = TextWidget:new{
-                text = _("Frontlight") .. ": " .. tostring(fl.cur),
+                text = _("Frontlight") .. ": " .. string.format("%d", math.floor(fl.cur + 0.5)),
                 face = medium_face,
                 max_width = inner_w,
             }
@@ -498,7 +578,7 @@ function QA.buildPanel(touch_menu)
         local function updateFLWidgets()
             fl_slider:setValue(fl.cur)
             if fl_label then
-                fl_label:setText(_("Frontlight") .. ": " .. tostring(fl.cur))
+                fl_label:setText(_("Frontlight") .. ": " .. string.format("%d", math.floor(fl.cur + 0.5)))
             end
             if fl_toggle_btn then
                 fl_toggle_btn:setText(fl.cur > fl.min and "ON" or "OFF")
@@ -551,7 +631,7 @@ function QA.buildPanel(touch_menu)
             align = "center",
             fl_minus,
             HorizontalSpan:new{ width = slider_gap },
-            fl_slider_wrapper,      -- ★ 从 fl_slider 换成 wrapper
+            fl_slider_wrapper,
             HorizontalSpan:new{ width = slider_gap },
             fl_plus,
             HorizontalSpan:new{ width = slider_gap },
@@ -587,8 +667,8 @@ function QA.buildPanel(touch_menu)
 
         local nl_label = nil
         if Utils.getBool("qa_panel_slider_show_value") then
-            nl_label = TextWidget:new{
-                text = _("Warmth") .. ": " .. tostring(nl.cur),
+            fl_label = TextWidget:new{
+                text = _("Frontlight") .. ": " .. string.format("%d", math.floor(fl.cur + 0.5)),
                 face = medium_face,
                 max_width = inner_w,
             }
@@ -635,9 +715,7 @@ function QA.buildPanel(touch_menu)
             })
         end
 
-        -- Remember the current warmth value when it is "on", so OFF→ON can restore it.
         local nl_saved = (nl.cur > nl.min) and nl.cur or nl.max
-        -- Forward declaration so setWarmth can reference the toggle button.
         local nl_toggle_btn
 
         local function setWarmth(warmth)
@@ -647,7 +725,7 @@ function QA.buildPanel(touch_menu)
             nl.cur = powerd:toNativeWarmth(powerd:frontlightWarmth())
             nl_slider:setValue(nl.cur)
             if nl_label then
-                nl_label:setText(_("Warmth") .. ": " .. tostring(nl.cur))
+                nl_label:setText(_("Warmth") .. ": " .. string.format("%d", math.floor(nl.cur + 0.5)))
             end
             if nl_toggle_btn then
                 nl_toggle_btn:setText(nl.cur > nl.min and "ON" or "OFF")
@@ -691,7 +769,7 @@ function QA.buildPanel(touch_menu)
             align = "center",
             nl_minus,
             HorizontalSpan:new{ width = slider_gap },
-            nl_slider_wrapper,      -- ★ 从 nl_slider 换成 wrapper
+            nl_slider_wrapper,
             HorizontalSpan:new{ width = slider_gap },
             nl_plus,
             HorizontalSpan:new{ width = slider_gap },
@@ -708,9 +786,6 @@ function QA.buildPanel(touch_menu)
 
         table.insert(panel, CenterContainer:new{ dimen = Geom:new{ w = panel_w, h = warmth_group:getSize().h }, warmth_group })
         refs.nl_slider = nl_slider
-        -- Expose setWarmth so the TouchMenu tap/swipe/pan handlers can route
-        -- slider drags through it (instead of calling powerd:setWarmth directly)
-        -- and keep the ON/OFF button label in sync while dragging.
         refs.setWarmth = setWarmth
     end
 
@@ -741,8 +816,8 @@ function QA.buildPanel(touch_menu)
                 end
             end
         end
-    end 
-    
+    end
+
     table.insert(panel, VerticalSpan:new{ width = Screen:scaleBySize(14) })
 
     local panel_h = panel:getSize().h
@@ -851,6 +926,16 @@ function QA.patchTouchMenu()
     end
     TouchMenu._quickui_qa_patched = true
 
+    -- ★ Reset panel page to 1 whenever switching to the QA tab
+    local _orig_switchMenuTab = TouchMenu.switchMenuTab
+    function TouchMenu:switchMenuTab(index)
+        if self.tab_item_table and self.tab_item_table[index]
+            and self.tab_item_table[index]._qa_panel then
+            _panel_page = 1
+        end
+        return _orig_switchMenuTab(self, index)
+    end
+
     local SLIDER_KEYS = {
         { slider = "fl_slider",           setter = "setBrightness" },
         { slider = "nl_slider",           setter = "setWarmth" },
@@ -884,7 +969,43 @@ function QA.patchTouchMenu()
         end
         return false
     end
-    
+
+    -- ★ Recompute total pages for the currently visible slots, using the
+    -- same layout math as buildPanel. Kept in one place to avoid drift.
+    local function computeTotalPages(touch_menu)
+        local panel_w = touch_menu.item_width
+        local padding = Screen:scaleBySize(28)
+        local inner_w = panel_w - padding * 2
+        local base_btn_size = Screen:scaleBySize(60)
+        local button_scale = Utils.getNumber("qa_panel_button_size_pct") / 100
+        if button_scale <= 0 then button_scale = 1 end
+        local btn_size = math.floor(base_btn_size * button_scale)
+        local fixed_gap = Screen:scaleBySize(8)
+        local max_per_row = math.max(1, math.floor((inner_w + fixed_gap) / (btn_size + fixed_gap)))
+
+        -- Count visible slots (context filter aware)
+        local slots = Utils.getTable("qa_panel_slots")
+        local visible_count = 0
+        local ctx_filter = Utils.getBool("qa_common_context_filter")
+        local current_view = "filemanager"
+        if ctx_filter then
+            local RUI = require("apps/reader/readerui")
+            local in_reader = RUI and RUI.instance and not RUI.instance.tearing_down
+            current_view = in_reader and "reader" or "filemanager"
+        end
+        for __, id in ipairs(slots) do
+            local action = getAction(id)
+            if action then
+                if isActionVisible(id, current_view) then
+                    visible_count = visible_count + 1
+                end
+            end
+        end
+
+        local slots_per_page = 3 * max_per_row
+        return math.max(1, math.ceil(visible_count / slots_per_page))
+    end
+
     local _orig_updateItems = TouchMenu.updateItems
     local _orig_onTap = TouchMenu.onTapCloseAllMenus
     local _orig_onSwipe = TouchMenu.onSwipe
@@ -971,6 +1092,26 @@ function QA.patchTouchMenu()
             if handleSliderAt(self, ges_ev) then
                 return true
             end
+
+            -- ★ Swipe west/east → cycle through panel pages
+            local direction = BD.flipDirectionIfMirroredUILayout(ges_ev.direction)
+            if direction == "west" or direction == "east" then
+                local total_pages = computeTotalPages(self)
+                if total_pages > 1 then
+                    local p = _panel_page or 1
+                    if direction == "west" then
+                        p = (p < total_pages) and (p + 1) or 1
+                    else
+                        p = (p > 1) and (p - 1) or total_pages
+                    end
+                    _panel_page = p
+                    self:updateItems()
+                    return true
+                end
+                -- Single page: swallow the swipe (no-op)
+                return true
+            end
+
             for __, ref in ipairs(self._qs_refs.buttons or {}) do
                 if ref.widget.dimen and ges_ev.pos:intersectWith(ref.widget.dimen) then
                     local stay_open = ref.callback()
@@ -997,7 +1138,6 @@ function QA.patchTouchMenu()
             return _orig_onPan(self, arg, ges_ev)
         end
     end
-    
 end
 
 -- ============================================================
