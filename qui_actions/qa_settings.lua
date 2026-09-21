@@ -1021,6 +1021,19 @@ function QA.buildRootMenuItems()
     })
 
     table.insert(items, {
+        text = _("Reader Sliders"),
+        enabled_func = function()
+            local RUI = require("apps/reader/readerui")
+            return RUI and RUI.instance ~= nil
+        end,
+        close_on_click = true,
+        callback = function()
+            closeSettingsDialog()
+            require("qui_actions/qa_reader_sliders").show()
+        end,
+    })
+
+    table.insert(items, {
         text = _("Quick Actions"),
         sub_item_table = QA.getQuickActionsSubmenu(),
     })
