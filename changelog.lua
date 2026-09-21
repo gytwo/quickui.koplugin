@@ -95,7 +95,9 @@ return {
     "Bottom bar: show on filesearch results screen",
     "Quick Actions: add built-in actions for SimpleUI library browse modes (Authors / Series / Tags)",
     "Quick Actions: improve the font list in both Font List and UI Font Switcher (font preview + recently-selected sorting)",
-    "Panel: warmth slider now matches frontlight (ON/OFF button, scaled value labels, instant refresh for 'Show Slider Value'), fix accidental touch issue",
+    "Panel: fix accidental touch issue in slider",
+    "Panel: refactor the slider menu, add sliders for font size, spacing, etc. in the reading view ",
+    "Panel: long-press a slider to open its slider settings ",      
     "i18n: improve Chinese translation",
 },
 }
