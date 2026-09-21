@@ -282,6 +282,7 @@ end
 -- ============================================================
 
 local _add_button_dialog = nil
+local _sliders_dialog = nil
 
 function QA.showAddButtonMenu(touch_menu, on_back, filtered_actions)
     local slots = Utils.getTable("qa_panel_slots")
@@ -344,42 +345,14 @@ function QA.showAddButtonMenu(touch_menu, on_back, filtered_actions)
     end
 
     table.insert(buttons, {{
-        text = _("Frontlight Slider"),
-        checked_func = function() return Utils.getBool("qa_panel_frontlight") end,
-        callback = function(touchmenu_instance)
-            Utils.set("qa_panel_frontlight", not Utils.getBool("qa_panel_frontlight"))
-            if touchmenu_instance then touchmenu_instance:updateItems() end
-            if touch_menu then touch_menu:updateItems() end
-            QA.refreshQuickPanel()
+        text = _("Sliders") .. " ▸",
+        callback = function()
+            if _add_button_dialog then
+                UIManager:close(_add_button_dialog)
+                _add_button_dialog = nil
+            end
             closeSettingsDialog()
-            QA.showAddButtonMenu(touch_menu, on_back)
-        end,
-    }})
-
-    if Device:hasNaturalLight() then
-        table.insert(buttons, {{
-            text = _("Warmth Slider"),
-            checked_func = function() return Utils.getBool("qa_panel_warmth") end,
-            callback = function(touchmenu_instance)
-                Utils.set("qa_panel_warmth", not Utils.getBool("qa_panel_warmth"))
-                if touchmenu_instance then touchmenu_instance:updateItems() end
-                if touch_menu then touch_menu:updateItems() end
-                closeSettingsDialog()
-                QA.showAddButtonMenu(touch_menu, on_back)
-            end,
-        }})
-    end
-
-    table.insert(buttons, {{
-        text = _("Show Slider Value"),
-        checked_func = function() return Utils.getBool("qa_panel_slider_show_value") end,
-        callback = function(touchmenu_instance)
-            Utils.set("qa_panel_slider_show_value", not Utils.getBool("qa_panel_slider_show_value"))
-            if touchmenu_instance then touchmenu_instance:updateItems() end
-            if touch_menu then touch_menu:updateItems() end
-            QA.refreshQuickPanel()
-            closeSettingsDialog()
-            QA.showAddButtonMenu(touch_menu, on_back)
+            QA.showSlidersMenu(touch_menu, on_back)
         end,
     }})
 
@@ -501,6 +474,123 @@ function QA.showAddButtonMenu(touch_menu, on_back, filtered_actions)
     }
     if _add_button_dialog then UIManager:close(_add_button_dialog); _add_button_dialog = nil end
     _add_button_dialog = dialog
+    UIManager:show(dialog)
+end
+
+function QA.showSlidersMenu(touch_menu, on_back)
+    local buttons = {}
+
+    table.insert(buttons, {{
+        text = "◂ " .. _("Back"),
+        callback = function()
+            if _sliders_dialog then
+                UIManager:close(_sliders_dialog)
+                _sliders_dialog = nil
+            end
+            closeSettingsDialog()
+            QA.showAddButtonMenu(touch_menu, on_back)
+        end,
+    }})
+    table.insert(buttons, {})
+
+    table.insert(buttons, {{
+        text = _("Show Slider Value"),
+        checked_func = function() return Utils.getBool("qa_panel_slider_show_value") end,
+        callback = function(tm)
+            Utils.set("qa_panel_slider_show_value", not Utils.getBool("qa_panel_slider_show_value"))
+            if tm then tm:updateItems() end
+            if touch_menu then touch_menu:updateItems() end
+            QA.refreshQuickPanel()
+            if _sliders_dialog then UIManager:close(_sliders_dialog); _sliders_dialog = nil end
+            QA.showSlidersMenu(touch_menu, on_back)
+        end,
+    }})
+    table.insert(buttons, {})
+    
+    -- ---- Hardware ----
+    table.insert(buttons, {{
+        text = _("Frontlight Slider"),
+        checked_func = function() return Utils.getBool("qa_panel_frontlight") end,
+        callback = function(tm)
+            Utils.set("qa_panel_frontlight", not Utils.getBool("qa_panel_frontlight"))
+            if tm then tm:updateItems() end
+            if touch_menu then touch_menu:updateItems() end
+            QA.refreshQuickPanel()
+            if _sliders_dialog then UIManager:close(_sliders_dialog); _sliders_dialog = nil end
+            QA.showSlidersMenu(touch_menu, on_back)
+        end,
+    }})
+    table.insert(buttons, {{
+        text = _("Warmth Slider"),
+        checked_func = function() return Utils.getBool("qa_panel_warmth") end,
+        enabled_func = function() return Device:hasNaturalLight() end,
+        callback = function(tm)
+            Utils.set("qa_panel_warmth", not Utils.getBool("qa_panel_warmth"))
+            if tm then tm:updateItems() end
+            if touch_menu then touch_menu:updateItems() end
+            QA.refreshQuickPanel()
+            if _sliders_dialog then UIManager:close(_sliders_dialog); _sliders_dialog = nil end
+            QA.showSlidersMenu(touch_menu, on_back)
+        end,
+    }})
+
+    table.insert(buttons, {})
+
+    -- ---- Reader ----
+    local function readerAvailable()
+        local RUI = require("apps/reader/readerui")
+        return RUI and RUI.instance ~= nil
+    end
+
+    local reader_items = {
+        { key = "qa_panel_reader_font_size",    label = _("Font Size") },
+        { key = "qa_panel_reader_line_spacing", label = _("Line Spacing") },
+        { key = "qa_panel_reader_gamma",        label = _("Contrast") },
+        { key = "qa_panel_reader_margins_h",    label = _("L/R Margins")  },
+        { key = "qa_panel_reader_margin_top",   label = _("Top Margin") },
+        { key = "qa_panel_reader_margin_bot",   label = _("Bottom Margin") },
+        { key = "qa_panel_reader_zoom",         label = _("Zoom") },
+    }
+    for _, item in ipairs(reader_items) do
+        local key, label = item.key, item.label
+        table.insert(buttons, {{
+            text = label,
+            checked_func = function() return Utils.getBool(key) end,
+            enabled_func = readerAvailable,
+            callback = function(tm)
+                Utils.set(key, not Utils.getBool(key))
+                if tm then tm:updateItems() end
+                if touch_menu then touch_menu:updateItems() end
+                QA.refreshQuickPanel()
+                if _sliders_dialog then UIManager:close(_sliders_dialog); _sliders_dialog = nil end
+                QA.showSlidersMenu(touch_menu, on_back)
+            end,
+        }})
+    end
+
+    table.insert(buttons, {})
+
+    -- ---- General ----
+    table.insert(buttons, {{
+        text = _("Close"),
+        callback = function()
+            if _sliders_dialog then
+                UIManager:close(_sliders_dialog)
+                _sliders_dialog = nil
+            end
+            closeSettingsDialog()
+        end,
+    }})
+
+    local dialog = ButtonDialog:new{
+        title = _("Sliders"),
+        title_align = "center",
+        buttons = buttons,
+        width = math.floor(Screen:getWidth() * 0.7),
+        max_height = math.floor(Screen:getHeight() * 0.7),
+    }
+    if _sliders_dialog then UIManager:close(_sliders_dialog) end
+    _sliders_dialog = dialog
     UIManager:show(dialog)
 end
 
