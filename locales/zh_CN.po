@@ -1814,3 +1814,6 @@ msgstr "滑块"
 
 msgid "Reset to %s"
 msgstr "重置为 %s"
+
+msgid "Swipe to page"
+msgstr "竖滑翻页"
