@@ -1808,3 +1808,6 @@ msgstr "添加到侧边栏"
 
 msgid "Remove from Vertical Bar"
 msgstr "从侧边栏移除"
+
+msgid "Sliders"
+msgstr "滑块"
