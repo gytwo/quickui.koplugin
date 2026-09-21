@@ -17,8 +17,11 @@ local Geom = require("ui/geometry")
 local UIManager = require("ui/uimanager")
 local datetime = require("datetime")
 local BD = require("ui/bidi")
+local Event = require("ui/event")
+local Notification = require("ui/widget/notification")
 
 local CenterContainer = require("ui/widget/container/centercontainer")
+local LeftContainer = require("ui/widget/container/leftcontainer")
 local FrameContainer = require("ui/widget/container/framecontainer")
 local HorizontalGroup = require("ui/widget/horizontalgroup")
 local HorizontalSpan = require("ui/widget/horizontalspan")
@@ -460,6 +463,34 @@ function QA.buildPanel(touch_menu)
             enabled = true,
         }
 
+        local fl_slider_wrapper = InputContainer:new{
+            dimen = Geom:new{ w = slider_width, h = btn_height },
+        }
+        fl_slider_wrapper[1] = fl_slider
+
+        if Utils.getBool("qa_panel_button_hold_edit") then
+            fl_slider_wrapper:registerTouchZones({
+                {
+                    id = "sld_hold_frontlight",
+                    ges = "hold",
+                    screen_zone = { ratio_x = 0, ratio_y = 0, ratio_w = 1, ratio_h = 1 },
+                    handler = function(ges)
+                        local rel_x = ges.pos.x - (fl_slider_wrapper.dimen and fl_slider_wrapper.dimen.x or 0)
+                        local rel_y = ges.pos.y - (fl_slider_wrapper.dimen and fl_slider_wrapper.dimen.y or 0)
+                        if rel_x >= 0 and rel_x <= slider_width and rel_y >= 0 and rel_y <= btn_height then
+                            UIManager:close(touch_menu)
+                            local settings = require("qui_actions/qa_settings")
+                            if settings and settings.showSlidersMenu then
+                                settings.showSlidersMenu(nil, nil)
+                            end
+                            return true
+                        end
+                        return false
+                    end,
+                },
+            })
+        end
+
         local fl_saved_brightness = (fl.cur > fl.min) and fl.cur or fl.max
         local fl_toggle_btn
 
@@ -519,7 +550,7 @@ function QA.buildPanel(touch_menu)
             align = "center",
             fl_minus,
             HorizontalSpan:new{ width = slider_gap },
-            fl_slider,
+            fl_slider_wrapper,      -- ★ 从 fl_slider 换成 wrapper
             HorizontalSpan:new{ width = slider_gap },
             fl_plus,
             HorizontalSpan:new{ width = slider_gap },
@@ -575,6 +606,34 @@ function QA.buildPanel(touch_menu)
             enabled = true,
         }
 
+        local nl_slider_wrapper = InputContainer:new{
+            dimen = Geom:new{ w = warmth_slider_w, h = btn_height2 },
+        }
+        nl_slider_wrapper[1] = nl_slider
+
+        if Utils.getBool("qa_panel_button_hold_edit") then
+            nl_slider_wrapper:registerTouchZones({
+                {
+                    id = "sld_hold_warmth",
+                    ges = "hold",
+                    screen_zone = { ratio_x = 0, ratio_y = 0, ratio_w = 1, ratio_h = 1 },
+                    handler = function(ges)
+                        local rel_x = ges.pos.x - (nl_slider_wrapper.dimen and nl_slider_wrapper.dimen.x or 0)
+                        local rel_y = ges.pos.y - (nl_slider_wrapper.dimen and nl_slider_wrapper.dimen.y or 0)
+                        if rel_x >= 0 and rel_x <= warmth_slider_w and rel_y >= 0 and rel_y <= btn_height2 then
+                            UIManager:close(touch_menu)
+                            local settings = require("qui_actions/qa_settings")
+                            if settings and settings.showSlidersMenu then
+                                settings.showSlidersMenu(nil, nil)
+                            end
+                            return true
+                        end
+                        return false
+                    end,
+                },
+            })
+        end
+
         -- Remember the current warmth value when it is "on", so OFF→ON can restore it.
         local nl_saved = (nl.cur > nl.min) and nl.cur or nl.max
         -- Forward declaration so setWarmth can reference the toggle button.
@@ -589,7 +648,6 @@ function QA.buildPanel(touch_menu)
             if nl_label then
                 nl_label:setText(_("Warmth") .. ": " .. tostring(nl.cur))
             end
-            -- Keep the toggle button label in sync.
             if nl_toggle_btn then
                 nl_toggle_btn:setText(nl.cur > nl.min and "ON" or "OFF")
             end
@@ -632,7 +690,7 @@ function QA.buildPanel(touch_menu)
             align = "center",
             nl_minus,
             HorizontalSpan:new{ width = slider_gap },
-            nl_slider,
+            nl_slider_wrapper,      -- ★ 从 nl_slider 换成 wrapper
             HorizontalSpan:new{ width = slider_gap },
             nl_plus,
             HorizontalSpan:new{ width = slider_gap },
@@ -655,6 +713,454 @@ function QA.buildPanel(touch_menu)
         refs.setWarmth = setWarmth
     end
 
+    -- ============================================================
+    -- Reader typography sliders
+    -- ============================================================
+    do
+        local RUI = require("apps/reader/readerui")
+        local reader = RUI and RUI.instance
+        local provider = reader and reader.document and reader.document.provider
+        local is_cre = provider == "crengine"
+        local is_pdf = provider == "mupdf" or provider == "kopt"
+
+        if is_cre or is_pdf then
+            local gap = Screen:scaleBySize(4)
+            local small_btn_w = Screen:scaleBySize(40)
+            local label_w = Screen:scaleBySize(70)
+            local value_w = Screen:scaleBySize(50)
+            local label_face = medium_face
+
+            local G_defaults = rawget(_G, "G_defaults")
+
+            local function readDefault(global_key, factory_key, fallback)
+                if G_reader_settings and global_key then
+                    local v = G_reader_settings:readSetting(global_key)
+                    if v ~= nil then return v end
+                end
+                if G_defaults and factory_key then
+                    local v = G_defaults:readSetting(factory_key)
+                    if v ~= nil then return v end
+                end
+                return fallback
+            end
+
+            local function addReaderSlider(opts)
+                if not Utils.getBool(opts.enabled_key) then return end
+                if opts.should_show and not opts.should_show() then return end
+
+                local _d = Button:new{
+                    text = "−", width = small_btn_w,
+                    show_parent = touch_menu.show_parent,
+                    callback = function() end,
+                }
+                local btn_h = math.max(30, _d:getSize().h)
+
+                local label_widget = LeftContainer:new{
+                    dimen = Geom:new{ w = label_w, h = btn_h },
+                    TextWidget:new{
+                        text = opts.label,
+                        face = label_face,
+                        fgcolor = Blitbuffer.COLOR_BLACK,
+                        max_width = label_w,
+                        truncate_with_ellipsis = true,
+                    },
+                }
+
+                local slider_w = inner_w - label_w - 2 * small_btn_w - 3 * gap - value_w
+
+                local slider = SlimSlider:new{
+                    width = slider_w,
+                    height = btn_h,
+                    minimum = opts.min,
+                    maximum = opts.max,
+                    value = opts.get(),
+                    show_parent = touch_menu.show_parent,
+                    enabled = true,
+                }
+
+                local slider_wrapper = InputContainer:new{
+                    dimen = Geom:new{ w = slider_w, h = btn_h },
+                }
+                slider_wrapper[1] = slider
+
+                if Utils.getBool("qa_panel_button_hold_edit") then
+                    slider_wrapper:registerTouchZones({
+                        {
+                            id = "sld_hold_" .. opts.key,
+                            ges = "hold",
+                            screen_zone = {
+                                ratio_x = 0, ratio_y = 0, ratio_w = 1, ratio_h = 1,
+                            },
+                            handler = function(ges)
+                                local rel_x = ges.pos.x - (slider_wrapper.dimen and slider_wrapper.dimen.x or 0)
+                                local rel_y = ges.pos.y - (slider_wrapper.dimen and slider_wrapper.dimen.y or 0)
+                                if rel_x >= 0 and rel_x <= slider_w and rel_y >= 0 and rel_y <= btn_h then
+                                    UIManager:close(touch_menu)
+                                    local settings = require("qui_actions/qa_settings")
+                                    if settings and settings.showSlidersMenu then
+                                        settings.showSlidersMenu(nil, nil)
+                                    end
+                                    return true
+                                end
+                                return false
+                            end,
+                        },
+                    })
+                end
+
+                local apply, refresh
+
+                local initial_text
+                if opts.precision then
+                    initial_text = string.format(opts.precision, opts.get())
+                else
+                    initial_text = tostring(opts.get())
+                end
+
+                local value_btn = Button:new{
+                    text = initial_text,
+                    width = value_w,
+                    height = btn_h,
+                    padding = 0,
+                    bordersize = 0,
+                    text_font_bold = false,
+                    show_parent = touch_menu.show_parent,
+                    callback = function()
+                        local SpinWidget = require("ui/widget/spinwidget")
+                        local default_val = (type(opts.default) == "function" and opts.default() or opts.default)
+                        if type(default_val) == "table" then
+                            default_val = default_val[1]
+                        end
+                        local spin
+                        spin = SpinWidget:new{
+                            title_text = opts.label,
+                            value = opts.get(),
+                            value_min = opts.min,
+                            value_max = opts.max,
+                            value_step = opts.step or 1,
+                            value_hold_step = opts.hold_step or 5,
+                            precision = opts.precision,
+                            default_value = default_val,
+                            keep_shown_on_apply = true,
+                            callback = function(spin)
+                                apply(spin.value)
+                            end,
+                            extra_text = _("Set as default"),
+                            extra_callback = function(spin)
+                                if G_reader_settings and opts.global_key then
+                                    local v = spin.value
+                                    if opts.global_is_pair then
+                                        G_reader_settings:saveSetting(opts.global_key, {v, v})
+                                    else
+                                        G_reader_settings:saveSetting(opts.global_key, v)
+                                    end
+                                    UIManager:show(Notification:new{
+                                        text = _("Set as default"),
+                                        timeout = 2,
+                                    })
+                                end
+                            end,
+                        }
+                        UIManager:show(spin)
+                    end,
+                    hold_callback = function()
+                        local default_val = (type(opts.default) == "function" and opts.default() or opts.default)
+                        if type(default_val) == "table" then
+                            default_val = default_val[1]
+                        end
+                        if default_val ~= nil then
+                            apply(default_val)
+                            UIManager:show(Notification:new{
+                                text = string.format(_("Reset to %s"), tostring(default_val)),
+                                timeout = 2,
+                            })
+                        end
+                    end,
+                }
+
+                refresh = function(v)
+                    slider:setValue(v)
+                    if opts.precision then
+                        value_btn:setText(string.format(opts.precision, v), value_w)
+                    else
+                        value_btn:setText(tostring(v), value_w)
+                    end
+                    UIManager:setDirty(touch_menu.show_parent, "ui")
+                end
+
+                apply = function(v)
+                    local real = opts.set(v)
+                    refresh(real or v)
+                end
+
+                local minus = Button:new{
+                    text = "−", width = small_btn_w,
+                    show_parent = touch_menu.show_parent,
+                    callback = function() apply(slider.value - (opts.step or 1)) end,
+                    bordersize = 0, background = nil, framebg = nil,
+                }
+                local plus = Button:new{
+                    text = "＋", width = small_btn_w,
+                    show_parent = touch_menu.show_parent,
+                    callback = function() apply(slider.value + (opts.step or 1)) end,
+                    bordersize = 0, background = nil, framebg = nil,
+                }
+
+                local row = HorizontalGroup:new{
+                    align = "center",
+                    label_widget,
+                    HorizontalSpan:new{ width = gap },
+                    minus,
+                    HorizontalSpan:new{ width = gap },
+                    slider_wrapper,
+                    HorizontalSpan:new{ width = gap },
+                    plus,
+                    HorizontalSpan:new{ width = gap },
+                    value_btn,
+                }
+
+                table.insert(panel, VerticalSpan:new{ width = Screen:scaleBySize(6) })
+                table.insert(panel, CenterContainer:new{
+                    dimen = Geom:new{ w = panel_w, h = row:getSize().h },
+                    row,
+                })
+
+                refs[opts.key .. "_slider"] = slider
+                refs["set_" .. opts.key] = apply
+            end
+
+            -- ============================================================
+            -- EPUB / TXT / FB2 分支
+            -- ============================================================
+            if is_cre then
+                addReaderSlider{
+                    key = "pdf_contrast",
+                    label = _("Contrast"),
+                    min = 0.8, max = 50,
+                    step = 0.1,
+                    precision = "%.1f",
+                    default = function()
+                        return readDefault("kopt_contrast", "DKOPTREADER_CONFIG_CONTRAST", 1.0)
+                    end,
+                    global_key = "kopt_contrast",
+                    get = function() return reader.document.configurable.contrast end,
+                    set = function(v)
+                        v = math.max(0.8, math.min(50, v))
+                        reader.document.configurable.contrast = v
+                        reader.view.state.gamma = v
+                        reader:handleEvent(Event:new("RedrawCurrentPage"))
+                        return v
+                    end,
+                    enabled_key = "qa_panel_reader_gamma",
+                }
+
+                addReaderSlider{
+                    key = "line_spacing",
+                    label = _("Line Spacing"),
+                    min = 50, max = 200,
+                    default = function()
+                        return readDefault("copt_line_spacing", "DCREREADER_CONFIG_LINE_SPACE_PERCENT_MEDIUM", 100)
+                    end,
+                    global_key = "copt_line_spacing",
+                    get = function() return reader.font.configurable.line_spacing end,
+                    set = function(v)
+                        v = math.max(50, math.min(200, math.floor(v + 0.5)))
+                        reader.font:onSetLineSpace(v)
+                        return reader.font.configurable.line_spacing
+                    end,
+                    enabled_key = "qa_panel_reader_line_spacing",
+                }
+
+                addReaderSlider{
+                    key = "gamma",
+                    label = _("Contrast"),
+                    min = 10, max = 56,
+                    default = function()
+                        return readDefault("copt_font_gamma", nil, 15)
+                    end,
+                    global_key = "copt_font_gamma",
+                    get = function() return reader.font.configurable.font_gamma end,
+                    set = function(v)
+                        v = math.max(10, math.min(56, math.floor(v + 0.5)))
+                        reader.document:setGammaIndex(v)
+                        reader:handleEvent(Event:new("UpdatePos"))
+                        return v
+                    end,
+                    enabled_key = "qa_panel_reader_gamma",
+                }
+
+                addReaderSlider{
+                    key = "h_margin",
+                    label = _("L/R Margins"),
+                    min = 0, max = 140,
+                    default = function()
+                        local v = readDefault("copt_h_page_margins", "DCREREADER_CONFIG_H_MARGIN_SIZES_MEDIUM", 10)
+                        if type(v) == "table" then
+                            return v[1] or 10
+                        end
+                        return v
+                    end,
+                    global_key = "copt_h_page_margins",
+                    global_is_pair = true,
+                    get = function() return reader.font.configurable.h_page_margins[1] end,
+                    set = function(v)
+                        v = math.max(0, math.min(140, math.floor(v + 0.5)))
+                        reader.typeset:onSetPageHorizMargins({ v, v })
+                        return v
+                    end,
+                    enabled_key = "qa_panel_reader_margins_h",
+                }
+
+                addReaderSlider{
+                    key = "t_margin",
+                    label = _("Top Margin"),
+                    min = 0, max = 140,
+                    default = function()
+                        return readDefault("copt_t_page_margin", "DCREREADER_CONFIG_T_MARGIN_SIZES_LARGE", 10)
+                    end,
+                    global_key = "copt_t_page_margin",
+                    get = function() return reader.font.configurable.t_page_margin end,
+                    set = function(v)
+                        v = math.max(0, math.min(140, math.floor(v + 0.5)))
+                        reader.typeset:onSetPageTopMargin(v)
+                        return v
+                    end,
+                    enabled_key = "qa_panel_reader_margin_top",
+                }
+
+                addReaderSlider{
+                    key = "b_margin",
+                    label = _("Bottom Margin"),
+                    min = 0, max = 140,
+                    default = function()
+                        return readDefault("copt_b_page_margin", "DCREREADER_CONFIG_B_MARGIN_SIZES_LARGE", 10)
+                    end,
+                    global_key = "copt_b_page_margin",
+                    get = function() return reader.font.configurable.b_page_margin end,
+                    set = function(v)
+                        v = math.max(0, math.min(140, math.floor(v + 0.5)))
+                        reader.typeset:onSetPageBottomMargin(v)
+                        return v
+                    end,
+                    enabled_key = "qa_panel_reader_margin_bot",
+                }
+            end
+
+            -- ============================================================
+            -- PDF / DJVU / CBZ 分支
+            -- ============================================================
+            if is_pdf then
+                addReaderSlider{
+                    key = "pdf_contrast",
+                    label = _("Contrast"),
+                    min = 0.8, max = 50,
+                    step = 0.1,
+                    precision = "%.1f",
+                    default = function()
+                        return readDefault("kopt_contrast", "DKOPTREADER_CONFIG_CONTRAST", 1.0)
+                    end,
+                    global_key = "kopt_contrast",
+                    get = function() return reader.document.configurable.contrast end,
+                    set = function(v)
+                        v = math.max(0.8, math.min(50, v))
+                        reader.document.configurable.contrast = v
+                        reader:handleEvent(Event:new("GammaUpdate", v, true))
+                        UIManager:setDirty(reader, "full")
+                        return v
+                    end,
+                    enabled_key = "qa_panel_reader_gamma",
+                }
+
+                addReaderSlider{
+                    key = "pdf_zoom_overlap_h",
+                    label = _("Horizontal overlap"),
+                    min = 0, max = 84,
+                    step = 1,
+                    default = function()
+                        return readDefault("kopt_zoom_overlap_h", nil, 36)
+                    end,
+                    global_key = "kopt_zoom_overlap_h",
+                    get = function() return reader.document.configurable.zoom_overlap_h end,
+                    set = function(v)
+                        v = math.max(0, math.min(84, math.floor(v + 0.5)))
+                        reader:handleEvent(Event:new("SetZoomPan", { kopt_zoom_overlap_h = v }))
+                        return v
+                    end,
+                    enabled_key = "qa_panel_reader_zoom",
+                    should_show = function()
+                        return reader.document.configurable.zoom_mode_genus < 3
+                    end,
+                }
+
+                addReaderSlider{
+                    key = "pdf_zoom_overlap_v",
+                    label = _("Vertical overlap"),
+                    min = 0, max = 84,
+                    step = 1,
+                    default = function()
+                        return readDefault("kopt_zoom_overlap_v", nil, 36)
+                    end,
+                    global_key = "kopt_zoom_overlap_v",
+                    get = function() return reader.document.configurable.zoom_overlap_v end,
+                    set = function(v)
+                        v = math.max(0, math.min(84, math.floor(v + 0.5)))
+                        reader:handleEvent(Event:new("SetZoomPan", { kopt_zoom_overlap_v = v }))
+                        return v
+                    end,
+                    enabled_key = "qa_panel_reader_zoom",
+                    should_show = function()
+                        return reader.document.configurable.zoom_mode_genus < 3
+                    end,
+                }
+
+                addReaderSlider{
+                    key = "pdf_zoom_range_number",
+                    label = _("Rows") .. "/" .. _("Columns"),
+                    min = 0.1, max = 8,
+                    step = 0.1,
+                    precision = "%.1f",
+                    default = function()
+                        return readDefault("kopt_zoom_range_number", nil, 2)
+                    end,
+                    global_key = "kopt_zoom_range_number",
+                    get = function() return reader.document.configurable.zoom_range_number end,
+                    set = function(v)
+                        v = math.max(0.1, math.min(8, v))
+                        reader:handleEvent(Event:new("SetZoomPan", { kopt_zoom_range_number = v }))
+                        return v
+                    end,
+                    enabled_key = "qa_panel_reader_zoom",
+                    should_show = function()
+                        local g = reader.document.configurable.zoom_mode_genus
+                        return g == 1 or g == 2
+                    end,
+                }
+
+                addReaderSlider{
+                    key = "pdf_zoom_factor",
+                    label = _("Zoom factor"),
+                    min = 0.1, max = 20,
+                    step = 0.1,
+                    precision = "%.1f",
+                    default = function()
+                        return readDefault("kopt_zoom_factor", nil, 1.5)
+                    end,
+                    global_key = "kopt_zoom_factor",
+                    get = function() return reader.document.configurable.zoom_factor end,
+                    set = function(v)
+                        v = math.max(0.1, math.min(20, v))
+                        reader:handleEvent(Event:new("SetZoomPan", { kopt_zoom_factor = v }))
+                        return v
+                    end,
+                    enabled_key = "qa_panel_reader_zoom",
+                    should_show = function()
+                        return reader.document.configurable.zoom_mode_genus == 0
+                    end,
+                }
+            end
+        end
+    end
+    
     table.insert(panel, VerticalSpan:new{ width = Screen:scaleBySize(14) })
 
     local panel_h = panel:getSize().h
@@ -763,6 +1269,40 @@ function QA.patchTouchMenu()
     end
     TouchMenu._quickui_qa_patched = true
 
+    local SLIDER_KEYS = {
+        { slider = "fl_slider",           setter = "setBrightness" },
+        { slider = "nl_slider",           setter = "setWarmth" },
+        { slider = "font_size_slider",    setter = "set_font_size" },
+        { slider = "line_spacing_slider", setter = "set_line_spacing" },
+        { slider = "gamma_slider",        setter = "set_gamma" },
+        { slider = "h_margin_slider",     setter = "set_h_margin" },
+        { slider = "t_margin_slider",     setter = "set_t_margin" },
+        { slider = "b_margin_slider",     setter = "set_b_margin" },
+        { slider = "pdf_contrast_slider",          setter = "set_pdf_contrast" },
+        { slider = "pdf_zoom_overlap_h_slider",    setter = "set_pdf_zoom_overlap_h" },
+        { slider = "pdf_zoom_overlap_v_slider",    setter = "set_pdf_zoom_overlap_v" },
+        { slider = "pdf_zoom_range_number_slider", setter = "set_pdf_zoom_range_number" },
+        { slider = "pdf_zoom_factor_slider",       setter = "set_pdf_zoom_factor" },
+    }
+
+    local function handleSliderAt(self, ges_ev)
+        if not (self._qs_refs and self.item_table and self.item_table._qa_panel) then
+            return false
+        end
+        for _, entry in ipairs(SLIDER_KEYS) do
+            local slider = self._qs_refs[entry.slider]
+            local setter = self._qs_refs[entry.setter]
+            if slider and slider.dimen and setter and ges_ev.pos:intersectWith(slider.dimen) then
+                local new_val = slider:getValueFromPosition(ges_ev.pos)
+                if new_val then
+                    setter(new_val)
+                    return true
+                end
+            end
+        end
+        return false
+    end
+    
     local _orig_updateItems = TouchMenu.updateItems
     local _orig_onTap = TouchMenu.onTapCloseAllMenus
     local _orig_onSwipe = TouchMenu.onSwipe
@@ -827,19 +1367,8 @@ function QA.patchTouchMenu()
 
     function TouchMenu:onTapCloseAllMenus(arg, ges_ev)
         if self._qs_refs and self.item_table and self.item_table._qa_panel then
-            if self._qs_refs.fl_slider and self._qs_refs.fl_slider.dimen and ges_ev.pos:intersectWith(self._qs_refs.fl_slider.dimen) then
-                local new_val = self._qs_refs.fl_slider:getValueFromPosition(ges_ev.pos)
-                if new_val and self._qs_refs.setBrightness then
-                    self._qs_refs.setBrightness(math.floor(new_val + 0.5))
-                    return true
-                end
-            end
-            if self._qs_refs.nl_slider and self._qs_refs.nl_slider.dimen and ges_ev.pos:intersectWith(self._qs_refs.nl_slider.dimen) then
-                local new_val = self._qs_refs.nl_slider:getValueFromPosition(ges_ev.pos)
-                if new_val and self._qs_refs.setWarmth then
-                    self._qs_refs.setWarmth(math.floor(new_val + 0.5))
-                    return true
-                end
+            if handleSliderAt(self, ges_ev) then
+                return true
             end
             for __, ref in ipairs(self._qs_refs.buttons or {}) do
                 if ref.widget.dimen and ges_ev.pos:intersectWith(ref.widget.dimen) then
@@ -857,19 +1386,8 @@ function QA.patchTouchMenu()
 
     function TouchMenu:onSwipe(arg, ges_ev)
         if self._qs_refs and self.item_table and self.item_table._qa_panel then
-            if self._qs_refs.fl_slider and self._qs_refs.fl_slider.dimen and ges_ev.pos:intersectWith(self._qs_refs.fl_slider.dimen) then
-                local new_val = self._qs_refs.fl_slider:getValueFromPosition(ges_ev.pos)
-                if new_val and self._qs_refs.setBrightness then
-                    self._qs_refs.setBrightness(math.floor(new_val + 0.5))
-                    return true
-                end
-            end
-            if self._qs_refs.nl_slider and self._qs_refs.nl_slider.dimen and ges_ev.pos:intersectWith(self._qs_refs.nl_slider.dimen) then
-                local new_val = self._qs_refs.nl_slider:getValueFromPosition(ges_ev.pos)
-                if new_val and self._qs_refs.setWarmth then
-                    self._qs_refs.setWarmth(math.floor(new_val + 0.5))
-                    return true
-                end
+            if handleSliderAt(self, ges_ev) then
+                return true
             end
             for __, ref in ipairs(self._qs_refs.buttons or {}) do
                 if ref.widget.dimen and ges_ev.pos:intersectWith(ref.widget.dimen) then
@@ -889,25 +1407,15 @@ function QA.patchTouchMenu()
 
     function TouchMenu:onPan(arg, ges_ev)
         if self._qs_refs and self.item_table and self.item_table._qa_panel then
-            if self._qs_refs.fl_slider and self._qs_refs.fl_slider.dimen and ges_ev.pos:intersectWith(self._qs_refs.fl_slider.dimen) then
-                local new_val = self._qs_refs.fl_slider:getValueFromPosition(ges_ev.pos)
-                if new_val and self._qs_refs.setBrightness then
-                    self._qs_refs.setBrightness(math.floor(new_val + 0.5))
-                    return true
-                end
-            end
-            if self._qs_refs.nl_slider and self._qs_refs.nl_slider.dimen and ges_ev.pos:intersectWith(self._qs_refs.nl_slider.dimen) then
-                local new_val = self._qs_refs.nl_slider:getValueFromPosition(ges_ev.pos)
-                if new_val and self._qs_refs.setWarmth then
-                    self._qs_refs.setWarmth(math.floor(new_val + 0.5))
-                    return true
-                end
+            if handleSliderAt(self, ges_ev) then
+                return true
             end
         end
         if _orig_onPan then
             return _orig_onPan(self, arg, ges_ev)
         end
     end
+    
 end
 
 -- ============================================================
