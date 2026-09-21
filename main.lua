@@ -202,6 +202,12 @@ function QuickUI:registerDispatcherActions()
             title = _("QuickUI_SystemIconOverride"),
             general = true,
         })
+        Dispatcher:registerAction("QuickUI_ReaderSliders", {
+            category = "none",
+            event = "QuickUI_ReaderSliders",
+            title = _("QuickUI_ReaderSliders"),
+            reader = true,
+        })
         Dispatcher:registerAction("QuickUI_InterfaceFilter", {
             category = "none",
             event = "QuickUI_InterfaceFilter",
@@ -296,6 +302,17 @@ end
 function QuickUI:onQuickUI_SystemIconOverride()
     local icon_picker = require("qui_actions/qa_icon_picker")
     icon_picker.showIconPicker(nil, nil, nil, "system")
+    return true
+end
+
+function QuickUI:onQuickUI_ReaderSliders()
+    local RUI = require("apps/reader/readerui")
+    local reader = RUI and RUI.instance
+    if not reader or not reader.document then
+        Notification:notify(_("Please open a book first"))
+        return true
+    end
+    require("qui_actions/qa_reader_sliders").show()
     return true
 end
 
