@@ -283,6 +283,7 @@ local function _buildRow(action_id, m, row_w)
         padding    = 0,
         group,
     }
+
     local row = InputContainer:new{ dimen = frame:getSize(), frame }
     row._frame = frame
 
@@ -368,15 +369,16 @@ local function _buildPanel(page)
     local function pressFeedback(row)
         local f = row._frame
         if not f or not row.dimen then return end
+
         f.background = Blitbuffer.gray(0.5)
         UIManager:widgetRepaint(row, row.dimen.x, row.dimen.y)
-        UIManager:setDirty(nil, "fast", row.dimen)
+        UIManager:setDirty(nil, "ui", row.dimen)
         UIManager:forceRePaint()
         UIManager:scheduleIn(0.1, function()
             f.background = nil
             if row.dimen and UIManager:isWidgetShown(row) then
                 UIManager:widgetRepaint(row, row.dimen.x, row.dimen.y)
-                UIManager:setDirty(nil, "fast", row.dimen)
+                UIManager:setDirty(nil, "ui", row.dimen)
             end
         end)
     end
@@ -389,6 +391,7 @@ local function _buildPanel(page)
             return true
         end
         function add_row:onHold()
+            pressFeedback(self)
             if Utils.getBool("qa_vb_settings_on_hold", true) then
                 M.hide()
                 settings.showVerticalBarSettings()
@@ -413,6 +416,7 @@ local function _buildPanel(page)
                 return true
             end
             function row:onHold()
+                pressFeedback(self)
                 local is_builtin = QA.isBuiltinAction and QA.isBuiltinAction(_id)
                 M.hide()
                 if is_builtin then
@@ -436,13 +440,22 @@ local function _buildPanel(page)
                     face    = m.label_face,
                     fgcolor = enabled and Blitbuffer.COLOR_BLACK or Blitbuffer.gray(0.6),
                 }
-                local c = InputContainer:new{
-                    dimen = Geom:new{ w = w, h = m.row_h },
+                local cell_frame = FrameContainer:new{
+                    width      = w,
+                    height     = m.row_h,
+                    bordersize = 0,
+                    padding    = 0,
+                    background = nil,
                     CenterContainer:new{
                         dimen = Geom:new{ w = w, h = m.row_h },
                         t,
                     },
                 }
+                local c = InputContainer:new{
+                    dimen = cell_frame:getSize(),
+                    cell_frame,
+                }
+                c._frame = cell_frame
                 if Device:isTouchDevice() then
                     c.ges_events = {
                         Tap  = { GestureRange:new{ ges = "tap",  range = c.dimen } },
@@ -450,10 +463,12 @@ local function _buildPanel(page)
                     }
                 end
                 function c:onTap()
+                    pressFeedback(self)
                     if enabled then on_tap() end
                     return true
                 end
                 function c:onHold()
+                    pressFeedback(self)
                     if Utils.getBool("qa_vb_settings_on_hold", true) then
                         M.hide()
                         settings.showVerticalBarSettings()
@@ -463,15 +478,23 @@ local function _buildPanel(page)
                 return c
             end
 
-            local prev_cell = mkHalf("▲", page > 1, function()
-                _current_page = page - 1
-                M.refresh()
-            end, half_w)
+            local prev_cell = mkHalf(
+                QA.nerdIconChar("nerd:F077") or "▲",   -- fa-chevron-up
+                page > 1,
+                function()
+                    _current_page = page - 1
+                    M.refresh()
+                end,
+                half_w)
 
-            local next_cell = mkHalf("▼", page < pages, function()
-                _current_page = page + 1
-                M.refresh()
-            end, other_w)
+            local next_cell = mkHalf(
+                QA.nerdIconChar("nerd:F078") or "▼",   -- fa-chevron-down
+                page < pages,
+                function()
+                    _current_page = page + 1
+                    M.refresh()
+                end,
+                other_w)
 
             vg[#vg + 1] = HorizontalGroup:new{ align = "center", prev_cell, next_cell }
         end
