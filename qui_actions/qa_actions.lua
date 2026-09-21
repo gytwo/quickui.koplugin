@@ -1079,7 +1079,7 @@ function QA.registerAllActions()
     -- ============================================================
 
     -- Home (Filemanager)
-    QA.registerAction("home", _("Home"), "nerd:F46D", false, "common", function(ctx)
+    QA.registerAction("home", _("Home"), "nerd:F015", false, "common", function(ctx)
         local FM = require("apps/filemanager/filemanager")
         local RUI = require("apps/reader/readerui")
         
@@ -1386,6 +1386,25 @@ function QA.registerAllActions()
         UIManager:show(font_dialog)
     end)
 
+    -- Reader Sliders popup
+    QA.registerAction("reader_sliders", _("Reader Sliders"), "nerd:F1DE", false, "reader", function(ctx)
+        local RUI = require("apps/reader/readerui")
+        local reader = RUI and RUI.instance
+        if not reader or not reader.document then
+            UIManager:show(InfoMessage:new{
+                text = _("Please open a book first"),
+                timeout = 2,
+            })
+            return
+        end
+        if ctx and ctx.touch_menu and ctx.touch_menu.onClose then
+            ctx.touch_menu:onClose()
+        end
+        UIManager:scheduleIn(0, function()
+            require("qui_actions/qa_reader_sliders").show()
+        end)
+    end)
+    
     -- Reading Insights
     QA.registerAction("reading_insights", _("Reading Insights"), "nerd:F073", false, "common", function()
         UIManager:broadcastEvent(Event:new("ShowReadingInsightsPopup"))
@@ -1418,7 +1437,7 @@ function QA.registerAllActions()
     end)
 
     -- ZLibrary Search
-    QA.registerAction("zlibrary_search", _("ZLibrary Search"), "nerd:E76F", false, "common", function()
+    QA.registerAction("zlibrary_search", _("ZLibrary Search"), "nerd:EB73", false, "common", function()
         local FM = require("apps/filemanager/filemanager")
         local fm = FM and FM.instance
         local RUI = require("apps/reader/readerui")
@@ -1483,7 +1502,6 @@ function QA.registerAllActions()
         end
     end)
 
-    -- CloudLibrary Settings
     QA.registerAction("cloudlibrary_settings", _("CloudLibrary - Settings"), "nerd:E33D", false, "common", function()
         local FM = require("apps/filemanager/filemanager")
         local fm = FM and FM.instance
@@ -1496,11 +1514,7 @@ function QA.registerAllActions()
             plugin = reader.CloudLibrary
         end
         if plugin then
-            if reader then
-                plugin:onCloudLibrarySettingsReader()
-            else
-                plugin:onCloudLibrarySettingsFileManager()
-            end
+            plugin:onCloudLibraryQuickSettings()
         else
             UIManager:show(InfoMessage:new{
                 text = _("CloudLibrary plugin not found"),
@@ -1617,8 +1631,174 @@ function QA.registerAllActions()
             "nerd:F02C", false, "filemanager",
             function(ctx) _browseAction(ctx, "tags") end
         )
+        QA.registerAction(
+            "Sui-toggle", _("Sui-Homescreen"),
+            "nerd:F46D", false, "common",
+            function(ctx)
+                UIManager:broadcastEvent(Event:new("SimpleUIToggleHomeLibrary"))
+            end
+        )
+        QA.registerAction(
+            "Sui-settings", _("Sui-Settings"),
+            "nerd:F013", false, "common",
+            function(ctx)
+                UIManager:broadcastEvent(Event:new("SimpleUISettingsWindow"))
+            end
+        )
     end
 
+    -- ============================================================
+    -- Bookshelf (independent of SimpleUI)
+    -- ============================================================
+    QA.registerAction(
+        "bookshelf_toggle", _("Bookshelf"),
+        "nerd:E28B", false, "common",
+        function(ctx)
+            UIManager:broadcastEvent(Event:new("ToggleBookshelf"))
+        end
+    )
+    
+        -- ============================================================
+    -- Storefront
+    -- ============================================================
+    QA.registerAction(
+        "storefront_open", _("Storefront"),
+        "nerd:ECFA", false, "common",
+        function(ctx)
+            UIManager:broadcastEvent(Event:new("StorefrontOpen"))
+        end
+    )
+
+    -- ============================================================
+    -- WeRead
+    -- ============================================================
+    QA.registerAction(
+        "weread_bookshelf", _("WeRead-Bookshelf"),
+        "nerd:ED10", false, "common",
+        function(ctx)
+            UIManager:broadcastEvent(Event:new("ShowWeReadBookshelf"))
+        end
+    )
+    QA.registerAction(
+        "weread_search", _("WeRead-Search"),
+        "nerd:F00E", false, "common",
+        function(ctx)
+            UIManager:broadcastEvent(Event:new("ShowWeReadSearch"))
+        end
+    )
+    
+    QA.registerAction(
+        "weread_quick_menu", _("WeRead-QuickMenu"),
+        "nerd:F0CA", false, "reader",
+        function(ctx)
+            UIManager:broadcastEvent(Event:new("ShowWeReadQuickMenu"))
+        end
+    )
+    -- ============================================================
+    -- Weread Annotation Lite
+    -- ============================================================
+    QA.registerAction(
+        "weread_fetch_underlines", _("Weread AL-Fetch Underlines"),
+        "nerd:E884", false, "reader",
+        function(ctx)
+            UIManager:broadcastEvent(Event:new("WereadFetchUnderlines"))
+        end
+    )
+
+    -- ============================================================
+    -- Rssreader
+    -- ============================================================
+    QA.registerAction(
+        "rssreader_open", _("Rssreader"),
+        "nerd:F09E", false, "common",
+        function(ctx)
+            UIManager:broadcastEvent(Event:new("RSSReader"))
+        end
+    )
+    
+    -- ============================================================
+    -- ArtGallery
+    -- ============================================================
+    QA.registerAction(
+        "artgallery_show", _("ArtGallery"),
+        "nerd:F03E", false, "reader",
+        function(ctx)
+            UIManager:broadcastEvent(Event:new("ArtGalleryShow"))
+        end
+    )
+    
+    -- ============================================================
+    -- FanQie (番茄小说)
+    -- ============================================================
+    QA.registerAction(
+        "fanqie_bookshelf", _("FanQie-Bookshelf"),
+        "nerd:E002", false, "common",
+        function(ctx)
+            UIManager:broadcastEvent(Event:new("ShowFanQieBookshelf"))
+        end
+    )
+    QA.registerAction(
+        "fanqie_search", _("FanQie-SearchBooks"),
+        "nerd:F00E", false, "common",
+        function(ctx)
+            UIManager:broadcastEvent(Event:new("FanQieSearchBooks"))
+        end
+    )
+    QA.registerAction(
+        "fanqie_toc", _("FanQie-Toc"),
+        "nerd:F277", false, "reader",
+        function(ctx)
+            UIManager:broadcastEvent(Event:new("ShowFanQieToc"))
+        end
+    )
+    QA.registerAction(
+        "fanqie_shelf_or_toc", _("FanQie-Shelf/Toc"),
+        "nerd:E002", false, "common",
+        function(ctx)
+            UIManager:broadcastEvent(Event:new("ShowFanQieShelfOrToc"))
+        end
+    )
+    
+    -- ============================================================
+    -- FingerInk
+    -- ============================================================
+    QA.registerAction(
+        "fingerink_bar", _("FingerInk-toolbar"),
+        "nerd:E7E2", false, "reader",
+        function(ctx)
+            UIManager:broadcastEvent(Event:new("FingerInkBar"))
+        end
+    )
+    
+    -- ============================================================
+    -- SideToc (侧边目录)
+    -- ============================================================
+    QA.registerAction(
+        "toggle_side_toc", _("SideToc"),
+        "nerd:F0CA", false, "reader",
+        function(ctx)
+            UIManager:broadcastEvent(Event:new("ToggleSideToc"))
+        end
+    )
+    
+    -- ============================================================
+    -- KOAssistant
+    -- ============================================================
+    QA.registerAction(
+        "koassistant_quick_actions", _("KOA-quickactions"),
+        "nerd:EDD9", false, "reader",
+        function(ctx)
+            UIManager:broadcastEvent(Event:new("KOAssistantQuickActions"))
+        end
+    )
+    QA.registerAction(
+        "koassistant_ai_settings", _("KOA-quicksettings"),
+        "nerd:EDA7", false, "common",
+        function(ctx)
+            UIManager:broadcastEvent(Event:new("KOAssistantAISettings"))
+        end
+    )
+    
     -- ============================================================
     -- QuickUI Settings actions (qa_common_enabled)
     -- ============================================================
@@ -1687,7 +1867,7 @@ function QA.registerAllActions()
         -- ============================================================
         -- Vertical Bar actions
         -- ============================================================
-        QA.registerAction("qa_vb_toggle", _("Toggle Vertical Bar"), "nerd:ED69", false, "common", function(ctx)
+        QA.registerAction("qa_vb_toggle", _("Toggle Vertical Bar"), "nerd:E8D8", false, "common", function(ctx)
             local vb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.verticalbar
             if vb and vb.toggle then
                 vb.toggle()
@@ -1697,7 +1877,7 @@ function QA.registerAllActions()
             end
         end)
 
-        QA.registerAction("qa_vb_settings", _("Vertical Bar Settings"), "nerd:E8D8", false, "common", function(ctx)
+        QA.registerAction("qa_vb_settings", _("Vertical Bar Settings"), "nerd:ED69", false, "common", function(ctx)
             if ctx and ctx.touch_menu then ctx.touch_menu:onClose() end
             local settings = require("qui_actions/qa_settings")
             if settings and settings.showVerticalBarSettings then
@@ -1725,7 +1905,7 @@ function QA.registerAllActions()
         -- ============================================================
         if config.qa_panel_enabled then
             -- QA Panel Settings
-            QA.registerAction("qa_panel_settings", _("QA Panel Settings"), "nerd:F1DE", false, "common", function(ctx)
+            QA.registerAction("qa_panel_settings", _("QA Panel Settings"), "nerd:F205", false, "common", function(ctx)
                 local settings = require("qui_actions/qa_settings")
                 if settings and settings.showPanelSettings then
                     settings.showPanelSettings()
@@ -1761,7 +1941,7 @@ function QA.registerAllActions()
         -- ============================================================
         if config.qa_bb_enabled then
             -- QA Bottom Bar Settings
-            QA.registerAction("qa_bb_settings", _("QA Bottom Bar Settings"), "nerd:F1DE", false, "common", function(ctx)
+            QA.registerAction("qa_bb_settings", _("QA Bottom Bar Settings"), "nerd:E241", false, "common", function(ctx)
                 local settings = require("qui_actions/qa_settings")
                 if settings and settings.showBottombarSettings then
                     settings.showBottombarSettings()
