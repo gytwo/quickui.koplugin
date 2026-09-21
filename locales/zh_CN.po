@@ -1810,10 +1810,73 @@ msgid "Remove from Vertical Bar"
 msgstr "从侧边栏移除"
 
 msgid "Sliders"
-msgstr "滑块"
+msgstr "滑块（面板）"
 
 msgid "Reset to %s"
 msgstr "重置为 %s"
 
 msgid "Swipe to page"
 msgstr "竖滑翻页"
+
+msgid "Reader Sliders"
+msgstr "阅读滑块"
+
+msgid "No reader sliders available for this document"
+msgstr "当前文档没有可用的阅读滑块"
+
+msgid "QuickUI_ReaderSliders"
+msgstr "QuickUI-打开阅读滑块"
+
+msgid "Sui-Homescreen"
+msgstr "Sui-主页"
+
+msgid "Sui-Settings"
+msgstr "Sui-设置"
+
+msgid "Bookshelf"
+msgstr "书架"
+
+msgid "Storefront"
+msgstr "商店"
+
+msgid "WeRead-Bookshelf"
+msgstr "微信阅读-书架"
+
+msgid "WeRead-Search"
+msgstr "微信阅读-搜索"
+
+msgid "WeRead-QuickMenu"
+msgstr "微信阅读-快捷菜单"
+
+msgid "Weread AL-Fetch Underlines"
+msgstr "微信阅读批注-拉取划线"
+
+msgid "Rssreader"
+msgstr "RSS阅读器"
+
+msgid "ArtGallery"
+msgstr "画廊"
+
+msgid "FanQie-Bookshelf"
+msgstr "番茄-书架"
+
+msgid "FanQie-SearchBooks"
+msgstr "番茄-搜索书籍"
+
+msgid "FanQie-Toc"
+msgstr "番茄-目录"
+
+msgid "FanQie-Shelf/Toc"
+msgstr "番茄-书架/目录"
+
+msgid "FingerInk-toolbar"
+msgstr "手指绘画-工具栏"
+
+msgid "SideToc"
+msgstr "侧边目录"
+
+msgid "KOA-quickactions"
+msgstr "KOA-快捷动作"
+
+msgid "KOA-quicksettings"
+msgstr "KOA-快速设置"
