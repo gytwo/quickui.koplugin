@@ -1298,14 +1298,36 @@ function QA.registerAllActions()
         end
 
         local face_list = cre.getFontFaces()
-        local buttons = {}
 
-        table.sort(face_list, function(a, b)
-            return a:lower() < b:lower()
-        end)
+        -- ★ 复用原生最近使用排序（跟原生开关保持一致）
+        if G_reader_settings:isTrue("font_menu_sort_by_recently_selected") then
+            local recent = G_reader_settings:readSetting("cre_fonts_recently_selected") or {}
+            local recent_rank = {}
+            for i, f in ipairs(recent) do
+                recent_rank[f] = i
+            end
+
+            table.sort(face_list, function(a, b)
+                local ra = recent_rank[a]
+                local rb = recent_rank[b]
+                if ra and rb then
+                    return ra < rb
+                elseif ra then
+                    return true
+                elseif rb then
+                    return false
+                else
+                    return a:lower() < b:lower()
+                end
+            end)
+        else
+            table.sort(face_list, function(a, b)
+                return a:lower() < b:lower()
+            end)
+        end
 
         local current_font = reader.font and reader.font.font_face
-
+        local buttons = {}
         local font_dialog = nil
 
         for idx, face in ipairs(face_list) do
@@ -1318,8 +1340,10 @@ function QA.registerAllActions()
                 display_name = FontList:getLocalizedFontName(font_filename, font_faceindex) or face
             end
             local is_checked = (face == current_font)
-            table.insert(buttons, {{
+
+            local entry = {
                 text = display_name .. (is_checked and "  ✓" or ""),
+                avoid_text_truncation = false,
                 callback = function()
                     if font_dialog then
                         UIManager:close(font_dialog)
@@ -1331,13 +1355,24 @@ function QA.registerAllActions()
                         reader.view.ui:handleEvent(Event:new("UpdatePos"))
                         UIManager:setDirty(reader.view.dialog, "full")
 
+                        -- ★ 复用原生记录函数（它会写同一个 key）
+                        reader.font:addToRecentlySelectedList(face)
+
                         UIManager:show(Notification:new{
                             text = string.format(_("Font set to: %s"), display_name),
                             timeout = 2,
                         })
                     end
                 end,
-            }})
+            }
+
+            if font_filename then
+                entry.font_face = font_filename
+                entry.font_size = 18
+                entry.font_bold = false
+            end
+
+            table.insert(buttons, { entry })
         end
 
         font_dialog = ButtonDialog:new{
