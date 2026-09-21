@@ -276,9 +276,41 @@ function UIFont.showFontPickerForUIKey(ui_key, ui_label, on_select, on_cancel)
     local overrides = Utils.getTable("qa_common_ui_font_overrides")
     local current = overrides[ui_key] or ""
 
+    -- ★ 排序：当前选中 > 最近使用 > 字母序
+    local recent_rank = {}
+    if G_reader_settings:isTrue("font_menu_sort_by_recently_selected") then
+        local recent = G_reader_settings:readSetting("cre_fonts_recently_selected") or {}
+        for i, f in ipairs(recent) do
+            recent_rank[f] = i
+        end
+    end
+
+    table.sort(all_fonts, function(a, b)
+        -- 1. 当前选中的字体永远最前
+        local a_current = (a.name == current) and 1 or 0
+        local b_current = (b.name == current) and 1 or 0
+        if a_current ~= b_current then
+            return a_current > b_current
+        end
+
+        -- 2. 最近使用
+        local ra = recent_rank[a.face]
+        local rb = recent_rank[b.face]
+        if ra and rb then
+            return ra < rb
+        elseif ra then
+            return true
+        elseif rb then
+            return false
+        end
+
+        -- 3. 字母序
+        return a.display:lower() < b.display:lower()
+    end)
+
     local buttons = {}
 
-    -- Return button
+    -- 返回按钮
     table.insert(buttons, {{
         text = "◂ " .. _("Back"),
         callback = function()
@@ -309,29 +341,43 @@ function UIFont.showFontPickerForUIKey(ui_key, ui_label, on_select, on_cancel)
             enabled = false,
             alignment = "center",
         }})
-        local dialog = ButtonDialog:new{
-            title = string.format(_("Select %s Font"), ui_label),
-            title_align = "center",
-            buttons = buttons,
-            width = math.floor(Screen:getWidth() * 0.7),
-        }
-        _font_picker_dialog = dialog
-        UIManager:show(dialog)
-        return
-    end
+    else
+        for i, font in ipairs(all_fonts) do
+            local is_current = (font.name == current)
 
-    for i, font in ipairs(all_fonts) do
-        local is_current = (font.name == current)
-        table.insert(buttons, {{
-            text = (is_current and "✓ " or "  ") .. font.display,
-            callback = function()
-                if _font_picker_dialog then
-                    UIManager:close(_font_picker_dialog)
-                    _font_picker_dialog = nil
-                end
-                if on_select then on_select(font.name) end
-            end,
-        }})
+            local entry = {
+                text = (is_current and "✓ " or "  ") .. font.display,
+                avoid_text_truncation = false,
+                callback = function()
+                    if _font_picker_dialog then
+                        UIManager:close(_font_picker_dialog)
+                        _font_picker_dialog = nil
+                    end
+
+                    -- ★ 写进原生最近使用记录（用 face 名）
+                    local recent = G_reader_settings:readSetting("cre_fonts_recently_selected") or {}
+                    local new_recent = { font.face }
+                    for _, f in ipairs(recent) do
+                        if f ~= font.face and #new_recent < 8 then
+                            new_recent[#new_recent + 1] = f
+                        end
+                    end
+                    G_reader_settings:saveSetting("cre_fonts_recently_selected", new_recent)
+
+                    -- ★ 传给 on_select 的是文件名（给 fontmap 用）
+                    if on_select then on_select(font.name) end
+                end,
+            }
+
+            -- ★ 用该字体文件渲染按钮文字
+            if font.path then
+                entry.font_face = font.path
+                entry.font_size = 18
+                entry.font_bold = false
+            end
+
+            table.insert(buttons, { entry })
+        end
     end
 
     local dialog = ButtonDialog:new{
