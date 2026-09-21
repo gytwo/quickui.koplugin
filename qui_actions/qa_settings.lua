@@ -382,13 +382,6 @@ function QA.showAddButtonMenu(touch_menu, on_back, filtered_actions)
                 for __, id in ipairs(current_slots) do table.insert(new_slots, id) end
                 for __, action in ipairs(available) do
                     if not slot_set[action.id] then
-                        if #new_slots >= 66 then
-                            UIManager:show(Notification:new{
-                                text = string.format(_("Max %d buttons"), 66),
-                                timeout = 2,
-                            })
-                            return
-                        end
                         table.insert(new_slots, action.id)
                     end
                 end
@@ -440,13 +433,6 @@ function QA.showAddButtonMenu(touch_menu, on_back, filtered_actions)
                     end
                     Utils.set("qa_panel_slots", new_slots)
                 else
-                    if #current_slots >= 66 then
-                        UIManager:show(Notification:new{
-                            text = string.format(_("Max %d buttons"), 66),
-                            timeout = 2,
-                        })
-                        return
-                    end
                     current_slots[#current_slots + 1] = action.id
                     Utils.set("qa_panel_slots", current_slots)
                 end
