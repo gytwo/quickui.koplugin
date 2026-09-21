@@ -602,6 +602,20 @@ function VerticalBar:init()
     }
     self.movable:setMovedOffset(Geom:new{ x = default_x, y = default_y })
     self[1] = self.movable
+    
+    -- When swipe-to-page is ON: vertical swipes go to VerticalBar for
+    -- paging, horizontal swipes stay with MovableContainer for dragging.
+    -- When it's OFF, MovableContainer handles all swipe directions as before.
+    local _orig_onMovableSwipe = self.movable.onMovableSwipe
+    function self.movable:onMovableSwipe(arg, ges)
+        if Utils.getBool("qa_vb_swipe_paging", false) then
+            local d = ges.direction
+            if d == "north" or d == "south" then
+                return false   -- bubble up to VerticalBar
+            end
+        end
+        return _orig_onMovableSwipe(self, arg, ges)
+    end
 
     self._dirty_region = Geom:new{
         x = default_x,
@@ -612,7 +626,8 @@ function VerticalBar:init()
 
     if Device:isTouchDevice() then
         self.ges_events = {
-            TapOutside = { GestureRange:new{ ges = "tap", range = self.dimen } },
+            TapOutside  = { GestureRange:new{ ges = "tap",   range = self.dimen } },
+            SwipePaging = { GestureRange:new{ ges = "swipe", range = self.dimen } },
         }
     end
 end
@@ -740,6 +755,43 @@ function VerticalBar:onTapOutside(_, ges)
         return false
     end
     M.hide()
+    return true
+end
+
+-- Vertical swipe pages the panel. Only active when the "Swipe to page"
+-- option is enabled; otherwise the wrapper in init() lets MovableContainer
+-- handle the swipe itself.
+function VerticalBar:onSwipePaging(_, ges)
+    if not Utils.getBool("qa_vb_swipe_paging", false) then
+        return false
+    end
+
+    local d = ges.direction
+    if d ~= "north" and d ~= "south" then
+        return false   -- horizontal swipes are for dragging
+    end
+
+    local slots     = getSlots()
+    local total     = #slots
+    local rows_max  = VISIBLE_ROWS()
+    local has_pager = total > rows_max
+    local per_page  = has_pager and (rows_max - 1) or rows_max
+    local pages     = math.max(1, math.ceil(total / per_page))
+    if pages <= 1 then
+        return true
+    end
+
+    if d == "north" then
+        if _current_page < pages then
+            _current_page = _current_page + 1
+            M.refresh()
+        end
+    else
+        if _current_page > 1 then
+            _current_page = _current_page - 1
+            M.refresh()
+        end
+    end
     return true
 end
 
