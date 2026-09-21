@@ -94,6 +94,7 @@ return {
     "Bottom bar: inject into FileManager via FileManager.setupLayout (one-shot injection)",
     "Bottom bar: show on filesearch results screen",
     "Quick Actions: add built-in actions for SimpleUI library browse modes (Authors / Series / Tags)",
+    "Quick Actions: improve the font list in both Font List and UI Font Switcher (font preview + recently-selected sorting)",
     "Panel: warmth slider now matches frontlight (ON/OFF button, scaled value labels, instant refresh for 'Show Slider Value'), fix accidental touch issue",
     "i18n: improve Chinese translation",
 },
