@@ -825,7 +825,7 @@ msgid "Font"
 msgstr "字体"
 
 msgid "Font Size"
-msgstr "字体大小"
+msgstr "字号"
 
 msgid "Bold"
 msgstr "粗体"
