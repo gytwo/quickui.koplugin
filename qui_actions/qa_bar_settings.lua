@@ -1824,7 +1824,19 @@ function Bars.getVerticalBarMenuItems()
         end,
     }
     
-        items[#items + 1] = {
+    items[#items + 1] = {
+        text = _("Swipe to page"),
+        checked_func = function()
+            return Utils.getBool("qa_vb_swipe_paging", false)
+        end,
+        callback = function(touchmenu_instance)
+            Utils.set("qa_vb_swipe_paging", not Utils.getBool("qa_vb_swipe_paging", false))
+            if touchmenu_instance then touchmenu_instance:updateItems() end
+            if vb then vb.refresh() end
+        end,
+    }
+    
+    items[#items + 1] = {
         text = _("Side"),
         sub_item_table = {
             {
