@@ -89,6 +89,7 @@ return {
     "Vertical Bar: Add vertical bar as quick menu (swipe to page or move,long-press to edit buttons / open the settings menu)",
     "Quick Actions: improve the font list in both Font List and UI Font Switcher (font preview + recently-selected sorting)",
     "Quick Actions: add reader sliders as built-in action, long-press to bring up a settings dialog, check the box to add it to the panel",
+    "Quick Actions: add more built-in actions for popular koplugins",
     "Panel: fix accidental touch issue in slider and refactor the slider menu",    
     "Panel: add pagination (3 rows per page) with chevron pager and swipe to flip pages; remove the 66-button cap",
     "Cover: show status icons on the progress badge at 0% and 100%",
@@ -97,7 +98,6 @@ return {
     "Bottom bar: inject into FileManager via FileManager.setupLayout (one-shot injection)",
     "Bottom bar: show on filesearch results screen",
     "Bottom bar: add Dispatcher action: toggle bottom bar in reader",
-    "Quick Actions: add more built-in actions for popular koplugins",
     "i18n: improve Chinese translation",
 },
 }
