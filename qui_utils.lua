@@ -83,6 +83,7 @@ local DEFAULT_SETTINGS = {
     qa_vb_settings_on_hold = true,
     qa_vb_bg = "white",
     qa_vb_animation = "fast",
+    qa_vb_swipe_paging = true,
     
     -- Cover Settings
     cover_enabled = true,
@@ -326,7 +327,7 @@ function Utils.getDefaultKeys(module_key)
         qa_vb = {
             "qa_vb_enabled", "qa_vb_side", "qa_vb_slots", "qa_vb_labels",
             "qa_vb_size_pct", "qa_vb_icon_scale_pct", "qa_vb_label_scale_pct",
-            "qa_vb_button_hold_edit", "qa_vb_settings_on_hold","qa_vb_bg", "qa_vb_animation",
+            "qa_vb_button_hold_edit", "qa_vb_settings_on_hold","qa_vb_bg", "qa_vb_animation", "qa_vb_swipe_paging",
         },
         qa_common = {
             "qa_common_tab_icon", "qa_common_custom_list", "qa_common_custom",
