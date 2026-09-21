@@ -682,18 +682,28 @@ function Utils.getFontList()
 end
 
 function Utils.getAvailableFonts()
+    local cre = require("document/credocument"):engineInit()
     local FontList = require("fontlist")
-    local fonts = FontList:getFontList()
+    local face_list = cre.getFontFaces()
     local result = {}
 
-    for idx, path in ipairs(fonts) do
-        local fname, name = Utils.splitFilePathName(path)
-        if name then
-            if name:match("%.ttf$") or name:match("%.otf$") then
-                local display = name:gsub("%.ttf$", ""):gsub("%.otf$", ""):gsub("_", " ")
+    for _, face in ipairs(face_list) do
+        local font_filename, font_faceindex = cre.getFontFaceFilenameAndFaceIndex(face)
+        if not font_filename then
+            font_filename, font_faceindex = cre.getFontFaceFilenameAndFaceIndex(face, nil, true)
+        end
+        if font_filename then
+            local fname = font_filename:match("([^/]+)$") or font_filename
+            if fname:match("%.ttf$") or fname:match("%.otf$") then
+                local display = face
+                if font_faceindex then
+                    display = FontList:getLocalizedFontName(font_filename, font_faceindex) or face
+                end
                 table.insert(result, {
-                    name = name,
-                    display = display,
+                    name    = fname,          -- 文件名，用于 patch Font.fontmap
+                    display = display,        -- 显示名
+                    path    = font_filename,  -- 完整路径，用于 font_face 预览
+                    face    = face,           -- face 名，用于最近排序
                 })
             end
         end
