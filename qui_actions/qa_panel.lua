@@ -467,8 +467,8 @@ function QA.buildPanel(touch_menu)
         table.insert(rows_vg, hint_wrapper)
     end
 
-    -- Pager row (only when there are buttons)
-    if n > 0 then
+    -- Pager row (only when there are buttons AND the user enabled it)
+    if n > 0 and Utils.getBool("qa_panel_pager_enabled", true) then
         local pager_h = Screen:scaleBySize(36)
         local chevron_btn_w = Screen:scaleBySize(48)
         local step_btn_w    = Screen:scaleBySize(40)
@@ -509,6 +509,60 @@ function QA.buildPanel(touch_menu)
             end,
         }
 
+        -- Shape cycle: round -> square_round -> bare -> round
+        local SHAPE_CYCLE = { "round", "square_round", "bare" }
+        local SHAPE_ICON = {
+            round        = actions.nerdIconChar("nerd:EE64") or "●",
+            square_round = actions.nerdIconChar("nerd:EE61") or "■",
+            bare         = actions.nerdIconChar("nerd:F468") or "○",
+        }
+        local function currentShape()
+            local s = Utils.getString("qa_panel_shape")
+            if s == "" then s = "round" end
+            return s
+        end
+        local shape_btn = Button:new{
+            text = SHAPE_ICON[currentShape()] or "●",
+            width = step_btn_w,
+            height = pager_h,
+            bordersize = 0,
+            text_font_size = label_fs,
+            show_parent = touch_menu.show_parent,
+            callback = function()
+                local cur = currentShape()
+                local idx = 1
+                for i, s in ipairs(SHAPE_CYCLE) do
+                    if s == cur then idx = i; break end
+                end
+                local next_shape = SHAPE_CYCLE[(idx % #SHAPE_CYCLE) + 1]
+                Utils.set("qa_panel_shape", next_shape)
+                touch_menu:updateItems()
+            end,
+        }
+
+        -- Label toggle: reuse the eye / eye-off icons from the icon picker
+        local function labelToggleText()
+            local on = Utils.getBool("qa_panel_labels", false)
+            if on then
+                return actions.nerdIconChar("nerd:E907") or "◉"
+            else
+                return actions.nerdIconChar("nerd:E908") or "◎"
+            end
+        end
+        local label_btn = Button:new{
+            text = labelToggleText(),
+            width = step_btn_w,
+            height = pager_h,
+            bordersize = 0,
+            text_font_size = label_fs,
+            show_parent = touch_menu.show_parent,
+            callback = function()
+                Utils.set("qa_panel_labels", not Utils.getBool("qa_panel_labels", false))
+                touch_menu:updateItems()
+            end,
+        }
+
+        -- Rows per page: − page ＋
         local rows_minus = Button:new{
             text = "−",
             width = step_btn_w,
@@ -554,7 +608,7 @@ function QA.buildPanel(touch_menu)
             face = label_face,
         }
 
-        -- Middle group: [−] page [＋]  (tight)
+        -- Center group: [−] page [＋]
         local mid_group = HorizontalGroup:new{
             align = "center",
             rows_minus,
@@ -562,13 +616,29 @@ function QA.buildPanel(touch_menu)
             rows_plus,
         }
 
-        -- Whole row: [◂] ...... [− page ＋] ...... [▸]
+        -- Split the middle band (inner_w - 2*chevron) into three equal columns:
+        --   left   : shape   (centered in its column)
+        --   center : [−] page [＋]
+        --   right  : eye
+        -- This lands shape exactly midway between ◂ and −, and eye exactly
+        -- midway between ＋ and ▸.
+        local mid_w = inner_w - 2 * chevron_btn_w
+        local col_w = math.floor(mid_w / 3)
+
         local pager_row = HorizontalGroup:new{
             align = "center",
             prev_btn,
             CenterContainer:new{
-                dimen = Geom:new{ w = inner_w - 2 * chevron_btn_w, h = pager_h },
+                dimen = Geom:new{ w = col_w, h = pager_h },
+                shape_btn,
+            },
+            CenterContainer:new{
+                dimen = Geom:new{ w = mid_w - 2 * col_w, h = pager_h },
                 mid_group,
+            },
+            CenterContainer:new{
+                dimen = Geom:new{ w = col_w, h = pager_h },
+                label_btn,
             },
             next_btn,
         }
