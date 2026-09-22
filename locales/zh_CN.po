@@ -1880,3 +1880,6 @@ msgstr "KOA-快捷动作"
 
 msgid "KOA-quicksettings"
 msgstr "KOA-快速设置"
+
+msgid "Enable style tweaks"
+msgstr "启用样式微调"
