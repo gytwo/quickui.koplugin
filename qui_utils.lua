@@ -19,7 +19,7 @@ local Utils = {}
 local DEFAULT_SETTINGS = {
     -- Panel Settings
     qa_panel_enabled = true,
-    qa_panel_slots = {"wifi", "night", "rotate", "screenshot", "filebrowserplus","restart", "quickui_settings", "qa_add_panel_button", "qa_new"},
+    qa_panel_slots = {"wifi", "night", "rotate", "screenshot", "filebrowserplus","restart", "search", "quickui_settings", "qa_add_panel_button", "qa_new"},
     qa_panel_shape = "round",
     qa_panel_bg = "flat",
     qa_panel_labels = true,
