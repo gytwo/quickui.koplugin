@@ -16,6 +16,7 @@ local Geom = require("ui/geometry")
 -- Widget classes
 local FrameContainer = require("ui/widget/container/framecontainer")
 local CenterContainer = require("ui/widget/container/centercontainer")
+local InputContainer = require("ui/widget/container/inputcontainer")
 local HorizontalGroup = require("ui/widget/horizontalgroup")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
@@ -382,15 +383,39 @@ function M.buildBar(active_action_id)
     -- Handle empty tabs: show friendly message
     if num_tabs == 0 then
         local vg = VerticalGroup:new{ align = "center" }
-        
+
         local hint_text = TextWidget:new{
-            text = _("No actions configured, long press to add"),
+            text = _("No actions configured, tap to add"),
             face = Utils.getFontFace("cfont", Utils.scaleBySize(14)),
             fgcolor = Blitbuffer.gray(0.5),
         }
+        local hint_w = hint_text:getSize().w
+        local hint_h = hint_text:getSize().h
+
+        local hint_wrapper = InputContainer:new{
+            dimen = Geom:new{ w = hint_w, h = hint_h },
+        }
+        hint_wrapper[1] = hint_text
+        hint_wrapper:registerTouchZones({
+            {
+                id = "bb_empty_hint_tap",
+                ges = "tap",
+                screen_zone = { ratio_x = 0, ratio_y = 0, ratio_w = 1, ratio_h = 1 },
+                handler = function(ges)
+                    local d = hint_wrapper.dimen
+                    if d and ges.pos.x >= d.x and ges.pos.x <= d.x + d.w
+                       and ges.pos.y >= d.y and ges.pos.y <= d.y + d.h then
+                        M.showAddTabMenu()
+                        return true
+                    end
+                    return false
+                end,
+            },
+        })
+
         local center = CenterContainer:new{
             dimen = Geom:new{ w = usable_w, h = M.BAR_H() },
-            hint_text,
+            hint_wrapper,
         }
         vg[#vg + 1] = center
         hg_args[#hg_args + 1] = vg
