@@ -1062,9 +1062,12 @@ function Bars.showCustomQADialog(qa_id, on_done, source)
                     ok_text = _("Delete"),
                     cancel_text = _("Cancel"),
                     ok_callback = function()
+                        -- 1. 删动作定义
                         local custom_tbl = Utils.getTable("qa_common_custom")
                         custom_tbl[qa_id] = nil
                         Utils.set("qa_common_custom", custom_tbl)
+
+                        -- 2. 清动作池列表
                         local list = Utils.getTable("qa_common_custom_list")
                         local new_list = {}
                         for __, id in ipairs(list) do
@@ -1073,7 +1076,22 @@ function Bars.showCustomQADialog(qa_id, on_done, source)
                             end
                         end
                         Utils.set("qa_common_custom_list", new_list)
-                        removeFromList()
+
+                        -- 3. 级联清三个容器的配置键
+                        for _, key in ipairs({"qa_panel_slots", "qa_bb_tabs", "qa_vb_slots"}) do
+                            local slots = Utils.getTable(key)
+                            local cleaned = {}
+                            for __, id in ipairs(slots) do
+                                if id ~= qa_id then cleaned[#cleaned + 1] = id end
+                            end
+                            Utils.set(key, cleaned)
+                        end
+
+                        -- 4. 刷新三个容器
+                        if PLUGIN_STORE.refresh_quick_panel then PLUGIN_STORE.refresh_quick_panel() end
+                        if PLUGIN_STORE.bottombar then PLUGIN_STORE.bottombar.refresh() end
+                        if PLUGIN_STORE.verticalbar then PLUGIN_STORE.verticalbar.refresh() end
+
                         if on_done then on_done() end
                     end,
                 })
