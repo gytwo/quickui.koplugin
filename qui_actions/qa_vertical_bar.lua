@@ -180,18 +180,26 @@ end
 local function getSlots()
     local slots = Utils.get("qa_vb_slots", nil)
     if type(slots) ~= "table" then return {} end
-    if not Utils.getBool("qa_common_context_filter") then return slots end
 
-    local view = currentView()
+    local filter_enabled = Utils.getBool("qa_common_context_filter")
+    local view = filter_enabled and currentView() or "common"
+
     local valid = {}
     for __, id in ipairs(slots) do
-        local v = QA.getActionViewFinal(id)
-        if view == "filemanager" then
-            if v == "filemanager" or v == "common" then valid[#valid + 1] = id end
-        elseif view == "reader" then
-            if v == "reader" or v == "common" then valid[#valid + 1] = id end
-        else
-            valid[#valid + 1] = id
+        -- ★ 存在性过滤：动作定义没了就丢弃
+        if QA.getAction(id) then
+            if not filter_enabled then
+                valid[#valid + 1] = id
+            else
+                local v = QA.getActionViewFinal(id)
+                if view == "filemanager" then
+                    if v == "filemanager" or v == "common" then valid[#valid + 1] = id end
+                elseif view == "reader" then
+                    if v == "reader" or v == "common" then valid[#valid + 1] = id end
+                else
+                    valid[#valid + 1] = id
+                end
+            end
         end
     end
     return valid
