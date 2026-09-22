@@ -2099,18 +2099,4 @@ QA.getDefaultViewForActionType = getDefaultViewForActionType
 -- Register actions immediately when module loads
 QA.registerAllActions()
 
--- ==== TEMP DEBUG: dump loaded plugin keys ====
-do
-    local ok, loader = pcall(require, "pluginloader")
-    if ok and loader and loader.loaded_plugins then
-        local keys = {}
-        for k in pairs(loader.loaded_plugins) do keys[#keys + 1] = k end
-        table.sort(keys)
-        logger.info("QuickUI DEBUG: loaded_plugins keys = " .. table.concat(keys, ", "))
-    else
-        logger.info("QuickUI DEBUG: pluginloader not available")
-    end
-end
--- ==== END TEMP DEBUG ====
-
 return QA
