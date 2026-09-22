@@ -477,7 +477,9 @@ function getTabs()
         end
 
         for __, id in ipairs(tabs) do
-            if action_map[id] and #valid < MAX_TABS then
+            -- Skip orphan ids and unavailable actions (plugin not loaded).
+            -- Never writes back to config.
+            if action_map[id] and #valid < MAX_TABS and QA.isActionAvailable(id) then
                 if filter_enabled then
                     local view = QA.getActionViewFinal(id)
                     if current_view == "filemanager" then
@@ -1206,6 +1208,9 @@ function M.showAddTabMenu(on_back, filtered_actions)
 
     local available = filtered_actions or getAvailableActions()
 
+    -- Set of actions that are currently unavailable (plugin not loaded)
+    local unavailable_set = QA.getUnavailableActions()
+
     table.sort(available, function(a, b)
         local a_checked = tab_set[a.id] or false
         local b_checked = tab_set[b.id] or false
@@ -1288,19 +1293,25 @@ function M.showAddTabMenu(on_back, filtered_actions)
                 local new_tabs = {}
 
                 if #current_tabs > 0 then
-                    -- Deselect All: clear all tabs
-                    new_tabs = {}
-                else
-                    -- Select All: add all available actions (up to MAX_TABS)
-                    for __, action in ipairs(available) do
-                        if #new_tabs >= MAX_TABS then
-                            UIManager:show(Notification:new{
-                                text = string.format(_("Max %d tabs, only first %d added"), MAX_TABS, MAX_TABS),
-                                timeout = 2,
-                            })
-                            break
+                    -- Deselect: keep unavailable ones
+                    for __, id in ipairs(current_tabs) do
+                        if unavailable_set[id] then
+                            new_tabs[#new_tabs + 1] = id
                         end
-                        table.insert(new_tabs, action.id)
+                    end
+                else
+                    -- Select: only add available ones
+                    for __, action in ipairs(available) do
+                        if not unavailable_set[action.id] then
+                            if #new_tabs >= MAX_TABS then
+                                UIManager:show(Notification:new{
+                                    text = string.format(_("Max %d tabs, only first %d added"), MAX_TABS, MAX_TABS),
+                                    timeout = 2,
+                                })
+                                break
+                            end
+                            new_tabs[#new_tabs + 1] = action.id
+                        end
                     end
                 end
 
@@ -1332,17 +1343,25 @@ function M.showAddTabMenu(on_back, filtered_actions)
         }
     })
     table.insert(buttons, {})
-    
+
     -- Action list
     for __, action in ipairs(available) do
         local is_checked = tab_set[action.id] or false
+        local is_available = not unavailable_set[action.id]
         local symbol = QA.getActionSymbol(action.id)
         local view_tag = " [" .. (action.view or "common") .. "]"
-        local display_text = (is_checked and "✓ " or "  ") .. symbol .. action.label .. view_tag
+
+        local display_text
+        if is_available then
+            display_text = (is_checked and "✓ " or "  ") .. symbol .. action.label .. view_tag
+        else
+            display_text = "  " .. symbol .. action.label .. view_tag .. "  ✗"
+        end
 
         table.insert(buttons, {
             {
                 text = display_text,
+                enabled = is_available,
                 callback = function()
                     local new_tabs = {}
 
