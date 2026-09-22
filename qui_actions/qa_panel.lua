@@ -363,7 +363,9 @@ function QA.buildPanel(touch_menu)
     local visible_slots = {}
     for __, id in ipairs(slots) do
         local action = getAction(id)
-        if action then
+        -- Skip orphan ids and unavailable actions (plugin not loaded).
+        -- Never writes back to config.
+        if action and actions.isActionAvailable(id) then
             if isActionVisible(id, current_view) then
                 visible_slots[#visible_slots + 1] = id
             end
@@ -1158,7 +1160,7 @@ function QA.patchTouchMenu()
         end
         for __, id in ipairs(slots) do
             local action = getAction(id)
-            if action then
+            if action and actions.isActionAvailable(id) then
                 if isActionVisible(id, current_view) then
                     visible_count = visible_count + 1
                 end
