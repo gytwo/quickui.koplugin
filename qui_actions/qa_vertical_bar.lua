@@ -186,8 +186,9 @@ local function getSlots()
 
     local valid = {}
     for __, id in ipairs(slots) do
-        -- ★ 存在性过滤：动作定义没了就丢弃
-        if QA.getAction(id) then
+        -- Skip orphan ids (action definition gone) and unavailable actions
+        -- (required plugin not loaded). Never writes back to config.
+        if QA.getAction(id) and QA.isActionAvailable(id) then
             if not filter_enabled then
                 valid[#valid + 1] = id
             else
@@ -887,6 +888,10 @@ function M.showAddButtonMenu(on_back, filtered_actions)
     for __, id in ipairs(slots) do slot_set[id] = true end
 
     local available = filtered_actions or QA.getAllAvailableActions()
+
+    -- Set of actions that are currently unavailable (plugin not loaded)
+    local unavailable_set = QA.getUnavailableActions()
+
     table.sort(available, function(a, b)
         local ac, bc = slot_set[a.id] or false, slot_set[b.id] or false
         if ac ~= bc then return ac end
@@ -944,9 +949,9 @@ function M.showAddButtonMenu(on_back, filtered_actions)
     table.insert(buttons, {
         {
             text_func = function()
-                -- Determine: are all actions in `available` already in slots?
+                -- Only consider available actions when deciding state
                 for __, action in ipairs(available) do
-                    if not slot_set[action.id] then
+                    if not unavailable_set[action.id] and not slot_set[action.id] then
                         return "☐ " .. _("Select All")
                     end
                 end
@@ -956,7 +961,7 @@ function M.showAddButtonMenu(on_back, filtered_actions)
                 -- Re-check (text_func ran at render time; state may have changed since)
                 local all_checked = true
                 for __, action in ipairs(available) do
-                    if not slot_set[action.id] then
+                    if not unavailable_set[action.id] and not slot_set[action.id] then
                         all_checked = false
                         break
                     end
@@ -964,21 +969,19 @@ function M.showAddButtonMenu(on_back, filtered_actions)
 
                 local new_slots
                 if all_checked then
-                    -- Deselect all: remove only items from `available`, keep the rest
+                    -- Deselect: keep unavailable ones
                     new_slots = {}
                     for __, id in ipairs(slots) do
-                        local in_available = false
-                        for __, action in ipairs(available) do
-                            if action.id == id then in_available = true; break end
+                        if unavailable_set[id] then
+                            new_slots[#new_slots + 1] = id
                         end
-                        if not in_available then new_slots[#new_slots + 1] = id end
                     end
                 else
-                    -- Select all: keep existing, add missing ones from `available`
+                    -- Select: keep existing + append available unselected ones
                     new_slots = {}
                     for __, id in ipairs(slots) do new_slots[#new_slots + 1] = id end
                     for __, action in ipairs(available) do
-                        if not slot_set[action.id] then
+                        if not unavailable_set[action.id] and not slot_set[action.id] then
                             new_slots[#new_slots + 1] = action.id
                         end
                     end
@@ -1009,10 +1012,20 @@ function M.showAddButtonMenu(on_back, filtered_actions)
 
     for __, action in ipairs(available) do
         local is_checked = slot_set[action.id] or false
+        local is_available = not unavailable_set[action.id]
         local symbol = QA.getActionSymbol(action.id)
         local view_tag = " [" .. (action.view or "common") .. "]"
+
+        local display_text
+        if is_available then
+            display_text = (is_checked and "✓ " or "  ") .. symbol .. action.label .. view_tag
+        else
+            display_text = "  " .. symbol .. action.label .. view_tag .. "  ✗"
+        end
+
         table.insert(buttons, {{
-            text = (is_checked and "✓ " or "  ") .. symbol .. action.label .. view_tag,
+            text = display_text,
+            enabled = is_available,
             callback = function()
                 local new_slots = {}
                 if is_checked then
