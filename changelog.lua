@@ -86,7 +86,7 @@ return {
     "Updates: fix occasional crash when checking for updates",
     },
 ["1.0.7"] = {
-    "Vertical Bar: Add vertical bar as quick menu (swipe to page or move,long-press to edit buttons / open the settings menu)",
+    "Vertical Bar: Add vertical bar as quick menu (swipe to page or move,long-press to edit/add buttons, open the settings menu)",
     "Quick Actions: improve the font list in both Font List and UI Font Switcher (font preview + recently-selected sorting)",
     "Quick Actions: add reader sliders as built-in action and dispatcher action(long-press to bring up a settings dialog, check the box to add it to the panel)",
     "Quick Actions: add more built-in actions for popular koplugins(find them in actio pools)",
