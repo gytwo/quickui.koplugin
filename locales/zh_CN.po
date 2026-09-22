@@ -1846,10 +1846,10 @@ msgid "WeRead-Search"
 msgstr "微信阅读-搜索"
 
 msgid "WeRead-QuickMenu"
-msgstr "微信阅读-快捷菜单"
+msgstr "微阅菜单"
 
 msgid "Weread AL-Fetch Underlines"
-msgstr "微信阅读批注-拉取划线"
+msgstr "微阅批注"
 
 msgid "Rssreader"
 msgstr "RSS阅读器"
