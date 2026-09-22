@@ -2,24 +2,13 @@
 QuickUI - Reader Sliders
 
 Single source of truth for reader typography sliders.
-
-Exports:
-  M.getSliders(reader)  -> list of slider descriptors
-  M.buildSliderRow(opts, row_width, label_size, show_parent, on_change, no_touch)
-                        -> HorizontalGroup row (shared by panel & popup)
-  M.show()              -> standalone popup with ALL sliders
-
-no_touch:
-  nil / false -> register tap / pan / pan_release / hold on the slider
-                 (used by the standalone popup)
-  true        -> register only the hold handler
-                 (used by qa_panel.lua, whose TouchMenu already handles
-                  tap / pan for slider dragging)
 ]]
 
 local Blitbuffer      = require("ffi/blitbuffer")
 local Button          = require("ui/widget/button")
+local ButtonDialog    = require("ui/widget/buttondialog")
 local CenterContainer = require("ui/widget/container/centercontainer")
+local MovableContainer = require("ui/widget/container/movablecontainer")
 local Device          = require("device")
 local Event           = require("ui/event")
 local Font            = require("ui/font")
@@ -38,6 +27,7 @@ local UIManager       = require("ui/uimanager")
 local VerticalGroup   = require("ui/widget/verticalgroup")
 local VerticalSpan    = require("ui/widget/verticalspan")
 local _               = require("gettext")
+local Utils = require("qui_utils")
 
 local M = {}
 
@@ -144,7 +134,6 @@ function M.getSliders(reader)
                 reader.font:onSetFontSize(v)
                 return reader.font.configurable.font_size
             end,
-            enabled_key = "qa_panel_reader_font_size",
         }
         out[#out + 1] = {
             key = "line_spacing",
@@ -160,7 +149,6 @@ function M.getSliders(reader)
                 reader.font:onSetLineSpace(v)
                 return reader.font.configurable.line_spacing
             end,
-            enabled_key = "qa_panel_reader_line_spacing",
         }
         out[#out + 1] = {
             key = "gamma",
@@ -176,7 +164,6 @@ function M.getSliders(reader)
                 reader:handleEvent(Event:new("SetFontGamma", v))
                 return reader.font.configurable.font_gamma
             end,
-            enabled_key = "qa_panel_reader_gamma",
         }
         out[#out + 1] = {
             key = "h_margin",
@@ -198,7 +185,6 @@ function M.getSliders(reader)
                 reader.typeset:onSetPageHorizMargins({ v, v })
                 return v
             end,
-            enabled_key = "qa_panel_reader_margins_h",
         }
         out[#out + 1] = {
             key = "t_margin",
@@ -214,7 +200,6 @@ function M.getSliders(reader)
                 reader.typeset:onSetPageTopMargin(v)
                 return v
             end,
-            enabled_key = "qa_panel_reader_margin_top",
         }
         out[#out + 1] = {
             key = "b_margin",
@@ -230,8 +215,95 @@ function M.getSliders(reader)
                 reader.typeset:onSetPageBottomMargin(v)
                 return v
             end,
-            enabled_key = "qa_panel_reader_margin_bot",
         }
+
+        -- ── Style Tweaks (crengine only) ─────────────────────────────
+        -- The three tweak rows are only exposed when the master switch
+        -- (RT.enabled) is on; otherwise they are not built at all.
+        if reader.styletweak and reader.styletweak.enabled ~= false then
+            local RT = reader.styletweak
+
+            -- CJK Tailoring (toggle)
+            out[#out + 1] = {
+                type = "toggle",
+                key = "cjk_tailored",
+                label = _("Tailor widths and text-indent for CJK"),
+                get_on = function() return RT:isTweakEnabled("cjk_tailored") end,
+                on_toggle = function() RT:onToggleStyleTweak("cjk_tailored", nil, true) end,
+            }
+
+            -- First-line Indent (choice)
+            local INDENT_IDS = {
+                "paragraph_no_indent",
+                "paragraph_indent",
+                "paragraph_first_no_indent",
+                "paragraph_following_no_indent",
+            }
+            out[#out + 1] = {
+                type = "choice",
+                key = "first_line_indent",
+                label = _("Paragraph first-line indentation"),
+                default_label = _("Default"),
+                choices = {
+                    { id = nil,                              label = _("Default") },
+                    { id = "paragraph_no_indent",           label = _("No indentation on first paragraph line") },
+                    { id = "paragraph_indent",              label = _("Indentation on first paragraph line") },
+                    { id = "paragraph_first_no_indent",     label = _("No indentation on first paragraph") },
+                    { id = "paragraph_following_no_indent", label = _("No indentation on following paragraphs") },
+                },
+                get_active = function()
+                    for _, id in ipairs(INDENT_IDS) do
+                        if RT:isTweakEnabled(id) then return id end
+                    end
+                    return nil
+                end,
+                on_pick = function(chosen_id)
+                    for _, id in ipairs(INDENT_IDS) do
+                        if RT:isTweakEnabled(id) then
+                            RT:onToggleStyleTweak(id, nil, true)
+                        end
+                    end
+                    if chosen_id then
+                        RT:onToggleStyleTweak(chosen_id, nil, true)
+                    end
+                end,
+            }
+
+            -- Paragraph Spacing (choice)
+            local SPACING_IDS = {
+                "paragraph_whitespace",
+                "paragraph_whitespace_half",
+                "paragraph_no_whitespace",
+            }
+            out[#out + 1] = {
+                type = "choice",
+                key = "paragraph_spacing",
+                label = _("Spacing between paragraphs"),
+                default_label = _("Default"),
+                choices = {
+                    { id = nil,                          label = _("Default") },
+                    { id = "paragraph_whitespace",      label = _("Spacing between paragraphs") },
+                    { id = "paragraph_whitespace_half", label = _("Spacing between paragraphs (half)") },
+                    { id = "paragraph_no_whitespace",   label = _("No spacing between paragraphs") },
+                },
+                get_active = function()
+                    for _, id in ipairs(SPACING_IDS) do
+                        if RT:isTweakEnabled(id) then return id end
+                    end
+                    return nil
+                end,
+                on_pick = function(chosen_id)
+                    for _, id in ipairs(SPACING_IDS) do
+                        if RT:isTweakEnabled(id) then
+                            RT:onToggleStyleTweak(id, nil, true)
+                        end
+                    end
+                    if chosen_id then
+                        RT:onToggleStyleTweak(chosen_id, nil, true)
+                    end
+                end,
+            }
+        end
     end
 
     if is_pdf then
@@ -251,7 +323,6 @@ function M.getSliders(reader)
                 UIManager:setDirty(reader, "full")
                 return v
             end,
-            enabled_key = "qa_panel_reader_gamma",
         }
         out[#out + 1] = {
             key = "pdf_zoom_overlap_h",
@@ -267,7 +338,6 @@ function M.getSliders(reader)
                 reader:handleEvent(Event:new("SetZoomPan", { zoom_overlap_h = v }))
                 return configurable.zoom_overlap_h
             end,
-            enabled_key = "qa_panel_reader_zoom",
             should_show = function()
                 local g = configurable.zoom_mode_genus
                 return g ~= nil and g < 3
@@ -287,7 +357,6 @@ function M.getSliders(reader)
                 reader:handleEvent(Event:new("SetZoomPan", { zoom_overlap_v = v }))
                 return configurable.zoom_overlap_v
             end,
-            enabled_key = "qa_panel_reader_zoom",
             should_show = function()
                 local g = configurable.zoom_mode_genus
                 return g ~= nil and g < 3
@@ -308,7 +377,6 @@ function M.getSliders(reader)
                 reader:handleEvent(Event:new("DefineZoom"))
                 return configurable.zoom_range_number
             end,
-            enabled_key = "qa_panel_reader_zoom",
             should_show = function()
                 local g = configurable.zoom_mode_genus
                 return g ~= nil and (g == 1 or g == 2)
@@ -328,7 +396,6 @@ function M.getSliders(reader)
                 reader:handleEvent(Event:new("SetZoomPan", { kopt_zoom_factor = v }))
                 return configurable.zoom_factor
             end,
-            enabled_key = "qa_panel_reader_zoom",
             should_show = function()
                 local g = configurable.zoom_mode_genus
                 return g ~= nil and g == 0
@@ -340,16 +407,8 @@ function M.getSliders(reader)
 end
 
 -- ============================================================
--- Slider row builder -- shared by panel & popup
+-- Slider row builder
 -- ============================================================
--- Tap label     -> reset to minimum
--- Hold label    -> reset to default
--- Tap value btn -> SpinWidget
--- Hold value btn-> reset to default
--- Tap slider    -> jump to value
--- Pan slider    -> drag to change
--- Hold slider   -> open Sliders settings menu
--- Tap +/-       -> step
 
 function M.buildSliderRow(opts, row_width, label_size, show_parent, on_change, no_touch)
     local gap         = Screen:scaleBySize(4)
@@ -364,10 +423,8 @@ function M.buildSliderRow(opts, row_width, label_size, show_parent, on_change, n
     }
     local btn_h = math.max(30, _d:getSize().h)
 
-    -- forward declarations so touch handlers & spin callbacks can use them
     local apply, refresh
 
-    -- -- Label button: tap -> min, hold -> default
     local label_widget = Button:new{
         text = opts.label,
         width = label_w,
@@ -410,7 +467,6 @@ function M.buildSliderRow(opts, row_width, label_size, show_parent, on_change, n
     }
     slider_wrapper[1] = slider
 
-    -- -- Slider touch zones
     local function _is_inside(ges)
         local rel_x = ges.pos.x - (slider_wrapper.dimen and slider_wrapper.dimen.x or 0)
         local rel_y = ges.pos.y - (slider_wrapper.dimen and slider_wrapper.dimen.y or 0)
@@ -424,7 +480,6 @@ function M.buildSliderRow(opts, row_width, label_size, show_parent, on_change, n
 
     local zones = {}
     if not no_touch then
-        -- popup mode: register tap / pan / pan_release
         zones[#zones + 1] = {
             id = "sld_tap_" .. opts.key,
             ges = "tap",
@@ -453,7 +508,6 @@ function M.buildSliderRow(opts, row_width, label_size, show_parent, on_change, n
             end,
         }
     end
-    -- hold is always registered (both panel & popup)
     zones[#zones + 1] = {
         id = "sld_hold_" .. opts.key,
         ges = "hold",
@@ -484,7 +538,6 @@ function M.buildSliderRow(opts, row_width, label_size, show_parent, on_change, n
         initial_text = tostring(_init_val)
     end
 
-    -- -- Value button: tap -> SpinWidget, hold -> default
     local value_btn = Button:new{
         text = initial_text,
         width = value_w,
@@ -588,6 +641,139 @@ function M.buildSliderRow(opts, row_width, label_size, show_parent, on_change, n
 end
 
 -- ============================================================
+-- Choice row builder
+-- ============================================================
+
+function M.buildChoiceRow(opts, row_width, label_size, show_parent, on_change)
+    local gap         = Screen:scaleBySize(4)
+    local small_btn_w = Screen:scaleBySize(40)
+    local label_w     = Screen:scaleBySize(180)
+    local value_w     = row_width - label_w - 2 * small_btn_w - 3 * gap
+
+    local _d = Button:new{
+        text = "\u{2212}", width = small_btn_w,
+        show_parent = show_parent,
+        callback = function() end,
+    }
+    local btn_h = math.max(30, _d:getSize().h)
+
+    local function getCurrentLabel()
+        local active_id = opts.get_active and opts.get_active() or nil
+        for _, c in ipairs(opts.choices) do
+            if c.id == active_id then return c.label end
+        end
+        return opts.default_label or "—"
+    end
+
+    local value_btn
+    value_btn = Button:new{
+        text           = getCurrentLabel(),
+        width          = value_w,
+        height         = btn_h,
+        padding        = 0,
+        bordersize     = 0,
+        text_font_size = label_size,
+        text_font_bold = false,
+        align     = "left",  
+        show_parent    = show_parent,
+        callback = function()
+            local dlg
+            local btns = {}
+            for _, c in ipairs(opts.choices) do
+                local choice = c
+                table.insert(btns, {{
+                    text = choice.label,
+                    callback = function()
+                        UIManager:close(dlg)
+                        if opts.on_pick then opts.on_pick(choice.id) end
+                        value_btn:setText(getCurrentLabel(), value_w)
+                        UIManager:setDirty(show_parent, "ui")
+                        if on_change then on_change(choice.id) end
+                    end,
+                }})
+            end
+            table.insert(btns, {{
+                text = _("Cancel"),
+                id = "close",
+                callback = function() UIManager:close(dlg) end,
+            }})
+            dlg = ButtonDialog:new{
+                title = opts.label,
+                buttons = btns,
+                width = math.floor(Screen:getWidth() * 0.7),
+                tap_close_callback = function() UIManager:close(dlg) end,
+            }
+            UIManager:show(dlg)
+        end,
+    }
+
+    local label_widget = Button:new{
+        text           = opts.label,
+        width          = label_w,
+        height         = btn_h,
+        padding        = 0,
+        bordersize     = 0,
+        text_font_size = label_size,
+        text_font_bold = false,
+        align     = "left", 
+        show_parent    = show_parent,
+        callback       = function() end,
+    }
+
+    local row = HorizontalGroup:new{
+        align = "center",
+        label_widget,
+        HorizontalSpan:new{ width = gap },
+        value_btn,
+    }
+
+    return row, value_btn
+end
+
+-- ============================================================
+-- Toggle row builder (checkbox-style: ✓ prefix on the label)
+-- ============================================================
+
+function M.buildToggleRow(opts, row_width, label_size, show_parent, on_change)
+    local small_btn_w = Screen:scaleBySize(40)
+
+    local _d = Button:new{
+        text = "\u{2212}", width = small_btn_w,
+        show_parent = show_parent,
+        callback = function() end,
+    }
+    local btn_h = math.max(30, _d:getSize().h)
+
+    local row_w = row_width
+
+    local function label_text()
+        local mark = opts.get_on() and "✓ " or "  "
+        return mark .. opts.label
+    end
+
+    local btn
+    btn = Button:new{
+        text           = label_text(),
+        width          = row_w,
+        height         = btn_h,
+        padding        = 0,
+        bordersize     = 0,
+        text_font_size = label_size,
+        text_font_bold = false,
+        align     = "left", 
+        show_parent    = show_parent,
+        callback = function()
+            if opts.on_toggle then opts.on_toggle() end
+            btn:setText(label_text(), row_w)
+            UIManager:setDirty(show_parent, "ui")
+            if on_change then on_change() end
+        end,
+    }
+
+    return btn, btn
+end
+
+-- ============================================================
 -- Standalone popup with ALL sliders
 -- ============================================================
 
@@ -618,22 +804,80 @@ function M.show()
         _dialog = nil
     end
 
-    local label_size = Screen:scaleBySize(12)
+    local Utils = require("qui_utils")
+    local scale_pct = Utils.getNumber("qa_panel_label_scale_pct", 90)
+    local label_size = Screen:scaleBySize(
+        math.max(6, math.floor(12 * (scale_pct / 100)))
+    )
     local panel_w    = math.floor(Screen:getWidth() * 0.85)
     local padding    = Screen:scaleBySize(14)
     local inner_w    = panel_w - padding * 2
 
     local vg = VerticalGroup:new{ align = "left" }
 
-    -- temporary placeholder for show_parent; the sliders only need it for
-    -- UIManager:setDirty() and Button show_parent; passing a table is fine.
     local temp_parent = {}
 
-    for __, opts in ipairs(sliders) do
-        -- no_touch = nil: popup registers its own tap/pan handlers
+    -- Split into regular sliders (no `type`) and style-tweak rows
+    -- (`type == "choice"` / `"toggle"`) so the master switch can sit
+    -- between them: sliders → master → tweaks.
+    local regular, tweak_rows = {}, {}
+    for _, opts in ipairs(sliders) do
+        if opts.type then
+            tweak_rows[#tweak_rows + 1] = opts
+        else
+            regular[#regular + 1] = opts
+        end
+    end
+
+    -- 1. Regular sliders
+    for _, opts in ipairs(regular) do
         local row = M.buildSliderRow(opts, inner_w, label_size, temp_parent, nil)
         vg[#vg + 1] = row
         vg[#vg + 1] = VerticalSpan:new{ width = Screen:scaleBySize(8) }
+    end
+
+    -- 2. Style-Tweaks master switch (between regular sliders and tweaks)
+    local RT = reader.styletweak
+    if RT then
+        local function master_label()
+            local mark = (RT.enabled ~= false) and "✓ " or "  "
+            return mark .. _("Enable style tweaks")
+        end
+        local master_btn
+        master_btn = Button:new{
+            text           = master_label(),
+            width          = inner_w,
+            height         = Screen:scaleBySize(30),
+            padding        = 0,
+            bordersize     = 0,
+            text_font_size = label_size,
+            text_font_bold = true,
+            align     = "left", 
+            show_parent    = temp_parent,
+            callback = function()
+                RT.enabled = not (RT.enabled ~= false)
+                RT:updateCssText(true)
+                UIManager:close(_dialog)
+                _dialog = nil
+                M.show()
+            end,
+        }
+        vg[#vg + 1] = VerticalSpan:new{ width = Screen:scaleBySize(12) }
+        vg[#vg + 1] = master_btn
+    end
+
+    -- 3. Style-tweak rows (only present in the list when RT.enabled)
+    for _, opts in ipairs(tweak_rows) do
+        local row
+        if opts.type == "choice" then
+            row = M.buildChoiceRow(opts, inner_w, label_size, temp_parent, nil)
+        elseif opts.type == "toggle" then
+            row = M.buildToggleRow(opts, inner_w, label_size, temp_parent, nil)
+        end
+        if row then
+            vg[#vg + 1] = VerticalSpan:new{ width = Screen:scaleBySize(8) }
+            vg[#vg + 1] = row
+        end
     end
 
     local frame = FrameContainer:new{
@@ -647,17 +891,28 @@ function M.show()
     }
 
     local PickerDlg = InputContainer:extend{ is_always_active = true }
-    function PickerDlg:init()
+        function PickerDlg:init()
         self.dimen = Geom:new{
             x = 0, y = 0,
             w = Screen:getWidth(), h = Screen:getHeight(),
+        }
+        self.movable = MovableContainer:new{
+            ignore_events = {
+                "touch",
+                "hold",
+                "hold_pan",
+                "hold_release",
+                "pan",
+                "pan_release",
+            },
+            frame,
         }
         self[1] = CenterContainer:new{
             dimen = Geom:new{
                 w = Screen:getWidth(),
                 h = Screen:getHeight(),
             },
-            frame,
+            self.movable,
         }
         if Device:isTouchDevice() then
             self.ges_events.Tap = {
@@ -672,7 +927,7 @@ function M.show()
         end
     end
     function PickerDlg:onTap(arg, ges)
-        if ges.pos:notIntersectWith(frame.dimen) then
+        if ges.pos:notIntersectWith(self.movable.dimen) then
             UIManager:close(self)
             _dialog = nil
         end
