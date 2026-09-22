@@ -1883,3 +1883,9 @@ msgstr "KOA-快速设置"
 
 msgid "Enable style tweaks"
 msgstr "启用样式微调"
+
+msgid "(hold: settings)"
+msgstr "（长按设置）"
+
+msgid "(hold: add)"
+msgstr "（长按添加）"
