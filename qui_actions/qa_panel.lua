@@ -880,6 +880,24 @@ function QA.buildPanel(touch_menu)
                     local row, slider, apply = reader_sliders.buildSliderRow(
                         opts, inner_w, medium_size, touch_menu.show_parent, nil, true)
 
+                    -- Override the label button's hold gesture: long-press
+                    -- the left label in the panel opens the reader sliders
+                    -- popup (qa_reader_sliders.show()) instead of resetting
+                    -- the slider to its default. The standalone popup keeps
+                    -- its original reset-on-hold behaviour.
+                    local label_widget = row[1]
+                    if label_widget and label_widget.hold_callback then
+                        label_widget.hold_callback = function()
+                            if touch_menu and touch_menu.onClose then
+                                touch_menu:onClose()
+                            end
+                            UIManager:scheduleIn(0, function()
+                                reader_sliders.show()
+                            end)
+                        end
+                    end
+
+
                     table.insert(panel, VerticalSpan:new{ width = Screen:scaleBySize(6) })
                     table.insert(panel, CenterContainer:new{
                         dimen = Geom:new{ w = panel_w, h = row:getSize().h },
