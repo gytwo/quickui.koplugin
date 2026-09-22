@@ -87,7 +87,7 @@ return {
     },
 ["1.1.0"] = {
     "Vertical Bar: add vertical bar as quick menu (swipe to page or move,long-press to edit/add buttons, open the settings menu)",
-    "Quick Actions: improve the font list in both Font List and UI Font Switcher (font preview + recently-selected sorting)",
+    "Quick Actions: improve the font list both in Font List、UI Font Switcher&HF font (font preview + recently-selected sorting)",
     "Quick Actions: add reader sliders as built-in action and dispatcher action(long-press to bring up a settings dialog, check the box to add it to the panel)",
     "Quick Actions: add more built-in actions for popular koplugins(find them in actio pools)",
     "Quick Actions: cascade-delete custom action from all bars to avoid orphaned ids",
