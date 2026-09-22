@@ -45,25 +45,39 @@ local ACTION_ORDER = {}
 local _wifi_optimistic = nil
 
 -- ============================================================
--- Network Manager Helper
+-- Helper
 -- ============================================================
 
+-- Network Manager Helper
 local function getNetworkMgr()
     local ok, nm = pcall(require, "ui/network/manager")
     return ok and nm or nil
+end
+
+-- Check whether a koplugin is currently loaded
+local function isPluginLoaded(key)
+    local ok, loader = pcall(require, "pluginloader")
+    return ok and loader and loader.loaded_plugins
+        and loader.loaded_plugins[key] ~= nil
+end
+
+-- Return an availability closure for registerAction's 7th argument
+local function pluginAvailable(key)
+    return function() return isPluginLoaded(key) end
 end
 
 -- ============================================================
 -- Action Registration
 -- ============================================================
 
-function QA.registerAction(id, label, icon, is_in_place, view, execute_fn)
+function QA.registerAction(id, label, icon, is_in_place, view, execute_fn, available_fn)
     ACTION_REGISTRY[id] = {
         label = label,
         icon = icon,
         is_in_place = is_in_place,
         view = view or "common",
         execute = execute_fn,
+        available = available_fn, 
     }
     ACTION_ORDER[#ACTION_ORDER + 1] = id
 end
@@ -169,12 +183,52 @@ function QA.getAction(id)
 end
 
 -- ============================================================
+-- Lookup unavailable built-in action ids
+-- ============================================================
+-- Whether an action is currently available
+function QA.isActionAvailable(id)
+    -- Custom actions are always available
+    if Utils.getTable("qa_common_custom")[id] then
+        return true
+    end
+
+    local reg = ACTION_REGISTRY[id]
+    if not reg or not reg.available then
+        return true   -- No available_fn declared -> always available
+    end
+
+    local ok, result = pcall(reg.available)
+    return ok and result ~= false
+end
+
+-- Return the set of currently unavailable built-in action ids
+function QA.getUnavailableActions()
+    local set = {}
+    for id, reg in pairs(ACTION_REGISTRY) do
+        if reg.available and not QA.isActionAvailable(id) then
+            set[id] = true
+        end
+    end
+    return set
+end
+
+-- ============================================================
 -- Action Execution
 -- ============================================================
 
 function QA.executeAction(id, ctx)
     local action = QA.getAction(id)
     if not action or not action.execute then
+        return false
+    end
+
+    -- Guard: unavailable actions show a friendly message instead of crashing
+    if not QA.isActionAvailable(id) then
+        UIManager:show(InfoMessage:new{
+            text = string.format(_("Action \"%s\" is unavailable (plugin not loaded)."),
+                action.label or id),
+            timeout = 2,
+        })
         return false
     end
 
@@ -1276,7 +1330,7 @@ function QA.registerAllActions()
                 timeout = 2,
             })
         end
-    end)
+    end, pluginAvailable("httpinspector"))
 
     -- Font List
     QA.registerAction("fontlist", _("Font List"), "nerd:F031", false, "reader", function(ctx)
@@ -1399,7 +1453,7 @@ function QA.registerAllActions()
                 timeout = 2,
             })
         end
-    end)
+    end, pluginAvailable("filebrowserplus"))
 
     -- ZLibrary Search
     QA.registerAction("zlibrary_search", _("ZLibrary Search"), "nerd:EB73", false, "common", function(ctx)
@@ -1422,7 +1476,7 @@ function QA.registerAllActions()
                 timeout = 2,
             })
         end
-    end)
+    end, pluginAvailable("zlibrary"))
 
     -- CloudLibrary AutoSync
     QA.registerAction("cloudlibrary_autosync", _("CloudLibrary - AutoSync"), "nerd:E33B", false, "common", function(ctx)
@@ -1445,7 +1499,7 @@ function QA.registerAllActions()
                 timeout = 2,
             })
         end
-    end)
+    end, pluginAvailable("cloudlibrary"))
 
     -- CloudLibrary Batch Download
     QA.registerAction("cloudlibrary_batch_download_books", _("CloudLibrary - Batch Download"), "nerd:F409", false, "common", function(ctx)
@@ -1468,8 +1522,9 @@ function QA.registerAllActions()
                 timeout = 2,
             })
         end
-    end)
+    end, pluginAvailable("cloudlibrary"))
 
+    -- CloudLibrary Settings
     QA.registerAction("cloudlibrary_settings", _("CloudLibrary - Settings"), "nerd:E33D", false, "common", function(ctx)
         closeTouchMenu(ctx)
         local FM = require("apps/filemanager/filemanager")
@@ -1490,7 +1545,7 @@ function QA.registerAllActions()
                 timeout = 2,
             })
         end
-    end)
+    end, pluginAvailable("cloudlibrary"))
 
     -- Annotations Viewer
     QA.registerAction("annotations_viewer", _("Annotations Viewer"), "nerd:F040", false, "common", function(ctx)
@@ -1521,7 +1576,7 @@ function QA.registerAllActions()
         else
             UIManager:broadcastEvent(Event:new("ShowAllAnnotations"))
         end
-    end)
+    end, pluginAvailable("annotationsviewer"))
 
     -- ============================================================
     -- SimpleUI library browse actions (Authors / Series / Tags)
@@ -1582,17 +1637,20 @@ function QA.registerAllActions()
         QA.registerAction(
             "Sui-author", _("Sui-author"),
             "nerd:ED2F", false, "filemanager",
-            function(ctx) _browseAction(ctx, "author") end
+            function(ctx) _browseAction(ctx, "author") end,
+            pluginAvailable("simpleui")
         )
         QA.registerAction(
             "Sui-series", _("Sui-series"),
             "nerd:ED18", false, "filemanager",
-            function(ctx) _browseAction(ctx, "series") end
+            function(ctx) _browseAction(ctx, "series") end,
+            pluginAvailable("simpleui")
         )
         QA.registerAction(
             "Sui-tags", _("Sui-tags"),
             "nerd:F02C", false, "filemanager",
-            function(ctx) _browseAction(ctx, "tags") end
+            function(ctx) _browseAction(ctx, "tags") end,
+            pluginAvailable("simpleui")
         )
         QA.registerAction(
             "Sui-toggle", _("Sui-Homescreen"),
@@ -1600,7 +1658,8 @@ function QA.registerAllActions()
             function(ctx)
                 closeTouchMenu(ctx)
                 UIManager:broadcastEvent(Event:new("SimpleUIToggleHomeLibrary"))
-            end
+            end,
+            pluginAvailable("simpleui")
         )
         QA.registerAction(
             "Sui-settings", _("Sui-Settings"),
@@ -1608,7 +1667,8 @@ function QA.registerAllActions()
             function(ctx)
                 closeTouchMenu(ctx)
                 UIManager:broadcastEvent(Event:new("SimpleUISettingsWindow"))
-            end
+            end,
+            pluginAvailable("simpleui")
         )
     end
 
@@ -1621,7 +1681,8 @@ function QA.registerAllActions()
         function(ctx)
             closeTouchMenu(ctx)
             UIManager:broadcastEvent(Event:new("ToggleBookshelf"))
-        end
+        end,
+        pluginAvailable("bookshelf")
     )
 
     -- ============================================================
@@ -1633,7 +1694,8 @@ function QA.registerAllActions()
         function(ctx)
             closeTouchMenu(ctx)
             UIManager:broadcastEvent(Event:new("StorefrontOpen"))
-        end
+        end,
+        pluginAvailable("storefront")
     )
 
     -- ============================================================
@@ -1645,7 +1707,8 @@ function QA.registerAllActions()
         function(ctx)
             closeTouchMenu(ctx)
             UIManager:broadcastEvent(Event:new("ShowWeReadBookshelf"))
-        end
+        end,
+        pluginAvailable("weread")
     )
     QA.registerAction(
         "weread_search", _("WeRead-Search"),
@@ -1653,7 +1716,8 @@ function QA.registerAllActions()
         function(ctx)
             closeTouchMenu(ctx)
             UIManager:broadcastEvent(Event:new("ShowWeReadSearch"))
-        end
+        end,
+        pluginAvailable("weread")
     )
     QA.registerAction(
         "weread_quick_menu", _("WeRead-QuickMenu"),
@@ -1661,7 +1725,8 @@ function QA.registerAllActions()
         function(ctx)
             closeTouchMenu(ctx)
             UIManager:broadcastEvent(Event:new("ShowWeReadQuickMenu"))
-        end
+        end,
+        pluginAvailable("weread")
     )
     QA.registerAction(
         "weread_fetch_underlines", _("Weread AL-Fetch Underlines"),
@@ -1669,7 +1734,8 @@ function QA.registerAllActions()
         function(ctx)
             closeTouchMenu(ctx)
             UIManager:broadcastEvent(Event:new("WereadFetchUnderlines"))
-        end
+        end,
+        pluginAvailable("wereadannotationlite")
     )
 
     -- ============================================================
@@ -1681,7 +1747,8 @@ function QA.registerAllActions()
         function(ctx)
             closeTouchMenu(ctx)
             UIManager:broadcastEvent(Event:new("RSSReader"))
-        end
+        end,
+        pluginAvailable("rssreader")
     )
 
     -- ============================================================
@@ -1693,7 +1760,8 @@ function QA.registerAllActions()
         function(ctx)
             closeTouchMenu(ctx)
             UIManager:broadcastEvent(Event:new("ArtGalleryShow"))
-        end
+        end,
+        pluginAvailable("artgallery")
     )
 
     -- ============================================================
@@ -1705,7 +1773,8 @@ function QA.registerAllActions()
         function(ctx)
             closeTouchMenu(ctx)
             UIManager:broadcastEvent(Event:new("ShowFanQieBookshelf"))
-        end
+        end,
+        pluginAvailable("fanqie")
     )
     QA.registerAction(
         "fanqie_search", _("FanQie-SearchBooks"),
@@ -1713,7 +1782,8 @@ function QA.registerAllActions()
         function(ctx)
             closeTouchMenu(ctx)
             UIManager:broadcastEvent(Event:new("FanQieSearchBooks"))
-        end
+        end,
+        pluginAvailable("fanqie")
     )
     QA.registerAction(
         "fanqie_toc", _("FanQie-Toc"),
@@ -1721,7 +1791,8 @@ function QA.registerAllActions()
         function(ctx)
             closeTouchMenu(ctx)
             UIManager:broadcastEvent(Event:new("ShowFanQieToc"))
-        end
+        end,
+        pluginAvailable("fanqie")
     )
     QA.registerAction(
         "fanqie_shelf_or_toc", _("FanQie-Shelf/Toc"),
@@ -1729,7 +1800,8 @@ function QA.registerAllActions()
         function(ctx)
             closeTouchMenu(ctx)
             UIManager:broadcastEvent(Event:new("ShowFanQieShelfOrToc"))
-        end
+        end,
+        pluginAvailable("fanqie")
     )
 
     -- ============================================================
@@ -1741,7 +1813,8 @@ function QA.registerAllActions()
         function(ctx)
             closeTouchMenu(ctx)
             UIManager:broadcastEvent(Event:new("FingerInkBar"))
-        end
+        end,
+        pluginAvailable("fingerink")
     )
 
     -- ============================================================
@@ -1753,7 +1826,8 @@ function QA.registerAllActions()
         function(ctx)
             closeTouchMenu(ctx)
             UIManager:broadcastEvent(Event:new("ToggleSideToc"))
-        end
+        end,
+        pluginAvailable("sidetoc")
     )
 
     -- ============================================================
@@ -1765,7 +1839,8 @@ function QA.registerAllActions()
         function(ctx)
             closeTouchMenu(ctx)
             UIManager:broadcastEvent(Event:new("KOAssistantQuickActions"))
-        end
+        end,
+        pluginAvailable("koassistant")
     )
     QA.registerAction(
         "koassistant_ai_settings", _("KOA-quicksettings"),
@@ -1773,7 +1848,8 @@ function QA.registerAllActions()
         function(ctx)
             closeTouchMenu(ctx)
             UIManager:broadcastEvent(Event:new("KOAssistantAISettings"))
-        end
+        end,
+        pluginAvailable("koassistant")
     )
 
     -- ============================================================
@@ -2022,5 +2098,19 @@ QA.getDefaultViewForActionType = getDefaultViewForActionType
 
 -- Register actions immediately when module loads
 QA.registerAllActions()
+
+-- ==== TEMP DEBUG: dump loaded plugin keys ====
+do
+    local ok, loader = pcall(require, "pluginloader")
+    if ok and loader and loader.loaded_plugins then
+        local keys = {}
+        for k in pairs(loader.loaded_plugins) do keys[#keys + 1] = k end
+        table.sort(keys)
+        logger.info("QuickUI DEBUG: loaded_plugins keys = " .. table.concat(keys, ", "))
+    else
+        logger.info("QuickUI DEBUG: pluginloader not available")
+    end
+end
+-- ==== END TEMP DEBUG ====
 
 return QA
