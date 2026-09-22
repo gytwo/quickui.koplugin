@@ -1282,8 +1282,6 @@ function QA.registerAllActions()
     QA.registerAction("fontlist", _("Font List"), "nerd:F031", false, "reader", function(ctx)
         local RUI = require("apps/reader/readerui")
         local reader = RUI and RUI.instance
-        local cre = require("document/credocument"):engineInit()
-        local FontList = require("fontlist")
         local Event = require("ui/event")
 
         if not reader then
@@ -1296,48 +1294,18 @@ function QA.registerAllActions()
 
         closeTouchMenu(ctx)
 
-        local face_list = cre.getFontFaces()
-
-        if G_reader_settings:isTrue("font_menu_sort_by_recently_selected") then
-            local recent = G_reader_settings:readSetting("cre_fonts_recently_selected") or {}
-            local recent_rank = {}
-            for i, f in ipairs(recent) do
-                recent_rank[f] = i
-            end
-
-            table.sort(face_list, function(a, b)
-                local ra = recent_rank[a]
-                local rb = recent_rank[b]
-                if ra and rb then
-                    return ra < rb
-                elseif ra then
-                    return true
-                elseif rb then
-                    return false
-                else
-                    return a:lower() < b:lower()
-                end
-            end)
-        else
-            table.sort(face_list, function(a, b)
-                return a:lower() < b:lower()
-            end)
-        end
-
+        -- Utils.getFontList() already sorts by "recently selected first,
+        -- then alphabetically", and provides name / display / path.
+        local fonts = Utils.getFontList()
         local current_font = reader.font and reader.font.font_face
         local buttons = {}
         local font_dialog = nil
 
-        for idx, face in ipairs(face_list) do
-            local font_filename, font_faceindex = cre.getFontFaceFilenameAndFaceIndex(face)
-            if not font_filename then
-                font_filename, font_faceindex = cre.getFontFaceFilenameAndFaceIndex(face, nil, true)
-            end
-            local display_name = face
-            if font_filename and font_faceindex then
-                display_name = FontList:getLocalizedFontName(font_filename, font_faceindex) or face
-            end
-            local is_checked = (face == current_font)
+        for idx, font in ipairs(fonts) do
+            local face         = font.name
+            local display_name = font.display
+            local font_path    = font.path
+            local is_checked   = (face == current_font)
 
             local entry = {
                 text = display_name .. (is_checked and "  ✓" or ""),
@@ -1363,8 +1331,8 @@ function QA.registerAllActions()
                 end,
             }
 
-            if font_filename then
-                entry.font_face = font_filename
+            if font_path then
+                entry.font_face = font_path
                 entry.font_size = 18
                 entry.font_bold = false
             end
