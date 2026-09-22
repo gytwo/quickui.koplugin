@@ -668,12 +668,11 @@ function Bars.showCustomQADialog(qa_id, on_done, source)
 
         custom_tbl[final_id] = cfg_table
         Utils.set("qa_common_custom", custom_tbl)
-        if PLUGIN_STORE.bottombar then
-            PLUGIN_STORE.bottombar.refresh()
-        end
-        if PLUGIN_STORE.verticalbar then
-            PLUGIN_STORE.verticalbar.refresh()
-        end
+        -- Refresh moved to the end: refreshing here runs before qa_bb_tabs /
+        -- qa_vb_slots / qa_common_custom_list are written, so getTabs() and
+        -- getSlots() would not yet see the new id -- and even if they did,
+        -- getAllAvailableActions() would filter it out because custom_list
+        -- has not been updated yet.
 
         local auto_add = Utils.getBool("qa_common_auto_add_to_panel")
         if source ~= "bottombar" and source ~= "verticalbar" and auto_add then
@@ -722,6 +721,19 @@ function Bars.showCustomQADialog(qa_id, on_done, source)
         if not qa_id then
             custom_list[#custom_list + 1] = final_id
             Utils.set("qa_common_custom_list", custom_list)
+        end
+
+        -- Refresh all three containers after every config write, so a new
+        -- action shows up immediately regardless of which bar it was created
+        -- from (panel / bottom bar / vertical bar).
+        if PLUGIN_STORE.refresh_quick_panel then
+            PLUGIN_STORE.refresh_quick_panel()
+        end
+        if PLUGIN_STORE.bottombar then
+            PLUGIN_STORE.bottombar.refresh()
+        end
+        if PLUGIN_STORE.verticalbar then
+            PLUGIN_STORE.verticalbar.refresh()
         end
 
         if on_done then on_done() end
