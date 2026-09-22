@@ -82,6 +82,7 @@ local function _metrics()
         icon_gap     = S(5),
         icon_face    = Font:getFace("cfont", math.max(6, math.floor(22 * size_scale * icon_scale))),
         label_face   = Font:getFace("cfont", math.max(6, math.floor(18 * size_scale * label_scale))),
+        hint_face    = Font:getFace("cfont", math.max(6, math.floor(12 * size_scale * label_scale))),
         panel_border = S(2),
         panel_pad    = S(3),
         panel_radius = S(4),
@@ -429,26 +430,44 @@ local function _buildPanel(page)
             vg[#vg + 1] = row
         end
 
-        -- Pager row: two halves (prev / next), one row.
+        -- Pager: prev on its own row, next on its own row
         if has_pager then
-            local half_w  = math.floor(row_w / 2)
-            local other_w = row_w - half_w
+            local function mkFullRow(glyph, enabled, on_tap, on_hold, hint_text)
+                local content
+                if Utils.getBool("qa_vb_labels", true) then
+                    local arrow = TextWidget:new{
+                        text    = glyph,
+                        face    = m.label_face,
+                        fgcolor = enabled and Blitbuffer.COLOR_BLACK or Blitbuffer.gray(0.6),
+                    }
+                    local hint = TextWidget:new{
+                        text    = hint_text or "",
+                        face    = m.hint_face,
+                        fgcolor = Blitbuffer.gray(0.6),
+                    }
+                    content = HorizontalGroup:new{
+                        align = "center",
+                        arrow,
+                        HorizontalSpan:new{ width = Screen:scaleBySize(8) },
+                        hint,
+                    }
+                else
+                    content = TextWidget:new{
+                        text    = glyph,
+                        face    = m.label_face,
+                        fgcolor = enabled and Blitbuffer.COLOR_BLACK or Blitbuffer.gray(0.6),
+                    }
+                end
 
-            local function mkHalf(glyph, enabled, on_tap, w)
-                local t = TextWidget:new{
-                    text    = glyph,
-                    face    = m.label_face,
-                    fgcolor = enabled and Blitbuffer.COLOR_BLACK or Blitbuffer.gray(0.6),
-                }
                 local cell_frame = FrameContainer:new{
-                    width      = w,
+                    width      = row_w,
                     height     = m.row_h,
                     bordersize = 0,
                     padding    = 0,
                     background = nil,
                     CenterContainer:new{
-                        dimen = Geom:new{ w = w, h = m.row_h },
-                        t,
+                        dimen = Geom:new{ w = row_w, h = m.row_h },
+                        content,
                     },
                 }
                 local c = InputContainer:new{
@@ -469,34 +488,46 @@ local function _buildPanel(page)
                 end
                 function c:onHold()
                     pressFeedback(self)
-                    if Utils.getBool("qa_vb_settings_on_hold", true) then
-                        M.hide()
-                        settings.showVerticalBarSettings()
-                    end
+                    if on_hold then on_hold() end
                     return true
                 end
                 return c
             end
 
-            local prev_cell = mkHalf(
+            -- prev goes FIRST (top), next goes LAST (bottom)
+            -- prev: tap = 上一页, hold = 设置
+            local prev_cell = mkFullRow(
                 QA.nerdIconChar("nerd:F077") or "▲",
                 page > 1,
                 function()
                     _current_page = (page > 1) and (page - 1) or pages
                     M.refresh()
                 end,
-                half_w)
+                function()
+                    if Utils.getBool("qa_vb_settings_on_hold", true) then
+                        M.hide()
+                        settings.showVerticalBarSettings()
+                    end
+                end,
+                _("(hold: settings)"))
 
-            local next_cell = mkHalf(
+            -- next: tap = 下一页, hold = 添加按钮
+            local next_cell = mkFullRow(
                 QA.nerdIconChar("nerd:F078") or "▼",
                 page < pages,
                 function()
                     _current_page = (page < pages) and (page + 1) or 1
                     M.refresh()
                 end,
-                other_w)
+                function()
+                    M.hide()
+                    M.showAddButtonMenu(function() M.refresh() end)
+                end,
+                _("(hold: add)"))
 
-            vg[#vg + 1] = HorizontalGroup:new{ align = "center", prev_cell, next_cell }
+            -- insert prev at top of vg, next at bottom
+            table.insert(vg, 1, prev_cell)
+            vg[#vg + 1] = next_cell
         end
     end
 
