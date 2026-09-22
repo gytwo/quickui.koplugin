@@ -1889,3 +1889,9 @@ msgstr "（长按设置）"
 
 msgid "(hold: add)"
 msgstr "（长按添加）"
+
+msgid "Show Pager Row"
+msgstr "显示翻页行"
+
+msgid "Rows per Page"
+msgstr "每页行数"
