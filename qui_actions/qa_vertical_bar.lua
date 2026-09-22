@@ -479,19 +479,19 @@ local function _buildPanel(page)
             end
 
             local prev_cell = mkHalf(
-                QA.nerdIconChar("nerd:F077") or "▲",   -- fa-chevron-up
+                QA.nerdIconChar("nerd:F077") or "▲",
                 page > 1,
                 function()
-                    _current_page = page - 1
+                    _current_page = (page > 1) and (page - 1) or pages
                     M.refresh()
                 end,
                 half_w)
 
             local next_cell = mkHalf(
-                QA.nerdIconChar("nerd:F078") or "▼",   -- fa-chevron-down
+                QA.nerdIconChar("nerd:F078") or "▼",
                 page < pages,
                 function()
-                    _current_page = page + 1
+                    _current_page = (page < pages) and (page + 1) or 1
                     M.refresh()
                 end,
                 other_w)
@@ -782,16 +782,11 @@ function VerticalBar:onSwipePaging(_, ges)
     end
 
     if d == "north" then
-        if _current_page < pages then
-            _current_page = _current_page + 1
-            M.refresh()
-        end
+        _current_page = (_current_page < pages) and (_current_page + 1) or 1
     else
-        if _current_page > 1 then
-            _current_page = _current_page - 1
-            M.refresh()
-        end
+        _current_page = (_current_page > 1) and (_current_page - 1) or pages
     end
+    M.refresh()
     return true
 end
 
