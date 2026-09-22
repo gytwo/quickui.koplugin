@@ -289,6 +289,10 @@ function QA.showAddButtonMenu(touch_menu, on_back, filtered_actions)
     local slot_set = {}
     for __, id in ipairs(slots) do slot_set[id] = true end
     local available = filtered_actions or getAllAvailableActions()
+
+    -- Set of actions that are currently unavailable (plugin not loaded)
+    local unavailable_set = actions.getUnavailableActions()
+
     table.sort(available, function(a, b)
         local a_checked = slot_set[a.id] or false
         local b_checked = slot_set[b.id] or false
@@ -356,9 +360,12 @@ function QA.showAddButtonMenu(touch_menu, on_back, filtered_actions)
         end,
     }})
 
+    -- Count only available actions when deciding "all checked"
     local function getAllChecked()
         for __, action in ipairs(available) do
-            if not slot_set[action.id] then return false end
+            if not unavailable_set[action.id] and not slot_set[action.id] then
+                return false
+            end
         end
         return true
     end
@@ -371,17 +378,20 @@ function QA.showAddButtonMenu(touch_menu, on_back, filtered_actions)
             local current_slots = Utils.getTable("qa_panel_slots")
             local new_slots = {}
             if is_all_checked then
+                -- Deselect: keep unavailable ones
                 for __, id in ipairs(current_slots) do
-                    local is_available = false
-                    for __, action in ipairs(available) do
-                        if action.id == id then is_available = true; break end
+                    if unavailable_set[id] then
+                        table.insert(new_slots, id)
                     end
-                    if not is_available then table.insert(new_slots, id) end
                 end
             else
-                for __, id in ipairs(current_slots) do table.insert(new_slots, id) end
+                -- Select: keep all existing
+                for __, id in ipairs(current_slots) do
+                    table.insert(new_slots, id)
+                end
+                -- Only append available actions
                 for __, action in ipairs(available) do
-                    if not slot_set[action.id] then
+                    if not unavailable_set[action.id] and not slot_set[action.id] then
                         table.insert(new_slots, action.id)
                     end
                 end
@@ -401,7 +411,6 @@ function QA.showAddButtonMenu(touch_menu, on_back, filtered_actions)
         text = _("Apply preset (QA panel)"),
         callback = function()
             Utils.applyDefault({"qa_common", "qa_panel"})
-            if touchmenu_instance then touchmenu_instance:updateItems() end
             if touch_menu then touch_menu:updateItems() end
             QA.refreshQuickPanel()
             closeSettingsDialog()
@@ -413,13 +422,21 @@ function QA.showAddButtonMenu(touch_menu, on_back, filtered_actions)
     for i = 1, #available do
         local action = available[i]
         local is_checked = slot_set[action.id] or false
+        local is_available = not unavailable_set[action.id]
         local symbol = getActionSymbol(action.id)
         local check_mark = is_checked and "✓ " or "  "
         local view_tag = " [" .. (action.view or "common") .. "]"
-        local display_text = check_mark .. symbol .. action.label .. view_tag
+
+        local display_text
+        if is_available then
+            display_text = check_mark .. symbol .. action.label .. view_tag
+        else
+            display_text = "  " .. symbol .. action.label .. view_tag .. "  ✗"
+        end
 
         table.insert(buttons, {{
             text = display_text,
+            enabled = is_available,
             callback = function(touchmenu_instance)
                 local current_slots = Utils.getTable("qa_panel_slots")
                 local found = false
