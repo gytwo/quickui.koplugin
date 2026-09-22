@@ -297,8 +297,8 @@ msgstr "图标大小"
 msgid "Tab Icon"
 msgstr "标签页图标"
 
-msgid "No actions configured, long press to add"
-msgstr "未配置操作，长按添加"
+msgid "No actions configured, tap to add"
+msgstr "未配置操作，点击添加"
 
 msgid "Action"
 msgstr "操作"
