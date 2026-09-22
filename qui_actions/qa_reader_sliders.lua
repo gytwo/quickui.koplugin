@@ -123,6 +123,7 @@ function M.getSliders(reader)
         out[#out + 1] = {
             key = "font_size",
             label = _("Font Size"),
+            enabled_key = "qa_panel_reader_font_size",
             min = 12, max = 90, step = 1,
             default = function()
                 return readDefault("copt_font_size", "DCREREADER_CONFIG_DEFAULT_FONT_SIZE", 22)
@@ -138,6 +139,7 @@ function M.getSliders(reader)
         out[#out + 1] = {
             key = "line_spacing",
             label = _("Line Spacing"),
+            enabled_key = "qa_panel_reader_line_spacing",
             min = 50, max = 200, step = 1,
             default = function()
                 return readDefault("copt_line_spacing", "DCREREADER_CONFIG_LINE_SPACE_PERCENT_MEDIUM", 100)
@@ -153,6 +155,7 @@ function M.getSliders(reader)
         out[#out + 1] = {
             key = "gamma",
             label = _("Contrast"),
+            enabled_key = "qa_panel_reader_gamma",
             min = 10, max = 56, step = 1,
             default = function()
                 return readDefault("copt_font_gamma", nil, 15)
@@ -168,6 +171,7 @@ function M.getSliders(reader)
         out[#out + 1] = {
             key = "h_margin",
             label = _("L/R Margins"),
+            enabled_key = "qa_panel_reader_margins_h",
             min = 0, max = 140, step = 1,
             default = function()
                 local v = readDefault("copt_h_page_margins", "DCREREADER_CONFIG_H_MARGIN_SIZES_MEDIUM", 10)
@@ -189,6 +193,7 @@ function M.getSliders(reader)
         out[#out + 1] = {
             key = "t_margin",
             label = _("Top Margin"),
+            enabled_key = "qa_panel_reader_margin_top",
             min = 0, max = 140, step = 1,
             default = function()
                 return readDefault("copt_t_page_margin", "DCREREADER_CONFIG_T_MARGIN_SIZES_LARGE", 10)
@@ -204,6 +209,7 @@ function M.getSliders(reader)
         out[#out + 1] = {
             key = "b_margin",
             label = _("Bottom Margin"),
+            enabled_key = "qa_panel_reader_margin_bot",
             min = 0, max = 140, step = 1,
             default = function()
                 return readDefault("copt_b_page_margin", "DCREREADER_CONFIG_B_MARGIN_SIZES_LARGE", 10)
@@ -310,6 +316,7 @@ function M.getSliders(reader)
         out[#out + 1] = {
             key = "pdf_contrast",
             label = _("Contrast"),
+            enabled_key = "qa_panel_reader_gamma",
             min = 0.8, max = 50, step = 0.1, precision = "%.1f",
             default = function()
                 return readDefault("kopt_contrast", "DKOPTREADER_CONFIG_CONTRAST", 1.0)
@@ -326,6 +333,7 @@ function M.getSliders(reader)
         }
         out[#out + 1] = {
             key = "pdf_zoom_overlap_h",
+            enabled_key = "qa_panel_reader_zoom",
             label = _("Horizontal overlap"),
             min = 0, max = 84, step = 1,
             default = function()
@@ -346,6 +354,7 @@ function M.getSliders(reader)
         out[#out + 1] = {
             key = "pdf_zoom_overlap_v",
             label = _("Vertical overlap"),
+            enabled_key = "qa_panel_reader_zoom",
             min = 0, max = 84, step = 1,
             default = function()
                 return readDefault("kopt_zoom_overlap_v", nil, 36)
@@ -364,6 +373,7 @@ function M.getSliders(reader)
         }
         out[#out + 1] = {
             key = "pdf_zoom_range_number",
+            enabled_key = "qa_panel_reader_zoom",
             label = _("Rows") .. "/" .. _("Columns"),
             min = 0.1, max = 8, step = 0.1, precision = "%.1f",
             default = function()
@@ -385,6 +395,7 @@ function M.getSliders(reader)
         out[#out + 1] = {
             key = "pdf_zoom_factor",
             label = _("Zoom factor"),
+            enabled_key = "qa_panel_reader_zoom",
             min = 0.1, max = 20, step = 0.1, precision = "%.1f",
             default = function()
                 return readDefault("kopt_zoom_factor", nil, 1.5)
