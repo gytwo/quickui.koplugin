@@ -1870,7 +1870,7 @@ msgid "FanQie-Shelf/Toc"
 msgstr "番茄-书架/目录"
 
 msgid "FingerInk-toolbar"
-msgstr "手指绘画-工具栏"
+msgstr "指尖绘画"
 
 msgid "SideToc"
 msgstr "侧边目录"
