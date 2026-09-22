@@ -90,6 +90,7 @@ return {
     "Quick Actions: improve the font list in both Font List and UI Font Switcher (font preview + recently-selected sorting)",
     "Quick Actions: add reader sliders as built-in action and dispatcher action(long-press to bring up a settings dialog, check the box to add it to the panel)",
     "Quick Actions: add more built-in actions for popular koplugins(find them in actio pools)",
+     "Quick Actions: cascade-delete custom action from all bars to avoid orphaned ids",
     "Panel: fix accidental touch issue in slider and refactor the slider menu",    
     "Panel: add pagination (default 3 rows per page-can be changed by tab +/-) with chevron pager and swipe to flip pages; remove the 66-button cap",
     "Cover: show status icons on the progress badge at 0% and 100%",
