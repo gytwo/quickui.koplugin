@@ -374,8 +374,9 @@ function QA.buildPanel(touch_menu)
     local fixed_gap = Screen:scaleBySize(8)
     local max_per_row = math.max(1, math.floor((inner_w + fixed_gap) / (btn_size + fixed_gap)))
 
-    -- Fixed 3 rows per page
-    local ROWS_PER_PAGE = 3
+    -- Rows per page: configurable, default 3, range 1..6
+    local ROWS_PER_PAGE = math.max(1, math.min(6,
+        math.floor(Utils.getNumber("qa_panel_rows_per_page") or 3)))
     local slots_per_page = ROWS_PER_PAGE * max_per_row
     local total_pages    = math.max(1, math.ceil(n / slots_per_page))
 
@@ -431,19 +432,47 @@ function QA.buildPanel(touch_menu)
             end
         end
     else
-        table.insert(rows_vg, TextWidget:new{
-               text = _("No actions configured, long press to add"),
-               face = Utils.getFontFace("cfont", Utils.scaleBySize(14)),
-               fgcolor = Blitbuffer.COLOR_DARK_GRAY,
+        local hint_widget = TextWidget:new{
+            text = _("No actions configured, tap to add"),
+            face = Utils.getFontFace("cfont", Utils.scaleBySize(14)),
+            fgcolor = Blitbuffer.COLOR_DARK_GRAY,
+        }
+        local hint_w = hint_widget:getSize().w
+        local hint_h = hint_widget:getSize().h
+
+        local hint_wrapper = InputContainer:new{
+            dimen = Geom:new{ w = hint_w, h = hint_h },
+        }
+        hint_wrapper[1] = hint_widget
+        hint_wrapper:registerTouchZones({
+            {
+                id = "qa_empty_hint_tap",
+                ges = "tap",
+                screen_zone = { ratio_x = 0, ratio_y = 0, ratio_w = 1, ratio_h = 1 },
+                handler = function(ges)
+                    local d = hint_wrapper.dimen
+                    if d and ges.pos.x >= d.x and ges.pos.x <= d.x + d.w
+                       and ges.pos.y >= d.y and ges.pos.y <= d.y + d.h then
+                        local settings = require("qui_actions/qa_settings")
+                        if settings and settings.showAddButtonMenu then
+                            settings.showAddButtonMenu(touch_menu)
+                        end
+                        return true
+                    end
+                    return false
+                end,
+            },
         })
+
+        table.insert(rows_vg, hint_wrapper)
     end
 
-    -- Pager row (only when more than one page exists)
-    if total_pages > 1 then
+    -- Pager row (only when there are buttons)
+    if n > 0 then
         local pager_h = Screen:scaleBySize(36)
-        local chevron_btn_w = Screen:scaleBySize(48)  -- narrow: icon only
+        local chevron_btn_w = Screen:scaleBySize(48)
+        local step_btn_w    = Screen:scaleBySize(40)
 
-        -- KOReader native chevron icons (RTL-aware)
         local chevron_left  = "chevron.left"
         local chevron_right = "chevron.right"
         if BD.mirroredUILayout() then
@@ -455,10 +484,10 @@ function QA.buildPanel(touch_menu)
             width = chevron_btn_w,
             height = pager_h,
             bordersize = 0,
-            enabled = _panel_page > 1,
+            enabled = total_pages > 1 and _panel_page > 1,
             show_parent = touch_menu.show_parent,
             callback = function()
-                if _panel_page > 1 then
+                if total_pages > 1 and _panel_page > 1 then
                     _panel_page = _panel_page - 1
                     touch_menu:updateItems()
                 end
@@ -470,11 +499,51 @@ function QA.buildPanel(touch_menu)
             width = chevron_btn_w,
             height = pager_h,
             bordersize = 0,
-            enabled = _panel_page < total_pages,
+            enabled = total_pages > 1 and _panel_page < total_pages,
             show_parent = touch_menu.show_parent,
             callback = function()
-                if _panel_page < total_pages then
+                if total_pages > 1 and _panel_page < total_pages then
                     _panel_page = _panel_page + 1
+                    touch_menu:updateItems()
+                end
+            end,
+        }
+
+        local rows_minus = Button:new{
+            text = "−",
+            width = step_btn_w,
+            height = pager_h,
+            bordersize = 0,
+            text_font_size = label_fs,
+            enabled = ROWS_PER_PAGE > 1,
+            show_parent = touch_menu.show_parent,
+            callback = function()
+                local v = math.max(1, ROWS_PER_PAGE - 1)
+                if v ~= ROWS_PER_PAGE then
+                    local cfg = _G.__QUICKUI_CONFIG or {}
+                    cfg.qa_panel_rows_per_page = v
+                    Utils.saveConfig()
+                    _panel_page = 1
+                    touch_menu:updateItems()
+                end
+            end,
+        }
+
+        local rows_plus = Button:new{
+            text = "＋",
+            width = step_btn_w,
+            height = pager_h,
+            bordersize = 0,
+            text_font_size = label_fs,
+            enabled = ROWS_PER_PAGE < 6,
+            show_parent = touch_menu.show_parent,
+            callback = function()
+                local v = math.min(6, ROWS_PER_PAGE + 1)
+                if v ~= ROWS_PER_PAGE then
+                    local cfg = _G.__QUICKUI_CONFIG or {}
+                    cfg.qa_panel_rows_per_page = v
+                    Utils.saveConfig()
+                    _panel_page = 1
                     touch_menu:updateItems()
                 end
             end,
@@ -485,21 +554,27 @@ function QA.buildPanel(touch_menu)
             face = label_face,
         }
 
+        -- Middle group: [−] page [＋]  (tight)
+        local mid_group = HorizontalGroup:new{
+            align = "center",
+            rows_minus,
+            page_label,
+            rows_plus,
+        }
+
+        -- Whole row: [◂] ...... [− page ＋] ...... [▸]
         local pager_row = HorizontalGroup:new{
             align = "center",
             prev_btn,
             CenterContainer:new{
                 dimen = Geom:new{ w = inner_w - 2 * chevron_btn_w, h = pager_h },
-                page_label,
+                mid_group,
             },
             next_btn,
         }
 
         table.insert(rows_vg, VerticalSpan:new{ width = Screen:scaleBySize(6) })
-        table.insert(rows_vg, CenterContainer:new{
-            dimen = Geom:new{ w = inner_w, h = pager_h },
-            pager_row,
-        })
+        table.insert(rows_vg, pager_row)
     end
 
     local panel = VerticalGroup:new{
@@ -1002,7 +1077,9 @@ function QA.patchTouchMenu()
             end
         end
 
-        local slots_per_page = 3 * max_per_row
+        local rows = math.max(1, math.min(6,
+            math.floor(Utils.getNumber("qa_panel_rows_per_page") or 3)))
+        local slots_per_page = rows * max_per_row
         return math.max(1, math.ceil(visible_count / slots_per_page))
     end
 
