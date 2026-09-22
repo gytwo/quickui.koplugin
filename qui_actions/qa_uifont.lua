@@ -276,37 +276,24 @@ function UIFont.showFontPickerForUIKey(ui_key, ui_label, on_select, on_cancel)
     local overrides = Utils.getTable("qa_common_ui_font_overrides")
     local current = overrides[ui_key] or ""
 
-    -- ★ 排序：当前选中 > 最近使用 > 字母序
-    local recent_rank = {}
-    if G_reader_settings:isTrue("font_menu_sort_by_recently_selected") then
-        local recent = G_reader_settings:readSetting("cre_fonts_recently_selected") or {}
-        for i, f in ipairs(recent) do
-            recent_rank[f] = i
+    -- Utils.getAvailableFonts() already sorts by "recently selected first,
+    -- then alphabetically". All we need to do here is hoist the currently-
+    -- selected font to the very top, keeping the rest in that order.
+    do
+        local current_font = nil
+        local rest = {}
+        for _, f in ipairs(all_fonts) do
+            if f.name == current then
+                current_font = f
+            else
+                rest[#rest + 1] = f
+            end
         end
+        local sorted = {}
+        if current_font then sorted[#sorted + 1] = current_font end
+        for _, f in ipairs(rest) do sorted[#sorted + 1] = f end
+        all_fonts = sorted
     end
-
-    table.sort(all_fonts, function(a, b)
-        -- 1. 当前选中的字体永远最前
-        local a_current = (a.name == current) and 1 or 0
-        local b_current = (b.name == current) and 1 or 0
-        if a_current ~= b_current then
-            return a_current > b_current
-        end
-
-        -- 2. 最近使用
-        local ra = recent_rank[a.face]
-        local rb = recent_rank[b.face]
-        if ra and rb then
-            return ra < rb
-        elseif ra then
-            return true
-        elseif rb then
-            return false
-        end
-
-        -- 3. 字母序
-        return a.display:lower() < b.display:lower()
-    end)
 
     local buttons = {}
 
