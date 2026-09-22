@@ -47,7 +47,7 @@ local DEFAULT_SETTINGS = {
     qa_bb_size_pct = 100,
     qa_bb_icon_scale_pct = 100,
     qa_bb_label_scale_pct = 100,
-    qa_bb_button_hold_edit = true
+    qa_bb_button_hold_edit = true,
     qa_bb_bottom_margin_pct = 100,
     qa_bb_transparent = true,
     qa_bb_settings_on_hold = true,
@@ -685,10 +685,31 @@ function Utils.getFontList()
             end
             table.insert(result, {
                 name = face,
-                display = display_name
+                display = display_name,
+                path = font_filename,        
             })
         end
+        -- Sort: recently-selected fonts first (matching the built-in reader
+        -- font menu when "Sort by recently selected" is on), then alphabetically
+        -- by display name.
+        local recent_rank = {}
+        if G_reader_settings and G_reader_settings:isTrue("font_menu_sort_by_recently_selected") then
+            local recent = G_reader_settings:readSetting("cre_fonts_recently_selected") or {}
+            for i, face in ipairs(recent) do
+                recent_rank[face] = i
+            end
+        end
+
         table.sort(result, function(a, b)
+            local ra = recent_rank[a.name]
+            local rb = recent_rank[b.name]
+            if ra and rb then
+                return ra < rb
+            elseif ra then
+                return true
+            elseif rb then
+                return false
+            end
             return a.display:lower() < b.display:lower()
         end)
     end
@@ -723,7 +744,24 @@ function Utils.getAvailableFonts()
         end
     end
 
+    local recent_rank = {}
+    if G_reader_settings and G_reader_settings:isTrue("font_menu_sort_by_recently_selected") then
+        local recent = G_reader_settings:readSetting("cre_fonts_recently_selected") or {}
+        for i, face in ipairs(recent) do
+            recent_rank[face] = i
+        end
+    end
+
     table.sort(result, function(a, b)
+        local ra = recent_rank[a.face]
+        local rb = recent_rank[b.face]
+        if ra and rb then
+            return ra < rb
+        elseif ra then
+            return true
+        elseif rb then
+            return false
+        end
         return a.display:lower() < b.display:lower()
     end)
 
