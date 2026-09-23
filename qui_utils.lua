@@ -1024,6 +1024,7 @@ function Utils.patchFileChooserForBottombar()
                 fm_self._bottombar_injected = true
                 fm_self._bottombar_inner = inner
                 fm_self._bottombar_original_inner = inner
+                UIManager:setDirty(fm_self, "full")
                 UIManager:scheduleIn(0, function()
                     if bb.registerTouchZones then bb.registerTouchZones(fm_self) end
                 end)
