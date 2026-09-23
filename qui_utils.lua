@@ -19,9 +19,7 @@ local Utils = {}
 local DEFAULT_SETTINGS = {
     -- Panel Settings
     qa_panel_enabled = true,
-    qa_panel_slots = {"wifi", "night", "rotate", "screenshot", "QuickUI_CoverSettings","system_icon_override", "ui_font_switch", "QuickUI_ClozeSettings", "QuickUI_HFSettings", "fontlist", "restart", "qa_settings","interface_filter", "qa_add_panel_button", "qa_new"},
-    qa_panel_frontlight = true,
-    qa_panel_warmth = true,
+    qa_panel_slots = {"wifi", "night", "rotate", "screenshot", "filebrowserplus","restart", "search", "quickui_settings", "qa_add_panel_button", "qa_new"},
     qa_panel_shape = "round",
     qa_panel_bg = "flat",
     qa_panel_labels = true,
@@ -29,7 +27,18 @@ local DEFAULT_SETTINGS = {
     qa_panel_settings_on_hold = true,
     qa_panel_button_size_pct = 100,
     qa_panel_button_hold_edit = true,
-    qa_panel_slider_show_value = false,
+    qa_panel_rows_per_page    = 3,
+    qa_panel_pager_enabled    = true,
+    qa_panel_frontlight          = true,
+    qa_panel_warmth              = true,
+    qa_panel_slider_show_value   = false,
+    qa_panel_reader_font_size    = true,
+    qa_panel_reader_line_spacing = true,
+    qa_panel_reader_gamma        = true,
+    qa_panel_reader_margins_h    = false,
+    qa_panel_reader_margin_top   = false,
+    qa_panel_reader_margin_bot   = false,
+    qa_panel_reader_zoom         = false,
 
     -- Bottom Bar Settings
     qa_bb_enabled = true,
@@ -38,6 +47,7 @@ local DEFAULT_SETTINGS = {
     qa_bb_size_pct = 100,
     qa_bb_icon_scale_pct = 100,
     qa_bb_label_scale_pct = 100,
+    qa_bb_button_hold_edit = true,
     qa_bb_bottom_margin_pct = 100,
     qa_bb_transparent = true,
     qa_bb_settings_on_hold = true,
@@ -48,7 +58,6 @@ local DEFAULT_SETTINGS = {
     qa_bb_labels = false,
     qa_bb_tabs = {"home", "annotations_viewer", "continue", "reading_insights", "qa_add_bb_tab","search","cloudlibrary_batch_download_books", "zlibrary_search"},
     qa_bb_reader_enabled = true,
-    qa_bb_overlap = false,  -- Allow bottom bar to overlap content
     qa_bb_hide_in_pdf = true,
 
     -- Common Settings
@@ -64,6 +73,20 @@ local DEFAULT_SETTINGS = {
     qa_common_ui_font_overrides = {},
     qa_common_icon_labels = false,
 
+    -- Vertical Bar Settings
+    qa_vb_enabled = true,
+    qa_vb_side = "right",
+    qa_vb_slots = {"qa_settings","system_icon_override", "ui_font_switch", "QuickUI_CoverSettings", "bookshelf_toggle", "Sui-toggle", "continue", "annotations_viewer","artgallery_show",  "fontlist", "reader_sliders", "QuickUI_HFSettings", "toggle_cloze_mode", "fingerink_bar", "toggle_side_toc", "reading_insights", "rssreader_open", "zlibrary_search", "fanqie_shelf_or_toc", "fanqie_search","weread_bookshelf", "weread_search", "weread_fetch_underlines",  "weread_quick_menu", "Sui-settings", "Sui-author", "Sui-series", "Sui-tags",  "koassistant_quick_actions", "koassistant_ai_settings", "storefront_open", "qa_add_vb_button"},
+    qa_vb_labels = true,
+    qa_vb_size_pct = 100,
+    qa_vb_icon_scale_pct = 100,
+    qa_vb_label_scale_pct = 100,
+    qa_vb_button_hold_edit = true,
+    qa_vb_settings_on_hold = true,
+    qa_vb_bg = "white",
+    qa_vb_animation = "fast",
+    qa_vb_swipe_paging = true,
+    
     -- Cover Settings
     cover_enabled = true,
     cover_placeholder_style = "simple",
@@ -85,7 +108,7 @@ local DEFAULT_SETTINGS = {
     cover_show_title = false,
     cover_show_author = false,
     cover_hide_underline = true,
-    cover_hide_up_folder = false,
+    cover_hide_up_folder = true,
     cover_folder_mode = "stack",
     cover_show_spine = false,
     cover_show_itemcount = true,
@@ -290,7 +313,10 @@ function Utils.getDefaultKeys(module_key)
             "qa_panel_warmth", "qa_panel_slider_show_value", "qa_panel_shape",
             "qa_panel_bg", "qa_panel_labels", "qa_panel_label_scale_pct",
             "qa_panel_button_size_pct", "qa_panel_button_hold_edit",
-            "qa_panel_settings_on_hold",
+            "qa_panel_settings_on_hold", "qa_panel_rows_per_page", "qa_panel_pager_enabled",
+            "qa_panel_reader_font_size", "qa_panel_reader_line_spacing",
+            "qa_panel_reader_gamma", "qa_panel_reader_margins_h",
+            "qa_panel_reader_margin_top", "qa_panel_reader_margin_bot","qa_panel_reader_zoom",
         },
         qa_bb = {
             "qa_bb_enabled", "qa_bb_mode", "qa_bb_style", "qa_bb_size_pct",
@@ -298,10 +324,15 @@ function Utils.getDefaultKeys(module_key)
             "qa_bb_transparent", "qa_bb_settings_on_hold", "qa_bb_button_hold_edit",
             "qa_bb_bg_color", "qa_bb_fg_color", "qa_bb_inactive_color",
             "qa_bb_accent_color", "qa_bb_labels", "qa_bb_tabs", "qa_bb_reader_enabled",
-            "qa_bb_overlap",
+            "qa_bb_overlap", "qa_bb_hide_in_pdf",
+        },
+        qa_vb = {
+            "qa_vb_enabled", "qa_vb_side", "qa_vb_slots", "qa_vb_labels",
+            "qa_vb_size_pct", "qa_vb_icon_scale_pct", "qa_vb_label_scale_pct",
+            "qa_vb_button_hold_edit", "qa_vb_settings_on_hold","qa_vb_bg", "qa_vb_animation", "qa_vb_swipe_paging",
         },
         qa_common = {
-            "qa_common_tab_icon", "qa_common_custom_list", "qa_common_custom",
+            "qa_common_enabled", "qa_common_tab_icon", "qa_common_custom_list", "qa_common_custom", "qa_common_filter_initialized",
             "qa_common_builtin_overrides", "qa_common_context_filter",
             "qa_common_auto_add_to_panel", "qa_common_icon_overrides",
             "qa_common_ui_font_overrides", "qa_common_icon_labels",
@@ -505,8 +536,8 @@ function Utils.buildDefaultMenuItems(module_keys, refresh_callback)
     if n == 1 then
         suffix = " (" .. module_keys[1] .. ")"
     else
-        local qa_modules = {qa_common=true, qa_panel=true, qa_bb=true}
-        local all_modules = {qa_common=true, qa_panel=true, qa_bb=true, cover=true, cloze=true, hf=true}
+        local qa_modules = {qa_common=true, qa_panel=true, qa_bb=true, qa_vb=true}
+        local all_modules = {qa_common=true, qa_panel=true, qa_bb=true, qa_vb=true, cover=true, cloze=true, hf=true}
 
         local is_qa = true
         local is_all = true
@@ -519,9 +550,9 @@ function Utils.buildDefaultMenuItems(module_keys, refresh_callback)
             end
         end
 
-        if is_all and n == 6 then
+        if is_all and n == 7 then
             suffix = " (All)"
-        elseif is_qa and n == 3 then
+        elseif is_qa and n == 4 then
             suffix = " (QA)"
         else
             suffix = " (" .. table.concat(module_keys, " & ") .. ")"
@@ -653,10 +684,31 @@ function Utils.getFontList()
             end
             table.insert(result, {
                 name = face,
-                display = display_name
+                display = display_name,
+                path = font_filename,        
             })
         end
+        -- Sort: recently-selected fonts first (matching the built-in reader
+        -- font menu when "Sort by recently selected" is on), then alphabetically
+        -- by display name.
+        local recent_rank = {}
+        if G_reader_settings and G_reader_settings:isTrue("font_menu_sort_by_recently_selected") then
+            local recent = G_reader_settings:readSetting("cre_fonts_recently_selected") or {}
+            for i, face in ipairs(recent) do
+                recent_rank[face] = i
+            end
+        end
+
         table.sort(result, function(a, b)
+            local ra = recent_rank[a.name]
+            local rb = recent_rank[b.name]
+            if ra and rb then
+                return ra < rb
+            elseif ra then
+                return true
+            elseif rb then
+                return false
+            end
             return a.display:lower() < b.display:lower()
         end)
     end
@@ -664,24 +716,51 @@ function Utils.getFontList()
 end
 
 function Utils.getAvailableFonts()
+    local cre = require("document/credocument"):engineInit()
     local FontList = require("fontlist")
-    local fonts = FontList:getFontList()
+    local face_list = cre.getFontFaces()
     local result = {}
 
-    for idx, path in ipairs(fonts) do
-        local fname, name = Utils.splitFilePathName(path)
-        if name then
-            if name:match("%.ttf$") or name:match("%.otf$") then
-                local display = name:gsub("%.ttf$", ""):gsub("%.otf$", ""):gsub("_", " ")
+    for _, face in ipairs(face_list) do
+        local font_filename, font_faceindex = cre.getFontFaceFilenameAndFaceIndex(face)
+        if not font_filename then
+            font_filename, font_faceindex = cre.getFontFaceFilenameAndFaceIndex(face, nil, true)
+        end
+        if font_filename then
+            local fname = font_filename:match("([^/]+)$") or font_filename
+            if fname:match("%.ttf$") or fname:match("%.otf$") then
+                local display = face
+                if font_faceindex then
+                    display = FontList:getLocalizedFontName(font_filename, font_faceindex) or face
+                end
                 table.insert(result, {
-                    name = name,
-                    display = display,
+                    name    = fname,          -- 文件名，用于 patch Font.fontmap
+                    display = display,        -- 显示名
+                    path    = font_filename,  -- 完整路径，用于 font_face 预览
+                    face    = face,           -- face 名，用于最近排序
                 })
             end
         end
     end
 
+    local recent_rank = {}
+    if G_reader_settings and G_reader_settings:isTrue("font_menu_sort_by_recently_selected") then
+        local recent = G_reader_settings:readSetting("cre_fonts_recently_selected") or {}
+        for i, face in ipairs(recent) do
+            recent_rank[face] = i
+        end
+    end
+
     table.sort(result, function(a, b)
+        local ra = recent_rank[a.face]
+        local rb = recent_rank[b.face]
+        if ra and rb then
+            return ra < rb
+        elseif ra then
+            return true
+        elseif rb then
+            return false
+        end
         return a.display:lower() < b.display:lower()
     end)
 
@@ -869,205 +948,346 @@ end
 
 -- ============================================================
 -- Patch FileChooser for Bottom Navigation Bar
+--
+-- Only marks FileChooser instances so Menu:init knows to inject the
+-- QuickUI bottom bar into its footer. No widget-tree replacement is
+-- done here; the actual injection happens in Menu:init (see
+-- Utils.patchMenuForBottombar).
 -- ============================================================
-
 function Utils.patchFileChooserForBottombar()
     local FileChooser = require("ui/widget/filechooser")
-    if FileChooser._quickui_bottombar_patched then return end
-    FileChooser._quickui_bottombar_patched = true
+    if FileChooser._quickui_inject_patched then return end
+    FileChooser._quickui_inject_patched = true
 
-    local orig_init = FileChooser.init
-    FileChooser.init = function(fc_self, ...)
-        if fc_self.height == nil and fc_self.width == nil then
-            local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
-            if bb and bb.isEnabled and bb.isEnabled() then
-                local screen_h = Screen:getHeight()
-                local nav_h = bb.TOTAL_H()
-                fc_self.height = screen_h - nav_h
-                fc_self.y = 0
-            end
+    local orig_new = FileChooser.new
+    FileChooser.new = function(class, attrs, ...)
+        attrs = attrs or {}
+        if attrs.name == "filemanager" then
+            attrs._quickui_bb_inject = true
         end
-        return orig_init(fc_self, ...)
+        return orig_new(class, attrs, ...)
     end
-
-    local orig_recalc = FileChooser._recalculateDimen
-    FileChooser._recalculateDimen = function(fc_self, ...)
-        local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
-        if bb and bb.isEnabled and bb.isEnabled() then
-            local screen_h = Screen:getHeight()
-            local nav_h = bb.TOTAL_H()
-            local content_h = screen_h - nav_h
-            if fc_self.height ~= content_h then
-                fc_self.height = content_h
-            end
-            if fc_self.y ~= 0 then
-                fc_self.y = 0
-            end
-        end
-        return orig_recalc(fc_self, ...)
-    end
-
-    local orig_update = FileChooser.updateItems
-    FileChooser.updateItems = function(fc_self, ...)
-        local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
-        if bb and bb.isEnabled and bb.isEnabled() then
-            local screen_h = Screen:getHeight()
-            local nav_h = bb.TOTAL_H()
-            local content_h = screen_h - nav_h
-            if fc_self.height ~= content_h then
-                fc_self.height = content_h
-            end
-            if fc_self.y ~= 0 then
-                fc_self.y = 0
-            end
-        end
-        return orig_update(fc_self, ...)
-    end
-
 end
 
 -- ============================================================
 -- Patch ReaderUI for Bottom Navigation Bar
+--
+-- ReaderUI keeps its own footer (ReaderFooter) which we take over via
+-- Utils.patchReaderFooterForBottombar. Here we only register the touch
+-- zones for the bottom bar after a ReaderUI instance is created.
 -- ============================================================
 function Utils.patchReaderUIForBottombar()
     local ReaderUI = require("apps/reader/readerui")
     if ReaderUI._quickui_bottombar_patched then return end
     ReaderUI._quickui_bottombar_patched = true
 
-    local Geom = require("ui/geometry")
+    -- Take over the native ReaderFooter first, so all consumers of
+    -- footer:getHeight() automatically use the QuickUI bar height.
+    Utils.patchReaderFooterForBottombar()
+
     local orig_new = ReaderUI.new
-
     ReaderUI.new = function(class, attrs, ...)
-        attrs = attrs or {}
-
-        -- ============================================================
-        -- Same gating logic as rebuildBottombar:
-        --   1. Bottom bar globally enabled
-        --   2. "Show in reader" is not false
-        --   3. Not (hide_in_pdf AND current doc is PDF)
-        -- ============================================================
-        local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
-        local should_inject = false
-        local shrink_height = false
-        local nav_h = 0
-
-        if bb and bb.isEnabled and bb.isEnabled() then
-            local config = _G.__QUICKUI_CONFIG
-            local show_in_reader = config and config.qa_bb_reader_enabled
-            local hide_in_pdf = config and config.qa_bb_hide_in_pdf
-            local is_pdf = false
-            if attrs.document and attrs.document.file then
-                is_pdf = attrs.document.file:match("%.pdf$") ~= nil
-            end
-
-            if show_in_reader ~= false and not (hide_in_pdf and is_pdf) then
-                should_inject = true
-                nav_h = bb.TOTAL_H()
-                -- Only shrink reader height when overlap is NOT enabled
-                if not Utils.getBool("qa_bb_overlap", false) then
-                    shrink_height = true
-                end
-            end
-        end
-
-        -- Shrink the reader's dimen BEFORE ReaderView is created,
-        -- so CREngine/PDF layout uses the reduced height from the start.
-        -- Skip when overlap mode is enabled (content should go under the bar).
-        if should_inject and shrink_height and nav_h > 0 and attrs.dimen then
-            local d = attrs.dimen
-            attrs.dimen = Geom:new{
-                x = d.x or 0,
-                y = d.y or 0,
-                w = d.w or Screen:getWidth(),
-                h = (d.h or Screen:getHeight()) - nav_h,
-            }
-        end
-
         local instance = orig_new(class, attrs, ...)
 
-        if should_inject then
-            -- Inject the bottom bar widget into reader[1]
-            local inner = instance[1]
-            if inner and not inner._bottombar_inner then
-                inner._bottombar_injected_container = true
-                local wrapped = bb.wrapWithBottombar(inner)
-                if wrapped and wrapped ~= inner then
-                    instance[1] = wrapped
-                    instance._bottombar_injected = true
-                    instance._bottombar_inner = inner
-                    instance._bottombar_original_inner = inner
-                else
-                    inner._bottombar_injected_container = nil
-                end
+        UIManager:scheduleIn(0, function()
+            local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
+            if bb and bb.registerTouchZones then
+                bb.registerTouchZones(instance)
             end
-
-            -- Register touch zones after the reader is on screen
-            UIManager:scheduleIn(0, function()
-                if bb.registerTouchZones then
-                    bb.registerTouchZones(instance)
-                end
-            end)
-        end
+        end)
 
         return instance
     end
 end
 
 -- ============================================================
--- Patch BookList for Bottom Navigation Bar
+-- Patch ReaderFooter for Bottom Navigation Bar
+--
+-- 让 QuickUI 底栏"寄生"在原生 ReaderFooter 上：
+--   - getHeight    → 接管时返回 QuickUI 底栏高度
+--   - paintTo      → 接管时绘制 QuickUI 底栏
+--   - resetLayout  → 接管时由 QuickUI 底栏算 dimen
+--   - applyFooterMode → 接管时强制 footer_visible = true
+--
+-- 这样所有 footer:getHeight() 的消费点（onSetPageMargins /
+-- recalculate / onGotoViewRel / _gotoPos / pagemap）自动使用
+-- QuickUI 底栏高度，无需改动任何消费点。
 -- ============================================================
+function Utils.patchReaderFooterForBottombar()
+    local ReaderFooter = require("apps/reader/modules/readerfooter")
+    if ReaderFooter._quickui_bottombar_patched then return end
+    ReaderFooter._quickui_bottombar_patched = true
 
-function Utils.patchBookListForBottombar()
-    local BookList = require("ui/widget/booklist")
-    if BookList._quickui_patched then return end
-    BookList._quickui_patched = true
+    -- 统一的"是否用 QuickUI 底栏接管"判断
+    local function shouldUseQuickUIBottombar(footer)
+        local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
+        if not (bb and Utils.getBool("qa_bb_enabled", true)) then return false end
 
-    local orig_new = BookList.new
-    BookList.new = function(class, attrs, ...)
-        attrs = attrs or {}
-        local is_booklist = attrs.name == "history" or attrs.name == "collections" or attrs.name == "coll_list"
+        local config = _G.__QUICKUI_CONFIG
+        if config and config.qa_bb_reader_enabled == false then return false end
 
-        if is_booklist then
-            local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
-            if bb and bb.isEnabled and bb.isEnabled() then
-                local nav_h = bb.TOTAL_H()
-                attrs.height = Screen:getHeight() - nav_h
-                attrs.width = Screen:getWidth()
-                attrs._navbar_height_reduced = true
-            end
+        local hide_in_pdf = config and config.qa_bb_hide_in_pdf
+        local doc = footer.ui and footer.ui.document
+        local is_pdf = doc and doc.file and doc.file:match("%.pdf$") ~= nil
+        if hide_in_pdf and is_pdf then return false end
+
+        return true, bb
+    end
+
+    -- getHeight：接管时返回 QuickUI 底栏高度
+    local orig_getHeight = ReaderFooter.getHeight
+    function ReaderFooter:getHeight()
+        local active, bb = shouldUseQuickUIBottombar(self)
+        if active then
+            return bb.TOTAL_H()
         end
+        return orig_getHeight(self)
+    end
 
-        local instance = orig_new(class, attrs, ...)
+    -- paintTo：接管时绘制 QuickUI 底栏
+    local orig_paintTo = ReaderFooter.paintTo
+    function ReaderFooter:paintTo(bb, x, y)
+        local active, quickui_bb = shouldUseQuickUIBottombar(self)
+        if active then
+            quickui_bb.paintIntoFooter(bb, x, y, self)
+            return
+        end
+        return orig_paintTo(self, bb, x, y)
+    end
 
-        if is_booklist then
-            local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
-            if bb and bb.isEnabled and bb.isEnabled() then
-                -- Inject the bottom bar BEFORE UIManager:show runs,
-                -- so the very first paint already includes the bar (single flash).
-                local inner = instance[1]
-                if inner and not inner._bottombar_inner then
-                    inner._bottombar_injected_container = true
-                    local wrapped = bb.wrapWithBottombar(inner)
-                    if wrapped and wrapped ~= inner then
-                        instance[1] = wrapped
-                        instance._bottombar_injected = true
-                        instance._bottombar_inner = inner
-                    else
-                        inner._bottombar_injected_container = nil
+    -- resetLayout：方案 B —— 先跑原生 resetLayout 初始化所有字段，
+    -- 再用 QuickUI 的 dimen 覆盖 footer.dimen。
+    local orig_resetLayout = ReaderFooter.resetLayout
+    function ReaderFooter:resetLayout(force_reset)
+        local active, bb = shouldUseQuickUIBottombar(self)
+        if active then
+            -- ① 先跑原生：初始化 _saved_screen_width / _saved_screen_height
+            --    / progress_bar / separator_line / footer_positioner 等字段，
+            --    避免后续 _updateFooterText / onUpdateFooter 访问 nil 崩。
+            orig_resetLayout(self, force_reset)
+            -- ② 再用 QuickUI 的 dimen 覆盖 footer.dimen，
+            --    让 footer 的占位区域与 QuickUI 底栏一致。
+            bb.resetFooterLayout(self)
+            return
+        end
+        return orig_resetLayout(self, force_reset)
+    end
+
+    -- applyFooterMode：接管时强制 footer_visible = true
+    local orig_applyFooterMode = ReaderFooter.applyFooterMode
+    function ReaderFooter:applyFooterMode(mode)
+        local active = shouldUseQuickUIBottombar(self)
+        if active and self.view then
+            local prev = self.view.footer_visible
+            self.view.footer_visible = true
+            if prev ~= self.view.footer_visible then
+                self:updateFooterContainer()
+                self:resetLayout(true)
+                self.visibility_change = true
+            end
+            return
+        end
+        return orig_applyFooterMode(self, mode)
+    end
+end
+
+-- ============================================================
+-- Patch BookList for Bottom Navigation Bar
+--
+-- Marks Menu (and BookList, which inherits Menu and does not override
+-- new) instances used as list screens by the FileManager family, so
+-- Menu:init installs the QuickUI bottom bar.
+--
+-- Identification is by attrs._manager: all of History, Collections,
+-- the Collections list (coll_list), the collection folder list
+-- (coll_folder_list) and FileSearcher pass their owning widget as
+-- _manager when creating their Menu. FileChooser is the only one
+-- without _manager and is handled separately by
+-- patchFileChooserForBottombar (name == "filemanager").
+--
+-- This is more robust than matching attrs.name, because coll_list and
+-- coll_folder_list are plain Menu:new{} calls without a name attribute.
+-- ============================================================
+function Utils.patchBookListForBottombar()
+    local Menu = require("ui/widget/menu")
+    if Menu._quickui_inject_patched then return end
+    Menu._quickui_inject_patched = true
+
+    local orig_new = Menu.new
+    Menu.new = function(class, attrs, ...)
+        attrs = attrs or {}
+        if attrs._manager then
+            attrs._quickui_bb_inject = true
+        end
+        return orig_new(class, attrs, ...)
+    end
+end
+
+-- ============================================================
+-- Patch Menu for Bottom Navigation Bar
+--
+-- Injects the QuickUI bottom bar into Menu's footer, just below the
+-- page_info row. The bar is wrapped together with the original page_info
+-- inside a VerticalGroup so it moves as a whole with the page-info row.
+--
+-- Width handling:
+--   VerticalGroup:getSize() returns max(child widths) for w, so once the
+--   bar (which spans the full screen width) is inside the group,
+--   page_info.w becomes inner_dimen.w. BottomContainer then centers
+--   page_info with no horizontal offset — the same net position the
+--   original page_info had, since BottomContainer also centered it on
+--   inner_dimen.w before. No horizontal shift is introduced.
+--
+-- Height handling:
+--   page_info:getSize().h becomes orig_page_info.h + bar.h. CoverBrowser
+--   reads page_info:getSize().h in its own _recalculateDimen overrides
+--   (MosaicMenu / ListMenu) and reserves the extra space automatically.
+--   The original Menu reads bottom_height from two Buttons instead, so
+--   Menu:_recalculateDimen is patched below to subtract nav_h explicitly.
+--
+-- Cache handling and bar rebuild:
+--   VerticalGroup:resetLayout() only clears its own _size/_offsets; it
+--   does not recurse into children. We patch it to:
+--     1) recurse into children, so the inner HorizontalGroup
+--        (orig_page_info) recomputes its layout after
+--        page_info_text:setText(); without this the new text would be
+--        painted at the old offsets and overlap the neighbouring chevron.
+--     2) rebuild the QuickUI bottom bar (its 2nd child in our page_info
+--        VerticalGroup). This covers every update path because both
+--        Menu:updateItems and CoverBrowser's CoverMenu:updateItems call
+--        page_info:resetLayout(). Rebuilding keeps dynamic icons and
+--        labels (wifi on/off, cloze on/off, changed tabs) in sync with
+--        the current state, which would otherwise stay frozen at
+--        Menu:init time. A re-entrancy flag prevents infinite recursion.
+--
+-- Registry:
+--   Every Menu instance created with _quickui_bb_inject is registered in
+--   _G.__QUICKUI_MENU_REGISTRY so qa_bottombar's rebuildBottombar() can
+--   refresh it directly. UIManager._window_stack is not enough here:
+--   FileChooser, in particular, is a child of the FileManager widget and
+--   never appears on the stack, so iterating the stack would miss it.
+-- ============================================================
+function Utils.patchMenuForBottombar()
+    local Menu = require("ui/widget/menu")
+    if Menu._quickui_bottombar_patched then return end
+    Menu._quickui_bottombar_patched = true
+
+    local BottomContainer = require("ui/widget/container/bottomcontainer")
+    local VerticalGroup = require("ui/widget/verticalgroup")
+
+    -- Global registry of Menu instances with the QuickUI bar installed.
+    -- Lives on _G so qa_bottombar.lua can reach it without a direct
+    -- require cycle.
+    local registry = _G.__QUICKUI_MENU_REGISTRY
+    if not registry then
+        registry = { list = {}, set = {} }
+        _G.__QUICKUI_MENU_REGISTRY = registry
+    end
+
+    if not VerticalGroup._quickui_recursive_reset then
+        VerticalGroup._quickui_recursive_reset = true
+        local orig_resetLayout = VerticalGroup.resetLayout
+        function VerticalGroup:resetLayout()
+            orig_resetLayout(self)
+
+            -- Rebuild the QuickUI bottom bar and re-register its touch
+            -- zones if this is a page_info container we created.
+            if self._quickui_bb_container and not self._quickui_bb_rebuilding then
+                local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
+                if bb then
+                    self._quickui_bb_rebuilding = true
+                    local old_bar = self[2]
+                    if old_bar then
+                        old_bar:free()
+                    end
+                    self[2] = bb.buildBar(nil)
+                    self._quickui_bb_rebuilding = nil
+
+                    if self._quickui_menu and bb.registerTouchZones then
+                        bb.registerTouchZones(self._quickui_menu)
                     end
                 end
+            end
 
-                -- Register touch zones after the widget is on screen
-                -- (needs dimen to be settled).
-                UIManager:scheduleIn(0, function()
-                    if bb.registerTouchZones then
-                        bb.registerTouchZones(instance)
-                    end
-                end)
+            for _, widget in ipairs(self) do
+                if widget.resetLayout then
+                    widget:resetLayout()
+                end
+            end
+        end
+    end
+
+    local orig_init = Menu.init
+    function Menu:init()
+        orig_init(self)
+
+        local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
+        if not (bb and self._quickui_bb_inject) then return end
+
+        local nav_h = bb.TOTAL_H()
+        if nav_h <= 0 then return end
+
+        local orig_page_info = self.page_info
+        self.page_info = VerticalGroup:new{
+            align = "center",
+            orig_page_info,
+            bb.buildBar(nil),
+        }
+        self.page_info._quickui_menu = self
+        self.page_info._quickui_bb_container = true
+
+        local content = self[1] and self[1][1]
+        if content then
+            content[#content] = BottomContainer:new{
+                dimen = self.inner_dimen:copy(),
+                self.page_info,
+            }
+
+            local page_return = content[#content - 1]
+            if page_return and page_return.dimen then
+                page_return.dimen.h = self.inner_dimen.h - nav_h
             end
         end
 
-        return instance
+        bb.registerTouchZones(self)
+
+        -- Register this Menu so rebuildBottombar() can refresh it even
+        -- when it is not an entry on UIManager._window_stack.
+        if not registry.set[self] then
+            registry.set[self] = true
+            registry.list[#registry.list + 1] = self
+        end
+    end
+
+    local orig_recalc = Menu._recalculateDimen
+    function Menu:_recalculateDimen(no_recalculate_dimen)
+        orig_recalc(self, no_recalculate_dimen)
+
+        local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
+        if not (bb and self._quickui_bb_inject) then return end
+
+        local nav_h = bb.TOTAL_H()
+        if nav_h <= 0 then return end
+
+        self.available_height = self.available_height - nav_h
+        self.item_dimen.h = math.floor(self.available_height / self.perpage)
+    end
+
+    -- Drop the Menu from the registry when it is torn down.
+    local orig_onCloseWidget = Menu.onCloseWidget
+    function Menu:onCloseWidget()
+        if registry.set[self] then
+            registry.set[self] = nil
+            for i = #registry.list, 1, -1 do
+                if registry.list[i] == self then
+                    table.remove(registry.list, i)
+                    break
+                end
+            end
+        end
+        if orig_onCloseWidget then
+            return orig_onCloseWidget(self)
+        end
     end
 end
 

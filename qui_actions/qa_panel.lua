@@ -17,6 +17,8 @@ local Geom = require("ui/geometry")
 local UIManager = require("ui/uimanager")
 local datetime = require("datetime")
 local BD = require("ui/bidi")
+local Event = require("ui/event")
+local Notification = require("ui/widget/notification")
 
 local CenterContainer = require("ui/widget/container/centercontainer")
 local FrameContainer = require("ui/widget/container/framecontainer")
@@ -38,6 +40,7 @@ local Utils = require("qui_utils")
 local actions = require("qui_actions/qa_actions")
 local icon_picker = require("qui_actions/qa_icon_picker")
 local settings_mod = require("qui_actions/qa_settings")
+local reader_sliders = require("qui_actions/qa_reader_sliders")
 
 -- ============================================================
 -- Global storage
@@ -48,6 +51,7 @@ _G.__QUICKUI_PLUGIN_STORE = PLUGIN_STORE
 
 local QA = {}
 local _qs_refs = nil
+local _panel_page = 1   -- current page index for the paginated panel
 
 
 -- ============================================================
@@ -101,11 +105,21 @@ local SlimSlider = require("ui/widget/widget"):extend{
 }
 
 function SlimSlider:init()
-    self.dimen = Geom:new{ w = self.width, h = self.height }
+        self.dimen = Geom:new{
+        x = -10000,
+        y = -10000,
+        w = self.width,
+        h = self.height,
+    }
 end
 
 function SlimSlider:getSize()
-    return Geom:new{ w = self.width, h = self.height }
+    return Geom:new{
+        x = -10000,
+        y = -10000,
+        w = self.width,
+        h = self.height,
+    }
 end
 
 function SlimSlider:setValue(v)
@@ -145,6 +159,10 @@ end
 -- Build the Quick Actions Panel
 -- ============================================================
 
+-- ============================================================
+-- Build the Quick Actions Panel
+-- ============================================================
+
 function QA.buildPanel(touch_menu)
     local panel_w = touch_menu.item_width
     local padding = Screen:scaleBySize(28)
@@ -156,7 +174,10 @@ function QA.buildPanel(touch_menu)
     local icon_size = math.floor(btn_size * 0.52)
     local label_fs = math.max(6, math.floor(15 * (Utils.getNumber("qa_panel_label_scale_pct") / 100)))
     local label_face = Utils.getFontFace("cfont", label_fs)
-    local medium_face = Utils.getFontFace("ffont", Utils.scaleBySize(14))
+    local medium_size = Utils.scaleBySize(
+        math.max(6, math.floor(12 * (Utils.getNumber("qa_panel_label_scale_pct") / 100)))
+    )
+    local medium_face = Utils.getFontFace("ffont", medium_size)
     local border_sz = 1
     local shape = Utils.getString("qa_panel_shape")
     if shape == "" then shape = "round" end
@@ -342,7 +363,9 @@ function QA.buildPanel(touch_menu)
     local visible_slots = {}
     for __, id in ipairs(slots) do
         local action = getAction(id)
-        if action then
+        -- Skip orphan ids and unavailable actions (plugin not loaded).
+        -- Never writes back to config.
+        if action and actions.isActionAvailable(id) then
             if isActionVisible(id, current_view) then
                 visible_slots[#visible_slots + 1] = id
             end
@@ -352,10 +375,22 @@ function QA.buildPanel(touch_menu)
     local n = #visible_slots
     local fixed_gap = Screen:scaleBySize(8)
     local max_per_row = math.max(1, math.floor((inner_w + fixed_gap) / (btn_size + fixed_gap)))
+
+    -- Rows per page: configurable, default 3, range 1..6
+    local ROWS_PER_PAGE = math.max(1, math.min(6,
+        math.floor(Utils.getNumber("qa_panel_rows_per_page") or 3)))
+    local slots_per_page = ROWS_PER_PAGE * max_per_row
+    local total_pages    = math.max(1, math.ceil(n / slots_per_page))
+
+    _panel_page = math.max(1, math.min(_panel_page or 1, total_pages))
+
+    local first = (n > 0) and ((_panel_page - 1) * slots_per_page + 1) or 1
+    local last  = math.min(first + slots_per_page - 1, n)
+
     local rows = {}
-    for i = 1, n, max_per_row do
+    for i = first, last, max_per_row do
         local row_slots = {}
-        for j = i, math.min(i + max_per_row - 1, n) do
+        for j = i, math.min(i + max_per_row - 1, last) do
             table.insert(row_slots, visible_slots[j])
         end
         table.insert(rows, row_slots)
@@ -399,18 +434,226 @@ function QA.buildPanel(touch_menu)
             end
         end
     else
-        table.insert(rows_vg, TextWidget:new{
-               text = _("No actions configured, long press to add"),
-               face = Utils.getFontFace("cfont", Utils.scaleBySize(14)),
-               fgcolor = Blitbuffer.COLOR_DARK_GRAY,
+        local hint_widget = TextWidget:new{
+            text = _("No actions configured, tap to add"),
+            face = Utils.getFontFace("cfont", Utils.scaleBySize(14)),
+            fgcolor = Blitbuffer.COLOR_DARK_GRAY,
+        }
+        local hint_w = hint_widget:getSize().w
+        local hint_h = hint_widget:getSize().h
+
+        local hint_wrapper = InputContainer:new{
+            dimen = Geom:new{ w = hint_w, h = hint_h },
+        }
+        hint_wrapper[1] = hint_widget
+        hint_wrapper:registerTouchZones({
+            {
+                id = "qa_empty_hint_tap",
+                ges = "tap",
+                screen_zone = { ratio_x = 0, ratio_y = 0, ratio_w = 1, ratio_h = 1 },
+                handler = function(ges)
+                    local d = hint_wrapper.dimen
+                    if d and ges.pos.x >= d.x and ges.pos.x <= d.x + d.w
+                       and ges.pos.y >= d.y and ges.pos.y <= d.y + d.h then
+                        local settings = require("qui_actions/qa_settings")
+                        if settings and settings.showAddButtonMenu then
+                            settings.showAddButtonMenu(touch_menu)
+                        end
+                        return true
+                    end
+                    return false
+                end,
+            },
         })
+
+        table.insert(rows_vg, hint_wrapper)
+    end
+
+    -- Pager row (only when there are buttons AND the user enabled it)
+    if n > 0 and Utils.getBool("qa_panel_pager_enabled", true) then
+        local pager_h = Screen:scaleBySize(36)
+        local chevron_btn_w = Screen:scaleBySize(48)
+        local step_btn_w    = Screen:scaleBySize(40)
+
+        local chevron_left  = "chevron.left"
+        local chevron_right = "chevron.right"
+        if BD.mirroredUILayout() then
+            chevron_left, chevron_right = chevron_right, chevron_left
+        end
+
+        local prev_btn = Button:new{
+            icon = chevron_left,
+            width = chevron_btn_w,
+            height = pager_h,
+            bordersize = 0,
+            enabled = total_pages > 1 and _panel_page > 1,
+            show_parent = touch_menu.show_parent,
+            callback = function()
+                if total_pages > 1 and _panel_page > 1 then
+                    _panel_page = _panel_page - 1
+                    touch_menu:updateItems()
+                end
+            end,
+        }
+
+        local next_btn = Button:new{
+            icon = chevron_right,
+            width = chevron_btn_w,
+            height = pager_h,
+            bordersize = 0,
+            enabled = total_pages > 1 and _panel_page < total_pages,
+            show_parent = touch_menu.show_parent,
+            callback = function()
+                if total_pages > 1 and _panel_page < total_pages then
+                    _panel_page = _panel_page + 1
+                    touch_menu:updateItems()
+                end
+            end,
+        }
+
+        -- Shape cycle: round -> square_round -> bare -> round
+        local SHAPE_CYCLE = { "round", "square_round", "bare" }
+        local SHAPE_ICON = {
+            round        = actions.nerdIconChar("nerd:EE64") or "●",
+            square_round = actions.nerdIconChar("nerd:EE61") or "■",
+            bare         = actions.nerdIconChar("nerd:F468") or "○",
+        }
+        local function currentShape()
+            local s = Utils.getString("qa_panel_shape")
+            if s == "" then s = "round" end
+            return s
+        end
+        local shape_btn = Button:new{
+            text = SHAPE_ICON[currentShape()] or "●",
+            width = step_btn_w,
+            height = pager_h,
+            bordersize = 0,
+            text_font_size = label_fs,
+            show_parent = touch_menu.show_parent,
+            callback = function()
+                local cur = currentShape()
+                local idx = 1
+                for i, s in ipairs(SHAPE_CYCLE) do
+                    if s == cur then idx = i; break end
+                end
+                local next_shape = SHAPE_CYCLE[(idx % #SHAPE_CYCLE) + 1]
+                Utils.set("qa_panel_shape", next_shape)
+                touch_menu:updateItems()
+            end,
+        }
+
+        -- Label toggle: reuse the eye / eye-off icons from the icon picker
+        local function labelToggleText()
+            local on = Utils.getBool("qa_panel_labels", false)
+            if on then
+                return actions.nerdIconChar("nerd:E907") or "◉"
+            else
+                return actions.nerdIconChar("nerd:E908") or "◎"
+            end
+        end
+        local label_btn = Button:new{
+            text = labelToggleText(),
+            width = step_btn_w,
+            height = pager_h,
+            bordersize = 0,
+            text_font_size = label_fs,
+            show_parent = touch_menu.show_parent,
+            callback = function()
+                Utils.set("qa_panel_labels", not Utils.getBool("qa_panel_labels", false))
+                touch_menu:updateItems()
+            end,
+        }
+
+        -- Rows per page: − page ＋
+        local rows_minus = Button:new{
+            text = "−",
+            width = step_btn_w,
+            height = pager_h,
+            bordersize = 0,
+            text_font_size = label_fs,
+            enabled = ROWS_PER_PAGE > 1,
+            show_parent = touch_menu.show_parent,
+            callback = function()
+                local v = math.max(1, ROWS_PER_PAGE - 1)
+                if v ~= ROWS_PER_PAGE then
+                    local cfg = _G.__QUICKUI_CONFIG or {}
+                    cfg.qa_panel_rows_per_page = v
+                    Utils.saveConfig()
+                    _panel_page = 1
+                    touch_menu:updateItems()
+                end
+            end,
+        }
+
+        local rows_plus = Button:new{
+            text = "＋",
+            width = step_btn_w,
+            height = pager_h,
+            bordersize = 0,
+            text_font_size = label_fs,
+            enabled = ROWS_PER_PAGE < 6,
+            show_parent = touch_menu.show_parent,
+            callback = function()
+                local v = math.min(6, ROWS_PER_PAGE + 1)
+                if v ~= ROWS_PER_PAGE then
+                    local cfg = _G.__QUICKUI_CONFIG or {}
+                    cfg.qa_panel_rows_per_page = v
+                    Utils.saveConfig()
+                    _panel_page = 1
+                    touch_menu:updateItems()
+                end
+            end,
+        }
+
+        local page_label = TextWidget:new{
+            text = _panel_page .. "/" .. total_pages,
+            face = label_face,
+        }
+
+        -- Center group: [−] page [＋]
+        local mid_group = HorizontalGroup:new{
+            align = "center",
+            rows_minus,
+            page_label,
+            rows_plus,
+        }
+
+        -- Split the middle band (inner_w - 2*chevron) into three equal columns:
+        --   left   : shape   (centered in its column)
+        --   center : [−] page [＋]
+        --   right  : eye
+        -- This lands shape exactly midway between ◂ and −, and eye exactly
+        -- midway between ＋ and ▸.
+        local mid_w = inner_w - 2 * chevron_btn_w
+        local col_w = math.floor(mid_w / 3)
+
+        local pager_row = HorizontalGroup:new{
+            align = "center",
+            prev_btn,
+            CenterContainer:new{
+                dimen = Geom:new{ w = col_w, h = pager_h },
+                shape_btn,
+            },
+            CenterContainer:new{
+                dimen = Geom:new{ w = mid_w - 2 * col_w, h = pager_h },
+                mid_group,
+            },
+            CenterContainer:new{
+                dimen = Geom:new{ w = col_w, h = pager_h },
+                label_btn,
+            },
+            next_btn,
+        }
+
+        table.insert(rows_vg, VerticalSpan:new{ width = Screen:scaleBySize(6) })
+        table.insert(rows_vg, pager_row)
     end
 
     local panel = VerticalGroup:new{
         align = "center",
         VerticalSpan:new{ width = Screen:scaleBySize(20) },
         CenterContainer:new{ dimen = Geom:new{ w = panel_w, h = rows_vg:getSize().h }, rows_vg },
-        VerticalSpan:new{ width = Screen:scaleBySize(16) },
+        VerticalSpan:new{ width = Screen:scaleBySize(4) },   -- reduced: pager → first slider
     }
 
     -- Frontlight slider
@@ -429,7 +672,7 @@ function QA.buildPanel(touch_menu)
         local fl_label = nil
         if Utils.getBool("qa_panel_slider_show_value") then
             fl_label = TextWidget:new{
-                text = _("Frontlight") .. ": " .. tostring(fl.cur),
+                text = _("Frontlight") .. ": " .. string.format("%d", math.floor(fl.cur + 0.5)),
                 face = medium_face,
                 max_width = inner_w,
             }
@@ -448,13 +691,41 @@ function QA.buildPanel(touch_menu)
             enabled = true,
         }
 
+        local fl_slider_wrapper = InputContainer:new{
+            dimen = Geom:new{ w = slider_width, h = btn_height },
+        }
+        fl_slider_wrapper[1] = fl_slider
+
+        if Utils.getBool("qa_panel_button_hold_edit") then
+            fl_slider_wrapper:registerTouchZones({
+                {
+                    id = "sld_hold_frontlight",
+                    ges = "hold",
+                    screen_zone = { ratio_x = 0, ratio_y = 0, ratio_w = 1, ratio_h = 1 },
+                    handler = function(ges)
+                        local rel_x = ges.pos.x - (fl_slider_wrapper.dimen and fl_slider_wrapper.dimen.x or 0)
+                        local rel_y = ges.pos.y - (fl_slider_wrapper.dimen and fl_slider_wrapper.dimen.y or 0)
+                        if rel_x >= 0 and rel_x <= slider_width and rel_y >= 0 and rel_y <= btn_height then
+                            UIManager:close(touch_menu)
+                            local settings = require("qui_actions/qa_settings")
+                            if settings and settings.showSlidersMenu then
+                                settings.showSlidersMenu(nil, nil)
+                            end
+                            return true
+                        end
+                        return false
+                    end,
+                },
+            })
+        end
+
         local fl_saved_brightness = (fl.cur > fl.min) and fl.cur or fl.max
         local fl_toggle_btn
 
         local function updateFLWidgets()
             fl_slider:setValue(fl.cur)
             if fl_label then
-                fl_label:setText(_("Frontlight") .. ": " .. tostring(fl.cur))
+                fl_label:setText(_("Frontlight") .. ": " .. string.format("%d", math.floor(fl.cur + 0.5)))
             end
             if fl_toggle_btn then
                 fl_toggle_btn:setText(fl.cur > fl.min and "ON" or "OFF")
@@ -507,7 +778,7 @@ function QA.buildPanel(touch_menu)
             align = "center",
             fl_minus,
             HorizontalSpan:new{ width = slider_gap },
-            fl_slider,
+            fl_slider_wrapper,
             HorizontalSpan:new{ width = slider_gap },
             fl_plus,
             HorizontalSpan:new{ width = slider_gap },
@@ -528,7 +799,7 @@ function QA.buildPanel(touch_menu)
         refs.setBrightness = setBrightness
     end
 
-    -- Warmth slider
+     -- Warmth slider
     if Utils.getBool("qa_panel_warmth") and Device:hasNaturalLight() then
         local powerd = Device:getPowerDevice()
         local nl = {
@@ -543,8 +814,8 @@ function QA.buildPanel(touch_menu)
 
         local nl_label = nil
         if Utils.getBool("qa_panel_slider_show_value") then
-            nl_label = TextWidget:new{
-                text = _("Warmth") .. ": " .. tostring(nl.cur),
+            fl_label = TextWidget:new{
+                text = _("Frontlight") .. ": " .. string.format("%d", math.floor(fl.cur + 0.5)),
                 face = medium_face,
                 max_width = inner_w,
             }
@@ -563,6 +834,37 @@ function QA.buildPanel(touch_menu)
             enabled = true,
         }
 
+        local nl_slider_wrapper = InputContainer:new{
+            dimen = Geom:new{ w = warmth_slider_w, h = btn_height2 },
+        }
+        nl_slider_wrapper[1] = nl_slider
+
+        if Utils.getBool("qa_panel_button_hold_edit") then
+            nl_slider_wrapper:registerTouchZones({
+                {
+                    id = "sld_hold_warmth",
+                    ges = "hold",
+                    screen_zone = { ratio_x = 0, ratio_y = 0, ratio_w = 1, ratio_h = 1 },
+                    handler = function(ges)
+                        local rel_x = ges.pos.x - (nl_slider_wrapper.dimen and nl_slider_wrapper.dimen.x or 0)
+                        local rel_y = ges.pos.y - (nl_slider_wrapper.dimen and nl_slider_wrapper.dimen.y or 0)
+                        if rel_x >= 0 and rel_x <= warmth_slider_w and rel_y >= 0 and rel_y <= btn_height2 then
+                            UIManager:close(touch_menu)
+                            local settings = require("qui_actions/qa_settings")
+                            if settings and settings.showSlidersMenu then
+                                settings.showSlidersMenu(nil, nil)
+                            end
+                            return true
+                        end
+                        return false
+                    end,
+                },
+            })
+        end
+
+        local nl_saved = (nl.cur > nl.min) and nl.cur or nl.max
+        local nl_toggle_btn
+
         local function setWarmth(warmth)
             if warmth == nl.cur then return end
             warmth = math.max(nl.min, math.min(nl.max, warmth))
@@ -570,7 +872,10 @@ function QA.buildPanel(touch_menu)
             nl.cur = powerd:toNativeWarmth(powerd:frontlightWarmth())
             nl_slider:setValue(nl.cur)
             if nl_label then
-                nl_label:setText(_("Warmth") .. ": " .. tostring(nl.cur))
+                nl_label:setText(_("Warmth") .. ": " .. string.format("%d", math.floor(nl.cur + 0.5)))
+            end
+            if nl_toggle_btn then
+                nl_toggle_btn:setText(nl.cur > nl.min and "ON" or "OFF")
             end
             UIManager:setDirty(touch_menu.show_parent, "ui")
         end
@@ -591,9 +896,17 @@ function QA.buildPanel(touch_menu)
             framebg = nil,
         }
 
-        local nl_max_btn = Button:new{
-            text = _("Max"), width = max_btn_w, show_parent = touch_menu.show_parent,
-            callback = function() setWarmth(nl.max) end,
+        nl_toggle_btn = Button:new{
+            text = nl.cur > nl.min and "ON" or "OFF",
+            width = max_btn_w, show_parent = touch_menu.show_parent,
+            callback = function()
+                if nl.cur > nl.min then
+                    nl_saved = nl.cur
+                    setWarmth(nl.min)
+                else
+                    setWarmth(nl_saved)
+                end
+            end,
             bordersize = 0,
             background = nil,
             framebg = nil,
@@ -603,11 +916,11 @@ function QA.buildPanel(touch_menu)
             align = "center",
             nl_minus,
             HorizontalSpan:new{ width = slider_gap },
-            nl_slider,
+            nl_slider_wrapper,
             HorizontalSpan:new{ width = slider_gap },
             nl_plus,
             HorizontalSpan:new{ width = slider_gap },
-            nl_max_btn,
+            nl_toggle_btn,
         }
 
         local warmth_group = VerticalGroup:new{ align = "center" }
@@ -620,6 +933,54 @@ function QA.buildPanel(touch_menu)
 
         table.insert(panel, CenterContainer:new{ dimen = Geom:new{ w = panel_w, h = warmth_group:getSize().h }, warmth_group })
         refs.nl_slider = nl_slider
+        refs.setWarmth = setWarmth
+    end
+
+    -- ============================================================
+    -- Reader typography sliders
+    -- ============================================================
+    do
+        local RUI = require("apps/reader/readerui")
+        local reader = RUI and RUI.instance
+        local provider = reader and reader.document and reader.document.provider
+        local is_cre = provider == "crengine"
+        local is_pdf = provider == "mupdf" or provider == "kopt"
+
+        if is_cre or is_pdf then
+            for __, opts in ipairs(reader_sliders.getSliders(reader)) do
+                if Utils.getBool(opts.enabled_key) and (not opts.should_show or opts.should_show()) then
+                    local row, slider, apply = reader_sliders.buildSliderRow(
+                        opts, inner_w, medium_size, touch_menu.show_parent, nil, true)
+
+                    -- Override the label button's hold gesture: long-press
+                    -- the left label in the panel opens the reader sliders
+                    -- popup (qa_reader_sliders.show()) instead of resetting
+                    -- the slider to its default. The standalone popup keeps
+                    -- its original reset-on-hold behaviour.
+                    local label_widget = row[1]
+                    if label_widget and label_widget.hold_callback then
+                        label_widget.hold_callback = function()
+                            if touch_menu and touch_menu.onClose then
+                                touch_menu:onClose()
+                            end
+                            UIManager:scheduleIn(0, function()
+                                reader_sliders.show()
+                            end)
+                        end
+                    end
+
+
+                    table.insert(panel, VerticalSpan:new{ width = Screen:scaleBySize(6) })
+                    table.insert(panel, CenterContainer:new{
+                        dimen = Geom:new{ w = panel_w, h = row:getSize().h },
+                        row,
+                    })
+
+                    refs[opts.key .. "_slider"] = slider
+                    refs["set_" .. opts.key] = apply
+                end
+            end
+        end
     end
 
     table.insert(panel, VerticalSpan:new{ width = Screen:scaleBySize(14) })
@@ -730,6 +1091,88 @@ function QA.patchTouchMenu()
     end
     TouchMenu._quickui_qa_patched = true
 
+    -- ★ Reset panel page to 1 whenever switching to the QA tab
+    local _orig_switchMenuTab = TouchMenu.switchMenuTab
+    function TouchMenu:switchMenuTab(index)
+        if self.tab_item_table and self.tab_item_table[index]
+            and self.tab_item_table[index]._qa_panel then
+            _panel_page = 1
+        end
+        return _orig_switchMenuTab(self, index)
+    end
+
+    local SLIDER_KEYS = {
+        { slider = "fl_slider",           setter = "setBrightness" },
+        { slider = "nl_slider",           setter = "setWarmth" },
+        { slider = "font_size_slider",    setter = "set_font_size" },
+        { slider = "line_spacing_slider", setter = "set_line_spacing" },
+        { slider = "gamma_slider",        setter = "set_gamma" },
+        { slider = "h_margin_slider",     setter = "set_h_margin" },
+        { slider = "t_margin_slider",     setter = "set_t_margin" },
+        { slider = "b_margin_slider",     setter = "set_b_margin" },
+        { slider = "pdf_contrast_slider",          setter = "set_pdf_contrast" },
+        { slider = "pdf_zoom_overlap_h_slider",    setter = "set_pdf_zoom_overlap_h" },
+        { slider = "pdf_zoom_overlap_v_slider",    setter = "set_pdf_zoom_overlap_v" },
+        { slider = "pdf_zoom_range_number_slider", setter = "set_pdf_zoom_range_number" },
+        { slider = "pdf_zoom_factor_slider",       setter = "set_pdf_zoom_factor" },
+    }
+
+    local function handleSliderAt(self, ges_ev)
+        if not (self._qs_refs and self.item_table and self.item_table._qa_panel) then
+            return false
+        end
+        for _, entry in ipairs(SLIDER_KEYS) do
+            local slider = self._qs_refs[entry.slider]
+            local setter = self._qs_refs[entry.setter]
+            if slider and slider.dimen and setter and ges_ev.pos:intersectWith(slider.dimen) then
+                local new_val = slider:getValueFromPosition(ges_ev.pos)
+                if new_val then
+                    setter(new_val)
+                    return true
+                end
+            end
+        end
+        return false
+    end
+
+    -- ★ Recompute total pages for the currently visible slots, using the
+    -- same layout math as buildPanel. Kept in one place to avoid drift.
+    local function computeTotalPages(touch_menu)
+        local panel_w = touch_menu.item_width
+        local padding = Screen:scaleBySize(28)
+        local inner_w = panel_w - padding * 2
+        local base_btn_size = Screen:scaleBySize(60)
+        local button_scale = Utils.getNumber("qa_panel_button_size_pct") / 100
+        if button_scale <= 0 then button_scale = 1 end
+        local btn_size = math.floor(base_btn_size * button_scale)
+        local fixed_gap = Screen:scaleBySize(8)
+        local max_per_row = math.max(1, math.floor((inner_w + fixed_gap) / (btn_size + fixed_gap)))
+
+        -- Count visible slots (context filter aware)
+        local slots = Utils.getTable("qa_panel_slots")
+        local visible_count = 0
+        local ctx_filter = Utils.getBool("qa_common_context_filter")
+        local current_view = "filemanager"
+        if ctx_filter then
+            local RUI = require("apps/reader/readerui")
+            local in_reader = RUI and RUI.instance and not RUI.instance.tearing_down
+            current_view = in_reader and "reader" or "filemanager"
+        end
+        for __, id in ipairs(slots) do
+            local action = getAction(id)
+            if action and actions.isActionAvailable(id) then
+                if isActionVisible(id, current_view) then
+                    visible_count = visible_count + 1
+                end
+            end
+        end
+
+        local rows = math.max(1, math.min(6,
+            math.floor(Utils.getNumber("qa_panel_rows_per_page") or 3)))
+        local slots_per_page = rows * max_per_row
+        return math.max(1, math.ceil(visible_count / slots_per_page))
+    end
+
     local _orig_updateItems = TouchMenu.updateItems
     local _orig_onTap = TouchMenu.onTapCloseAllMenus
     local _orig_onSwipe = TouchMenu.onSwipe
@@ -794,20 +1237,8 @@ function QA.patchTouchMenu()
 
     function TouchMenu:onTapCloseAllMenus(arg, ges_ev)
         if self._qs_refs and self.item_table and self.item_table._qa_panel then
-            if self._qs_refs.fl_slider and self._qs_refs.fl_slider.dimen and ges_ev.pos:intersectWith(self._qs_refs.fl_slider.dimen) then
-                local new_val = self._qs_refs.fl_slider:getValueFromPosition(ges_ev.pos)
-                if new_val and self._qs_refs.setBrightness then
-                    self._qs_refs.setBrightness(math.floor(new_val + 0.5))
-                    return true
-                end
-            end
-            if self._qs_refs.nl_slider and self._qs_refs.nl_slider.dimen and ges_ev.pos:intersectWith(self._qs_refs.nl_slider.dimen) then
-                local new_val = self._qs_refs.nl_slider:getValueFromPosition(ges_ev.pos)
-                if new_val then
-                    local powerd = Device:getPowerDevice()
-                    powerd:setWarmth(powerd:fromNativeWarmth(math.floor(new_val + 0.5)))
-                    return true
-                end
+            if handleSliderAt(self, ges_ev) then
+                return true
             end
             for __, ref in ipairs(self._qs_refs.buttons or {}) do
                 if ref.widget.dimen and ges_ev.pos:intersectWith(ref.widget.dimen) then
@@ -825,21 +1256,29 @@ function QA.patchTouchMenu()
 
     function TouchMenu:onSwipe(arg, ges_ev)
         if self._qs_refs and self.item_table and self.item_table._qa_panel then
-            if self._qs_refs.fl_slider and self._qs_refs.fl_slider.dimen and ges_ev.pos:intersectWith(self._qs_refs.fl_slider.dimen) then
-                local new_val = self._qs_refs.fl_slider:getValueFromPosition(ges_ev.pos)
-                if new_val and self._qs_refs.setBrightness then
-                    self._qs_refs.setBrightness(math.floor(new_val + 0.5))
+            if handleSliderAt(self, ges_ev) then
+                return true
+            end
+
+            -- ★ Swipe west/east → cycle through panel pages
+            local direction = BD.flipDirectionIfMirroredUILayout(ges_ev.direction)
+            if direction == "west" or direction == "east" then
+                local total_pages = computeTotalPages(self)
+                if total_pages > 1 then
+                    local p = _panel_page or 1
+                    if direction == "west" then
+                        p = (p < total_pages) and (p + 1) or 1
+                    else
+                        p = (p > 1) and (p - 1) or total_pages
+                    end
+                    _panel_page = p
+                    self:updateItems()
                     return true
                 end
+                -- Single page: swallow the swipe (no-op)
+                return true
             end
-            if self._qs_refs.nl_slider and self._qs_refs.nl_slider.dimen and ges_ev.pos:intersectWith(self._qs_refs.nl_slider.dimen) then
-                local new_val = self._qs_refs.nl_slider:getValueFromPosition(ges_ev.pos)
-                if new_val then
-                    local powerd = Device:getPowerDevice()
-                    powerd:setWarmth(powerd:fromNativeWarmth(math.floor(new_val + 0.5)))
-                    return true
-                end
-            end
+
             for __, ref in ipairs(self._qs_refs.buttons or {}) do
                 if ref.widget.dimen and ges_ev.pos:intersectWith(ref.widget.dimen) then
                     local stay_open = ref.callback()
@@ -858,20 +1297,8 @@ function QA.patchTouchMenu()
 
     function TouchMenu:onPan(arg, ges_ev)
         if self._qs_refs and self.item_table and self.item_table._qa_panel then
-            if self._qs_refs.fl_slider and self._qs_refs.fl_slider.dimen and ges_ev.pos:intersectWith(self._qs_refs.fl_slider.dimen) then
-                local new_val = self._qs_refs.fl_slider:getValueFromPosition(ges_ev.pos)
-                if new_val and self._qs_refs.setBrightness then
-                    self._qs_refs.setBrightness(math.floor(new_val + 0.5))
-                    return true
-                end
-            end
-            if self._qs_refs.nl_slider and self._qs_refs.nl_slider.dimen and ges_ev.pos:intersectWith(self._qs_refs.nl_slider.dimen) then
-                local new_val = self._qs_refs.nl_slider:getValueFromPosition(ges_ev.pos)
-                if new_val then
-                    local powerd = Device:getPowerDevice()
-                    powerd:setWarmth(powerd:fromNativeWarmth(math.floor(new_val + 0.5)))
-                    return true
-                end
+            if handleSliderAt(self, ges_ev) then
+                return true
             end
         end
         if _orig_onPan then

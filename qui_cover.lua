@@ -65,6 +65,19 @@ local MAX_BANNER_CACHE = 50
 function Cover.init(plugin_ref)
     plugin = plugin_ref
 
+    -- CoverBrowser is an optional third-party plugin. When it is not
+    -- loaded, its modules (mosaicmenu / listmenu) do not exist and
+    -- patching them would raise an uncaught error that propagates up
+    -- to main.lua:init and prevents QuickUI as a whole from loading.
+    -- Detect it up front and bail out cleanly.
+    local ok_loader, loader = pcall(require, "pluginloader")
+    local cb_loaded = ok_loader and loader and loader.loaded_plugins
+        and loader.loaded_plugins["coverbrowser"] ~= nil
+    if not cb_loaded then
+        logger.info("QuickUI Cover: CoverBrowser not loaded, skipping module patches")
+        return
+    end
+    
     Cover._patchMosaic()
     Cover._patchList()
     Cover._patchHideUpFolder()
@@ -513,8 +526,9 @@ local function drawProgressBadge(bb, cover_left, cover_top, cover_w, percent_fin
     if not getBool("cover_show_progress") then return end
     if not percent_finished then return end
 
-    local pct = math.floor(100 * percent_finished)
-    if pct <= 0 or pct >= 100 then return end
+    local pct = math.floor(100 * percent_finished + 0.5)
+    if pct < 0 then pct = 0 end
+    if pct > 100 then pct = 100 end
 
     local corner_mark_size = 20
     local badge_scale = getBadgeScale()
@@ -528,16 +542,34 @@ local function drawProgressBadge(bb, cover_left, cover_top, cover_w, percent_fin
 
     paintPentagon(bb, bdg_x - 2, bdg_y - 2, bw + 4, bh + 4, Blitbuffer.COLOR_BLACK)
     paintPentagon(bb, bdg_x, bdg_y, bw, bh, bg_color)
+
+    -- 选标签：≤0 和 ≥100 用 Nerd Font 图标，其余用百分比
+    local label
+    local is_icon = false
+    if pct <= 0 then
+        label = "\u{F1DB}"      -- 未读 / 空白图标
+        is_icon = true
+    elseif pct >= 100 then
+        label = "\u{E82b}"      -- 完成 / 对勾图标
+        is_icon = true
+    else
+        label = pct .. "%"
+    end
+
     local tw = TextWidget:new{
-        text = pct .. "%",
-        face = Font:getFace("cfont", math.max(7, math.floor(eff_size * 0.24))),
-        bold = true,
+        text    = label,
+        face    = is_icon
+                    and Font:getFace("symbols", math.floor(eff_size * 0.4))
+                    or  Font:getFace("cfont",   math.max(7, math.floor(eff_size * 0.24))),
+        bold    = not is_icon,
         fgcolor = fg_color,
-        padding = 0
+        padding = 0,
     }
     local tw_sz = tw:getSize()
     local rect_h = math.floor(bh * 30 / 42)
-    tw:paintTo(bb, bdg_x + math.floor((bw - tw_sz.w) / 2), bdg_y + math.floor((rect_h - tw_sz.h) / 2))
+    tw:paintTo(bb,
+        bdg_x + math.floor((bw     - tw_sz.w) / 2),
+        bdg_y + math.floor((rect_h - tw_sz.h) / 2))
     tw:free()
 end
 
@@ -1724,7 +1756,7 @@ function Cover._patchMosaic()
 
     function MosaicMenuItem:update(...)
         local filepath = self.entry.path or self.entry.file
-
+                
         if self.entry and self.entry.is_go_up then
             local border = 1
             local max_w = self.width - 2 * border
@@ -1843,7 +1875,7 @@ function Cover._patchMosaic()
         if not (self.entry.is_file or self.entry.file) and self.mandatory then
             local dir_path = self.entry and self.entry.path
             if not dir_path then return end
-
+                    
             local cfg = getFolderConfig()
             local mode = cfg.cover_mode
 
@@ -1868,8 +1900,32 @@ function Cover._patchMosaic()
             local covers = loadExplicitCovers(dir_path)
             local max_covers = (mode == "gallery" or mode == "stack") and 4 or 1
 
+            local is_virtual = dir_path:find("/.simpleui%-browse/") ~= nil
+
             if not covers or #covers == 0 then
-                covers = collectCovers(dir_path, max_covers, portrait_w, portrait_h)
+                if is_virtual and self.menu and self.menu.genItemTableFromPath then
+                    local ok_bim, BookInfoManager = pcall(require, "bookinfomanager")
+                    if ok_bim and BookInfoManager then
+                        covers = {}
+                        local ok_entries, entries = pcall(function()
+                            return self.menu:genItemTableFromPath(dir_path)
+                        end)
+                        if ok_entries and entries then
+                            for _, e in ipairs(entries) do
+                                if #covers >= max_covers then break end
+                                if (e.is_file or e.file) and e.path then
+                                    local bi = BookInfoManager:getBookInfo(e.path, true)
+                                    if bi and bi.cover_bb and bi.has_cover and bi.cover_fetched
+                                            and not bi.ignore_cover then
+                                        covers[#covers + 1] = { data = bi.cover_bb, w = bi.cover_w, h = bi.cover_h }
+                                    end
+                                end
+                            end
+                        end
+                    end
+                else
+                    covers = collectCovers(dir_path, max_covers, portrait_w, portrait_h)
+                end
             elseif #covers < max_covers then
                 local combined = {}
                 for _i, c in ipairs(covers) do table.insert(combined, c) end
@@ -1880,6 +1936,11 @@ function Cover._patchMosaic()
 
             local folder_name = dir_path:match("([^/]+)/?$") or dir_path
             folder_name = folder_name:gsub("/$", "")
+            -- SimpleUI virtual paths encode the value segment with a "=" prefix
+            -- (e.g. ".../author/=CPA"). Strip it for display.
+            if folder_name:sub(1, 1) == "=" then
+                folder_name = folder_name:sub(2)
+            end
 
             local scaled_covers = {}
             for _i, c in ipairs(covers) do
@@ -2208,8 +2269,32 @@ function Cover._patchList()
             local covers = loadExplicitCovers(dir_path)
             local max_covers = (mode == "gallery" or mode == "stack") and 4 or 1
 
+            local is_virtual = dir_path:find("/.simpleui%-browse/") ~= nil
+
             if not covers or #covers == 0 then
-                covers = collectCovers(dir_path, max_covers, target_w, target_h)
+                if is_virtual and self.menu and self.menu.genItemTableFromPath then
+                    local ok_bim, BookInfoManager = pcall(require, "bookinfomanager")
+                    if ok_bim and BookInfoManager then
+                        covers = {}
+                        local ok_entries, entries = pcall(function()
+                            return self.menu:genItemTableFromPath(dir_path)
+                        end)
+                        if ok_entries and entries then
+                            for _, e in ipairs(entries) do
+                                if #covers >= max_covers then break end
+                                if (e.is_file or e.file) and e.path then
+                                    local bi = BookInfoManager:getBookInfo(e.path, true)
+                                    if bi and bi.cover_bb and bi.has_cover and bi.cover_fetched
+                                            and not bi.ignore_cover then
+                                        covers[#covers + 1] = { data = bi.cover_bb, w = bi.cover_w, h = bi.cover_h }
+                                    end
+                                end
+                            end
+                        end
+                    end
+                else
+                    covers = collectCovers(dir_path, max_covers, target_w, target_h)
+                end
             elseif #covers < max_covers then
                 local combined = {}
                 for _i, c in ipairs(covers) do table.insert(combined, c) end
@@ -2220,6 +2305,11 @@ function Cover._patchList()
 
             local folder_name = dir_path:match("([^/]+)/?$") or dir_path
             folder_name = folder_name:gsub("/$", "")
+            -- SimpleUI virtual paths encode the value segment with a "=" prefix
+            -- (e.g. ".../author/=CPA"). Strip it for display.
+            if folder_name:sub(1, 1) == "=" then
+                folder_name = folder_name:sub(2)
+            end
 
             local scaled_covers = {}
             for _i, c in ipairs(covers) do
@@ -2503,7 +2593,7 @@ function Cover._patchList()
 
     function ListMenuItem:paintTo(bb, x, y)
         orig_paintTo(self, bb, x, y)
-
+        
         local target = self._cover_frame
         if not target or not target.dimen then
             return
@@ -2513,12 +2603,13 @@ function Cover._patchList()
         local cover_top = target.dimen.y
         local cover_w = target.dimen.w
         local cover_h = target.dimen.h
-        local filepath = self.filepath
+        local filepath = self.entry.path or self.entry.file
 
         local corner_mark_size = 20
         local badge_scale = getBadgeScale()
-
-        if not self.is_directory and filepath then
+        local is_dir = not (self.entry and (self.entry.is_file or self.entry.file))
+        
+        if not is_dir and filepath then
             drawFavoriteStar(bb, cover_left, cover_top, cover_w, filepath)
             drawProgressBadge(bb, cover_left, cover_top, cover_w, self.percent_finished)
             drawNewBanner(bb, cover_left, cover_top, cover_w, cover_h, self.status)

@@ -16,6 +16,7 @@ local Geom = require("ui/geometry")
 -- Widget classes
 local FrameContainer = require("ui/widget/container/framecontainer")
 local CenterContainer = require("ui/widget/container/centercontainer")
+local InputContainer = require("ui/widget/container/inputcontainer")
 local HorizontalGroup = require("ui/widget/horizontalgroup")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
@@ -39,6 +40,8 @@ local settings = require("qui_actions.qa_settings")
 local M = {}
 
 M._add_tab_dialog = nil
+-- 记录上一次底栏高度，用于判断是否需要重排（signal）
+local _last_bb_height = nil
 
 -- ============================================================
 -- Constants
@@ -382,15 +385,39 @@ function M.buildBar(active_action_id)
     -- Handle empty tabs: show friendly message
     if num_tabs == 0 then
         local vg = VerticalGroup:new{ align = "center" }
-        
+
         local hint_text = TextWidget:new{
-            text = _("No actions configured, long press to add"),
+            text = _("No actions configured, tap to add"),
             face = Utils.getFontFace("cfont", Utils.scaleBySize(14)),
             fgcolor = Blitbuffer.gray(0.5),
         }
+        local hint_w = hint_text:getSize().w
+        local hint_h = hint_text:getSize().h
+
+        local hint_wrapper = InputContainer:new{
+            dimen = Geom:new{ w = hint_w, h = hint_h },
+        }
+        hint_wrapper[1] = hint_text
+        hint_wrapper:registerTouchZones({
+            {
+                id = "bb_empty_hint_tap",
+                ges = "tap",
+                screen_zone = { ratio_x = 0, ratio_y = 0, ratio_w = 1, ratio_h = 1 },
+                handler = function(ges)
+                    local d = hint_wrapper.dimen
+                    if d and ges.pos.x >= d.x and ges.pos.x <= d.x + d.w
+                       and ges.pos.y >= d.y and ges.pos.y <= d.y + d.h then
+                        M.showAddTabMenu()
+                        return true
+                    end
+                    return false
+                end,
+            },
+        })
+
         local center = CenterContainer:new{
             dimen = Geom:new{ w = usable_w, h = M.BAR_H() },
-            hint_text,
+            hint_wrapper,
         }
         vg[#vg + 1] = center
         hg_args[#hg_args + 1] = vg
@@ -452,7 +479,9 @@ function getTabs()
         end
 
         for __, id in ipairs(tabs) do
-            if action_map[id] and #valid < MAX_TABS then
+            -- Skip orphan ids and unavailable actions (plugin not loaded).
+            -- Never writes back to config.
+            if action_map[id] and #valid < MAX_TABS and QA.isActionAvailable(id) then
                 if filter_enabled then
                     local view = QA.getActionViewFinal(id)
                     if current_view == "filemanager" then
@@ -481,14 +510,6 @@ function getTabs()
     
     -- Always return a table (empty if no tabs configured)
     return {}
-end
-
-function M.isEnabled()
-    return Utils.getBool("qa_bb_enabled", true)
-end
-
-function M.setEnabled(enabled)
-    Utils.set("qa_bb_enabled", enabled)
 end
 
 -- ============================================================
@@ -698,126 +719,36 @@ local function isReaderWidget(widget)
     return checkChild(widget)
 end
 
-function M.wrapWithBottombar(inner_widget)
-    if not Utils.getBool("qa_bb_enabled", true) then return inner_widget end
+-- ============================================================
+-- ReaderFooter Integration
+--
+-- QuickUI 底栏寄生在原生 ReaderFooter 上，由 patch 后的
+-- ReaderFooter:paintTo / :resetLayout 调用这两个接口。
+-- ============================================================
 
-    -- Guard: if inner_widget is already a bottombar container, avoid double-wrapping
-    if inner_widget._bottombar_container then
-        return inner_widget
-    end
-
-    local screen_w = Screen:getWidth()
+-- 供 ReaderFooter:paintTo 调用：绘制 QuickUI 底栏
+function M.paintIntoFooter(bb, x, y, footer)
     local screen_h = Screen:getHeight()
     local nav_h = M.TOTAL_H()
+    local bar_y = screen_h - nav_h
 
-    if nav_h <= 0 then return inner_widget end
-
-    local is_reader = isReaderWidget(inner_widget)
-    local overlap = is_reader and Utils.getBool("qa_bb_overlap", false) or false
-
-    local content_h = screen_h - nav_h
-    if content_h <= 0 then return inner_widget end
-
-    -- Check if this is a BookList (History/Collections) or Menu (coll_list)
-    local is_booklist = inner_widget.is_borderless and inner_widget.name and
-                        (inner_widget.name == "history" or inner_widget.name == "collections" or inner_widget.name == "coll_list")
-
-    -- Injection scenario: the injected inner container should also be treated as a BookList
-    local is_injected = inner_widget._bottombar_injected_container == true
-    if is_injected then
-        is_booklist = true
-    end
-
-    -- ReaderView: its dimen is already shrunk in ReaderUI.new before creation,
-    -- so do NOT resize it here (would subtract nav_h twice).
-    local is_readerview = inner_widget.recalculate ~= nil and inner_widget.document ~= nil
-
-    if not overlap then
-        if is_booklist then
-            -- Injection case: inner IS the container itself, adjust it directly.
-            -- Non-injection case: adjust inner_widget[1].
-            local container = is_injected and inner_widget or inner_widget[1]
-            if container and container.dimen then
-                container.dimen.h = content_h
-                container.dimen.y = 0
-            end
-            local mgr_owner = inner_widget
-            if mgr_owner._manager and mgr_owner._manager.updateItemTable then
-                mgr_owner._manager:updateItemTable()
-            end
-            if mgr_owner.updateItems then
-                mgr_owner:updateItems()
-            end
-        elseif not is_readerview then
-            -- FM/FileChooser: original logic
-            if inner_widget.dimen then
-                inner_widget.dimen.h = content_h
-                inner_widget.dimen.w = screen_w
-                inner_widget.dimen.y = 0
-            end
-            if inner_widget.height ~= nil then
-                inner_widget.height = content_h
-            end
-            if inner_widget.y ~= nil then
-                inner_widget.y = 0
-            end
-
-            local fc = inner_widget.file_chooser or inner_widget
-            if fc then
-                if fc.height ~= nil then
-                    fc.height = content_h
-                end
-                if fc.y ~= nil then
-                    fc.y = 0
-                end
-                if fc.dimen then
-                    fc.dimen.h = content_h
-                    fc.dimen.y = 0
-                end
-                if fc._recalculateDimen then
-                    fc:_recalculateDimen()
-                end
-                if fc.updateItems then
-                    fc:updateItems()
-                end
-            end
-        end
-        -- If is_readerview: no dimen change here, already handled in ReaderUI.new
-    end
-
-    -- Build bottom bar (shared by all)
     local tabs = getTabs() or {}
     local active_action = (tabs and #tabs > 0) and tabs[1] or nil
     local bar = M.buildBar(active_action)
-    local bar_y = screen_h - nav_h
-    bar.overlap_offset = { 0, bar_y }
+    bar:paintTo(bb, x, bar_y)
+    bar:free()
+end
 
-    local og = OverlapGroup:new{
-        allow_mirroring = false,
-        dimen = Geom:new{ w = screen_w, h = screen_h },
-        inner_widget,
-        bar,
+-- 供 ReaderFooter:resetLayout 调用：算 QuickUI 底栏 dimen
+function M.resetFooterLayout(footer)
+    local nav_h = M.TOTAL_H()
+    local screen_h = Screen:getHeight()
+    footer.dimen = Geom:new{
+        x = 0,
+        y = screen_h - nav_h,
+        w = Screen:getWidth(),
+        h = nav_h,
     }
-
-    og._bottombar_inner = inner_widget
-    og._bottombar_bar = bar
-    og._bottombar_bar_idx = 2
-    og._bottombar_container = og
-
-    local is_bare = Utils.getString("qa_bb_style") == "bare"
-    local use_transparent = Utils.getBool("qa_bb_transparent", false) or overlap
-    local bg = (use_transparent or is_bare) and nil or Blitbuffer.COLOR_WHITE
-
-    local fc = FrameContainer:new{
-        bordersize = 0,
-        padding = 0,
-        margin = 0,
-        background = bg,
-        og,
-    }
-    fc._bottombar_inner = inner_widget      -- ★ 新增
-    fc._bottombar_container = og            -- ★ 新增
-    return fc
 end
 
 -- ============================================================
@@ -883,231 +814,88 @@ end
 -- ============================================================
 
 function M.rebuildBottombar(skip_remove)
-    -- ============================================================
-    -- Fully disabled: tear down everything and restore full height
-    -- ============================================================
-    if not M.isEnabled() then
+    if not Utils.getBool("qa_bb_enabled", true) then
         M.removeBottombar()
 
         local RUI = require("apps/reader/readerui")
         local reader = RUI.instance
-        if reader and reader.dimen and reader.dimen.h ~= Screen:getHeight() then
-            local full_dimen = Geom:new{
-                x = 0, y = 0,
-                w = Screen:getWidth(),
-                h = Screen:getHeight(),
-            }
-            reader.dimen = full_dimen
-            if reader.view and reader.view.onSetDimensions then
-                reader.view:onSetDimensions(full_dimen)
-            end
-            if reader.onScreenResize then
-                reader:onScreenResize(full_dimen)
-            end
-            UIManager:setDirty(reader, "full")
+        if reader and reader.view and reader.view.footer then
+            local height_changed = (_last_bb_height ~= nil) and (_last_bb_height ~= 0)
+            _last_bb_height = 0
+            reader.view.footer:refreshFooter(true, height_changed)
         end
         return
     end
 
-    -- ============================================================
-    -- Tear down existing wrappers (do NOT touch reader height)
-    -- ============================================================
-    if skip_remove then
-        -- On rotation: only clear _bottombar_original_inner, do not execute remove
-        local FM = require("apps/filemanager/filemanager")
-        local fm = FM.instance
-        if fm then
-            fm._bottombar_original_inner = nil
+    -- Refresh every Menu that has the QuickUI bar installed. We use the
+    -- QuickUI Menu registry rather than UIManager._window_stack because
+    -- FileChooser is a child of the FileManager widget and never appears
+    -- on the stack — iterating the stack alone would leave FileManager's
+    -- bottom bar stale after tab add/remove.
+    local registry = _G.__QUICKUI_MENU_REGISTRY
+    if registry and registry.list then
+        for i = #registry.list, 1, -1 do
+            local w = registry.list[i]
+            if w and w.updateItems then
+                w:_recalculateDimen()
+                w:updateItems(1, true)
+            else
+                -- Drop stale entries (widget already torn down).
+                table.remove(registry.list, i)
+                if w then registry.set[w] = nil end
+            end
         end
-        local RUI = require("apps/reader/readerui")
-        local reader = RUI.instance
-        if reader then
-            reader._bottombar_original_inner = nil
-        end
-    else
-        M.removeBottombar()
     end
 
-    -- ============================================================
-    -- Wrap FileManager
-    -- ============================================================
-    local FM = require("apps/filemanager/filemanager")
-    local fm = FM.instance
-    if fm then
-        local inner = fm[1]
-        if inner and inner._bottombar_inner then
-            inner = inner._bottombar_inner
-        end
-        fm._bottombar_original_inner = inner
-
-        local new_wrapped = M.wrapWithBottombar(inner)
-        fm[1] = new_wrapped
-        fm._bottombar_container = new_wrapped
-        UIManager:setDirty(fm, "full")
-        M.registerTouchZones(fm)
-    end
-
-    -- ============================================================
-    -- Wrap Reader
-    -- ============================================================
+    -- Reader: notify its footer.
     local RUI = require("apps/reader/readerui")
     local reader = RUI.instance
     if reader then
-        local config = _G.__QUICKUI_CONFIG
-        local show_in_reader = config and config.qa_bb_reader_enabled
-        local hide_in_pdf = config and config.qa_bb_hide_in_pdf
+        local show_in_reader = Utils.getBool("qa_bb_reader_enabled", true)
+        local hide_in_pdf = Utils.getBool("qa_bb_hide_in_pdf", true)
         local is_pdf = false
         if reader.document then
             local file = reader.document.file or ""
             is_pdf = file:match("%.pdf$") ~= nil
         end
-
         local should_show = show_in_reader ~= false and not (hide_in_pdf and is_pdf)
 
+        if reader.view and reader.view.footer then
+            reader.view.footer:applyFooterMode(reader.view.footer.mode)
+            local new_h = should_show and M.TOTAL_H() or 0
+            local height_changed = (_last_bb_height ~= nil) and (_last_bb_height ~= new_h)
+            _last_bb_height = new_h
+
+            reader.view.footer:refreshFooter(true, height_changed)
+        end
         if should_show then
-            local inner_reader = reader[1]
-            while inner_reader and inner_reader._bottombar_inner do
-                inner_reader = inner_reader._bottombar_inner
-            end
-            reader._bottombar_original_inner = inner_reader
-
-            local new_wrapped_reader = M.wrapWithBottombar(inner_reader)
-            reader[1] = new_wrapped_reader
-            reader._bottombar_container = new_wrapped_reader
-
             M.registerTouchZones(reader)
-        end
-
-        -- Unified: always reflow to the target height
-        local target_h
-        if should_show and not Utils.getBool("qa_bb_overlap", false) then
-            target_h = Screen:getHeight() - M.TOTAL_H()
-        else
-            target_h = Screen:getHeight()
-        end
-
-        -- Keep ReaderUI (reader) fullscreen so bottom-bar touch zones
-        -- near the screen bottom are still dispatched to it.
-        reader.dimen = Geom:new{
-            x = 0, y = 0,
-            w = Screen:getWidth(),
-            h = Screen:getHeight(),
-        }
-
-        -- Only shrink ReaderView so content avoids the bar.
-        local view_dimen = Geom:new{
-            x = 0, y = 0,
-            w = Screen:getWidth(),
-            h = target_h,
-        }
-        if reader.view and reader.view.onSetDimensions then
-            reader.view:onSetDimensions(view_dimen)
-        end
-        -- Do NOT call reader:onScreenResize (it would shrink reader.dimen too).
-
-        UIManager:setDirty(reader, "full")
-    end
-
-    -- ============================================================
-    -- Wrap History/Collections/coll_list already on screen
-    -- ============================================================
-    local stack = UIManager._window_stack or {}
-    local INJECT_NAMES = {
-        history = true,
-        collections = true,
-        coll_list = true,
-    }
-    for _, entry in ipairs(stack) do
-        local w = entry.widget
-        if w and w.covers_fullscreen and w.name and INJECT_NAMES[w.name] then
-            if not w._bottombar_injected then
-                local inner = w[1]
-                if inner and not inner._bottombar_inner then
-                    inner._bottombar_injected_container = true
-
-                    local wrapped = M.wrapWithBottombar(inner)
-                    if wrapped and wrapped ~= inner then
-                        w[1] = wrapped
-                        w._bottombar_injected = true
-                        w._bottombar_inner = inner
-                        M.registerTouchZones(w)
-                        UIManager:setDirty(w, "full")
-                    else
-                        inner._bottombar_injected_container = nil
-                    end
-                end
-            end
         end
     end
 end
 
--- ============================================================
--- Remove Bottombar
--- ============================================================
-
---- Remove bottom bar from FileManager, Reader, and all injected fullscreen widgets
--- Tear down the bottom bar widget tree and clear all touch zones.
--- Does NOT touch reader height (caller handles that).
 function M.removeBottombar()
-    -- ============================================================
-    -- FileManager
-    -- ============================================================
-    local FM = require("apps/filemanager/filemanager")
-    local fm = FM and FM.instance
-    if fm and fm._bottombar_original_inner then
-        if fm._zones then
-            for id, _ in pairs(fm._zones) do
-                if type(id) == "string" and id:match("^bb_") then
-                    fm._zones[id] = nil
-                end
-            end
-        end
-
-        if fm.touch_zone_dg then
-            for id, _ in pairs(fm._zones or {}) do
-                if type(id) == "string" and id:match("^bb_") then
-                    fm.touch_zone_dg:removeNode(id)
-                end
-            end
-        end
-
-        fm._ordered_touch_zones = {}
-        if fm.touch_zone_dg then
-            for _, zone_id in ipairs(fm.touch_zone_dg:serialize()) do
-                if fm._zones and fm._zones[zone_id] then
-                    table.insert(fm._ordered_touch_zones, fm._zones[zone_id])
-                end
-            end
-        end
-
-        fm[1] = fm._bottombar_original_inner
-        fm._bottombar_container = nil
-        fm._bottombar_original_inner = nil
-        UIManager:setDirty(fm, "ui")
-    end
-
-    -- ============================================================
-    -- Reader (widget tree only, height is caller's responsibility)
-    -- ============================================================
+    -- Reader: clear the registered bottom-bar touch zones. We do not
+    -- touch the widget tree, since the ReaderUI still owns its view
+    -- hierarchy; the footer patch is responsible for restoring the
+    -- native footer height when the bar is disabled.
     local RUI = require("apps/reader/readerui")
     local reader = RUI and RUI.instance
-    if reader and reader._bottombar_original_inner then
+    if reader then
         if reader._zones then
-            for id, _ in pairs(reader._zones) do
+            for id in pairs(reader._zones) do
                 if type(id) == "string" and id:match("^bb_") then
                     reader._zones[id] = nil
                 end
             end
         end
-
         if reader.touch_zone_dg then
-            for id, _ in pairs(reader._zones or {}) do
+            for id in pairs(reader._zones or {}) do
                 if type(id) == "string" and id:match("^bb_") then
                     reader.touch_zone_dg:removeNode(id)
                 end
             end
         end
-
         reader._ordered_touch_zones = {}
         if reader.touch_zone_dg then
             for _, zone_id in ipairs(reader.touch_zone_dg:serialize()) do
@@ -1115,34 +903,6 @@ function M.removeBottombar()
                     table.insert(reader._ordered_touch_zones, reader._zones[zone_id])
                 end
             end
-        end
-
-        reader[1] = reader._bottombar_original_inner
-        reader._bottombar_container = nil
-        reader._bottombar_original_inner = nil
-        reader._bottombar_overlap_last = nil
-        UIManager:setDirty(reader, "ui")
-    end
-
-    -- ============================================================
-    -- History / Collections / coll_list / homescreen
-    -- ============================================================
-    local stack = UIManager._window_stack or {}
-    local INJECT_NAMES = { history = true, collections = true, coll_list = true, homescreen = true }
-    for _, entry in ipairs(stack) do
-        local w = entry.widget
-        if w and w.name and INJECT_NAMES[w.name] and w._bottombar_injected then
-            local inner = w._bottombar_inner
-            if inner and w[1] then
-                w[1] = inner
-            end
-            w._bottombar_injected = nil
-            w._bottombar_inner = nil
-            w._bottombar_container = nil
-            w._bottombar_wrapped = nil
-            w._bottombar_tabs = nil
-            w._navbar_container = nil
-            if inner then inner._bottombar_injected_container = nil end
         end
     end
 end
@@ -1152,9 +912,9 @@ end
 -- ============================================================
 
 function M.refresh()
-    -- Keep SimpleUI's reserved height in sync — it reads this live on every
-    -- getContentHeight() call, so the value must reflect the current size.
-    _G.__QUICKUI_BAR_HEIGHT = M.isEnabled() and M.TOTAL_H() or 0
+    -- Keep SimpleUI's reserved height in sync — it reads this live on
+    -- every getContentHeight() call.
+    _G.__QUICKUI_BAR_HEIGHT = Utils.getBool("qa_bb_enabled", true) and M.TOTAL_H() or 0
 
     M.rebuildBottombar()
 
@@ -1162,10 +922,11 @@ function M.refresh()
     -- handles FM/ReaderUI/BookList; SimpleUI screens need their own pass.
     local ok, ScreenEngine = pcall(require, "engines/sui_screen_engine")
     if not (ok and ScreenEngine and ScreenEngine.liveScreenIds) then return end
+
     for _i, id in ipairs(ScreenEngine.liveScreenIds()) do
         local inst = ScreenEngine.getInstance(id)
         if inst then
-            M.removeFromScreenWidget(inst)   -- drop the stale bar first
+            M.removeFromScreenWidget(inst)
             M.injectIntoScreenWidget(inst)
         end
     end
@@ -1188,6 +949,9 @@ function M.showAddTabMenu(on_back, filtered_actions)
     end
 
     local available = filtered_actions or getAvailableActions()
+
+    -- Set of actions that are currently unavailable (plugin not loaded)
+    local unavailable_set = QA.getUnavailableActions()
 
     table.sort(available, function(a, b)
         local a_checked = tab_set[a.id] or false
@@ -1271,19 +1035,25 @@ function M.showAddTabMenu(on_back, filtered_actions)
                 local new_tabs = {}
 
                 if #current_tabs > 0 then
-                    -- Deselect All: clear all tabs
-                    new_tabs = {}
-                else
-                    -- Select All: add all available actions (up to MAX_TABS)
-                    for __, action in ipairs(available) do
-                        if #new_tabs >= MAX_TABS then
-                            UIManager:show(Notification:new{
-                                text = string.format(_("Max %d tabs, only first %d added"), MAX_TABS, MAX_TABS),
-                                timeout = 2,
-                            })
-                            break
+                    -- Deselect: keep unavailable ones
+                    for __, id in ipairs(current_tabs) do
+                        if unavailable_set[id] then
+                            new_tabs[#new_tabs + 1] = id
                         end
-                        table.insert(new_tabs, action.id)
+                    end
+                else
+                    -- Select: only add available ones
+                    for __, action in ipairs(available) do
+                        if not unavailable_set[action.id] then
+                            if #new_tabs >= MAX_TABS then
+                                UIManager:show(Notification:new{
+                                    text = string.format(_("Max %d tabs, only first %d added"), MAX_TABS, MAX_TABS),
+                                    timeout = 2,
+                                })
+                                break
+                            end
+                            new_tabs[#new_tabs + 1] = action.id
+                        end
                     end
                 end
 
@@ -1315,17 +1085,25 @@ function M.showAddTabMenu(on_back, filtered_actions)
         }
     })
     table.insert(buttons, {})
-    
+
     -- Action list
     for __, action in ipairs(available) do
         local is_checked = tab_set[action.id] or false
+        local is_available = not unavailable_set[action.id]
         local symbol = QA.getActionSymbol(action.id)
         local view_tag = " [" .. (action.view or "common") .. "]"
-        local display_text = (is_checked and "✓ " or "  ") .. symbol .. action.label .. view_tag
+
+        local display_text
+        if is_available then
+            display_text = (is_checked and "✓ " or "  ") .. symbol .. action.label .. view_tag
+        else
+            display_text = "  " .. symbol .. action.label .. view_tag .. "  ✗"
+        end
 
         table.insert(buttons, {
             {
                 text = display_text,
+                enabled = is_available,
                 callback = function()
                     local new_tabs = {}
 
@@ -1398,67 +1176,23 @@ end
 -- ============================================================
 
 function M.init()
+    Utils.patchMenuForBottombar()
     Utils.patchFileChooserForBottombar()
     Utils.patchReaderUIForBottombar()
     Utils.patchBookListForBottombar()
     Utils.patchSimpleUIHomescreenForBottombar()
+
     Utils.registerRefreshHandler("qa_bb", M.refresh)
-    
-    -- Expose QuickUI bottom bar height globally for SimpleUI compatibility
+
+    -- Expose QuickUI bottom bar height globally for SimpleUI compatibility.
     if Utils.getBool("qa_bb_enabled", true) then
         _G.__QUICKUI_BAR_HEIGHT = M.TOTAL_H()
     else
         _G.__QUICKUI_BAR_HEIGHT = 0
     end
-    
-    -- Hook screen rotation
-    local function hookDeviceListener()
-        local ok, DeviceListener = pcall(require, "device/devicelistener")
-        if not ok or not DeviceListener then
-            logger.warn("QuickUI QA BottomBar: DeviceListener not found")
-            return
-        end
 
-        local orig_onSwapRotation = DeviceListener.onSwapRotation
-        function DeviceListener:onSwapRotation()
-            local result
-            if orig_onSwapRotation then
-                result = orig_onSwapRotation(self)
-            end
-            if _G.__QUICKUI_CONFIG and _G.__QUICKUI_CONFIG.qa_bb_enabled then
-                M.rebuildBottombar(true)
-            end
-            return result
-        end
-    end
-    UIManager:scheduleIn(0.5, hookDeviceListener)
-
-    -- Android: hook Device.input.handleMiscEv to catch APP_CMD_CONFIG_CHANGED
-    local function hookAndroidRotation()
-        local Device = require("device")
-        if not Device.isAndroid or not Device.input then return end
-        if Device.input._quickui_hooked then return end
-        Device.input._quickui_hooked = true
-
-        local C = require("ffi").C
-        local orig_handleMiscEv = Device.input.handleMiscEv
-        Device.input.handleMiscEv = function(this, ev)
-            local result
-            if orig_handleMiscEv then
-                result = orig_handleMiscEv(this, ev)
-            end
-            if ev.code == C.APP_CMD_CONFIG_CHANGED then
-                if _G.__QUICKUI_CONFIG and _G.__QUICKUI_CONFIG.qa_bb_enabled then
-                    M.rebuildBottombar(true)
-                end
-            end
-            return result
-        end
-    end
-    UIManager:scheduleIn(0.5, hookAndroidRotation)
-    
-    UIManager:scheduleIn(0.1, function()
-       M.rebuildBottombar()
+    UIManager:scheduleIn(0, function()
+        M.rebuildBottombar()
     end)
 end
 

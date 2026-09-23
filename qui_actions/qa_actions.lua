@@ -37,13 +37,6 @@ QA._registered = false
 QA.nerdIconChar = icon_picker.nerdIconChar
 
 -- ============================================================
--- Constants
--- ============================================================
-
-local MAX_SLOTS = 66
-local EXCLUDED_PLUGINS = { zen_ui = true }
-
--- ============================================================
 -- Action Registry
 -- ============================================================
 
@@ -52,25 +45,39 @@ local ACTION_ORDER = {}
 local _wifi_optimistic = nil
 
 -- ============================================================
--- Network Manager Helper
+-- Helper
 -- ============================================================
 
+-- Network Manager Helper
 local function getNetworkMgr()
     local ok, nm = pcall(require, "ui/network/manager")
     return ok and nm or nil
+end
+
+-- Check whether a koplugin is currently loaded
+local function isPluginLoaded(key)
+    local ok, loader = pcall(require, "pluginloader")
+    return ok and loader and loader.loaded_plugins
+        and loader.loaded_plugins[key] ~= nil
+end
+
+-- Return an availability closure for registerAction's 7th argument
+local function pluginAvailable(key)
+    return function() return isPluginLoaded(key) end
 end
 
 -- ============================================================
 -- Action Registration
 -- ============================================================
 
-function QA.registerAction(id, label, icon, is_in_place, view, execute_fn)
+function QA.registerAction(id, label, icon, is_in_place, view, execute_fn, available_fn)
     ACTION_REGISTRY[id] = {
         label = label,
         icon = icon,
         is_in_place = is_in_place,
         view = view or "common",
         execute = execute_fn,
+        available = available_fn, 
     }
     ACTION_ORDER[#ACTION_ORDER + 1] = id
 end
@@ -176,12 +183,52 @@ function QA.getAction(id)
 end
 
 -- ============================================================
+-- Lookup unavailable built-in action ids
+-- ============================================================
+-- Whether an action is currently available
+function QA.isActionAvailable(id)
+    -- Custom actions are always available
+    if Utils.getTable("qa_common_custom")[id] then
+        return true
+    end
+
+    local reg = ACTION_REGISTRY[id]
+    if not reg or not reg.available then
+        return true   -- No available_fn declared -> always available
+    end
+
+    local ok, result = pcall(reg.available)
+    return ok and result ~= false
+end
+
+-- Return the set of currently unavailable built-in action ids
+function QA.getUnavailableActions()
+    local set = {}
+    for id, reg in pairs(ACTION_REGISTRY) do
+        if reg.available and not QA.isActionAvailable(id) then
+            set[id] = true
+        end
+    end
+    return set
+end
+
+-- ============================================================
 -- Action Execution
 -- ============================================================
 
 function QA.executeAction(id, ctx)
     local action = QA.getAction(id)
     if not action or not action.execute then
+        return false
+    end
+
+    -- Guard: unavailable actions show a friendly message instead of crashing
+    if not QA.isActionAvailable(id) then
+        UIManager:show(InfoMessage:new{
+            text = string.format(_("Action \"%s\" is unavailable (plugin not loaded)."),
+                action.label or id),
+            timeout = 2,
+        })
         return false
     end
 
@@ -1063,6 +1110,16 @@ function QA.getDispatcherActions()
 end
 
 -- ============================================================
+-- Close touch menu helper (safe: no-op when there is no touch_menu)
+-- ============================================================
+
+local function closeTouchMenu(ctx)
+    if ctx and ctx.touch_menu and ctx.touch_menu.onClose then
+        ctx.touch_menu:onClose()
+    end
+end
+
+-- ============================================================
 -- Register All Built-in Actions
 -- ============================================================
 
@@ -1079,20 +1136,17 @@ function QA.registerAllActions()
     -- ============================================================
 
     -- Home (Filemanager)
-    QA.registerAction("home", _("Home"), "nerd:F46D", false, "common", function(ctx)
+    QA.registerAction("home", _("Home"), "nerd:F015", false, "common", function(ctx)
+        closeTouchMenu(ctx)
         local FM = require("apps/filemanager/filemanager")
         local RUI = require("apps/reader/readerui")
-        
-        if ctx and ctx.touch_menu then
-            ctx.touch_menu:onClose()
-        end
-        
+
         local reader = RUI and RUI.instance
         if reader then
             reader:onHome()
             return
         end
-        
+
         local fm = FM and FM.instance
         if fm then
             fm:onHome()
@@ -1101,6 +1155,7 @@ function QA.registerAllActions()
 
     -- WiFi
     QA.registerAction("wifi", _("Wi-Fi"), "net-wifi.svg", true, "common", function(ctx)
+        closeTouchMenu(ctx)
         local NetworkMgr = getNetworkMgr()
         if not NetworkMgr then
             UIManager:show(InfoMessage:new{ text = _("WiFi not available"), timeout = 2 })
@@ -1108,9 +1163,6 @@ function QA.registerAllActions()
         end
         local is_on = NetworkMgr:isWifiOn()
         _wifi_optimistic = not is_on
-        if ctx.touch_menu then
-            ctx.touch_menu:updateItems()
-        end
         if is_on then
             NetworkMgr:turnOffWifi()
         else
@@ -1118,14 +1170,12 @@ function QA.registerAllActions()
         end
         UIManager:scheduleIn(2, function()
             _wifi_optimistic = nil
-            if ctx.touch_menu then
-                ctx.touch_menu:updateItems()
-            end
         end)
     end)
 
     -- Night Mode
     QA.registerAction("night", _("Night Mode"), "nerd:F186", true, "common", function(ctx)
+        closeTouchMenu(ctx)
         local G = rawget(_G, "G_reader_settings")
         local night_mode = G and G:isTrue("night_mode") or false
         Screen:toggleNightMode()
@@ -1136,11 +1186,13 @@ function QA.registerAllActions()
 
     -- Rotate
     QA.registerAction("rotate", _("Rotate"), "nerd:E8BC", true, "common", function(ctx)
+        closeTouchMenu(ctx)
         UIManager:broadcastEvent(Event:new("SwapRotation"))
     end)
 
     -- Screenshot
     QA.registerAction("screenshot", _("Screenshot (4s delay)"), "nerd:E7FF", false, "common", function(ctx)
+        closeTouchMenu(ctx)
         local function showCountdown(num)
             UIManager:show(Notification:new{
                 text = tostring(num),
@@ -1171,6 +1223,7 @@ function QA.registerAllActions()
 
     -- Continue Reading
     QA.registerAction("continue", _("Continue Reading"), "nerd:F405", false, "common", function(ctx)
+        closeTouchMenu(ctx)
         local RUI = require("apps/reader/readerui")
         local reader = RUI and RUI.instance
         local RH = require("readhistory")
@@ -1182,9 +1235,6 @@ function QA.registerAllActions()
             target_file = RH and RH.hist and RH.hist[1] and RH.hist[1].file
         end
         if target_file then
-            if ctx and ctx.touch_menu then
-                ctx.touch_menu:onClose()
-            end
             local ReaderUI = require("apps/reader/readerui")
             ReaderUI:showReader(target_file)
         else
@@ -1197,6 +1247,7 @@ function QA.registerAllActions()
 
     -- Search
     QA.registerAction("search", _("Search"), "nerd:F002", false, "common", function(ctx)
+        closeTouchMenu(ctx)
         local ReaderUI = require("apps/reader/readerui")
         local reader = ReaderUI.instance
         if reader and reader.search then
@@ -1212,16 +1263,19 @@ function QA.registerAllActions()
 
     -- Quit
     QA.registerAction("quit", _("Quit"), "nerd:F08B", false, "common", function(ctx)
+        -- Do NOT close touch_menu: the whole app is going down anyway.
         UIManager:quit()
     end)
 
     -- Restart
     QA.registerAction("restart", _("Restart"), "nerd:F01E", false, "common", function(ctx)
+        -- Do NOT close touch_menu: the whole app is restarting anyway.
         UIManager:restartKOReader()
     end)
 
     -- Power
     QA.registerAction("power", _("Power"), "nerd:F011", true, "common", function(ctx)
+        closeTouchMenu(ctx)
         local buttons = {}
         if Device:canRestart() then
             buttons[#buttons + 1] = {{ text = _("Restart"), callback = function()
@@ -1241,6 +1295,7 @@ function QA.registerAllActions()
 
     -- HTTP Inspector
     QA.registerAction("httpinspector", _("HTTP Server"), "nerd:E701", true, "common", function(ctx)
+        closeTouchMenu(ctx)
         local ui = require("apps/reader/readerui").instance
         if not ui then
             local FM = require("apps/filemanager/filemanager")
@@ -1275,14 +1330,12 @@ function QA.registerAllActions()
                 timeout = 2,
             })
         end
-    end)
+    end, pluginAvailable("httpinspector"))
 
     -- Font List
     QA.registerAction("fontlist", _("Font List"), "nerd:F031", false, "reader", function(ctx)
         local RUI = require("apps/reader/readerui")
         local reader = RUI and RUI.instance
-        local cre = require("document/credocument"):engineInit()
-        local FontList = require("fontlist")
         local Event = require("ui/event")
 
         if not reader then
@@ -1293,33 +1346,24 @@ function QA.registerAllActions()
             return
         end
 
-        if ctx and ctx.touch_menu then
-            ctx.touch_menu:onClose()
-        end
+        closeTouchMenu(ctx)
 
-        local face_list = cre.getFontFaces()
-        local buttons = {}
-
-        table.sort(face_list, function(a, b)
-            return a:lower() < b:lower()
-        end)
-
+        -- Utils.getFontList() already sorts by "recently selected first,
+        -- then alphabetically", and provides name / display / path.
+        local fonts = Utils.getFontList()
         local current_font = reader.font and reader.font.font_face
-
+        local buttons = {}
         local font_dialog = nil
 
-        for idx, face in ipairs(face_list) do
-            local font_filename, font_faceindex = cre.getFontFaceFilenameAndFaceIndex(face)
-            if not font_filename then
-                font_filename, font_faceindex = cre.getFontFaceFilenameAndFaceIndex(face, nil, true)
-            end
-            local display_name = face
-            if font_filename and font_faceindex then
-                display_name = FontList:getLocalizedFontName(font_filename, font_faceindex) or face
-            end
-            local is_checked = (face == current_font)
-            table.insert(buttons, {{
+        for idx, font in ipairs(fonts) do
+            local face         = font.name
+            local display_name = font.display
+            local font_path    = font.path
+            local is_checked   = (face == current_font)
+
+            local entry = {
                 text = display_name .. (is_checked and "  ✓" or ""),
+                avoid_text_truncation = false,
                 callback = function()
                     if font_dialog then
                         UIManager:close(font_dialog)
@@ -1331,13 +1375,23 @@ function QA.registerAllActions()
                         reader.view.ui:handleEvent(Event:new("UpdatePos"))
                         UIManager:setDirty(reader.view.dialog, "full")
 
+                        reader.font:addToRecentlySelectedList(face)
+
                         UIManager:show(Notification:new{
                             text = string.format(_("Font set to: %s"), display_name),
                             timeout = 2,
                         })
                     end
                 end,
-            }})
+            }
+
+            if font_path then
+                entry.font_face = font_path
+                entry.font_size = 18
+                entry.font_bold = false
+            end
+
+            table.insert(buttons, { entry })
         end
 
         font_dialog = ButtonDialog:new{
@@ -1351,13 +1405,32 @@ function QA.registerAllActions()
         UIManager:show(font_dialog)
     end)
 
+    -- Reader Sliders popup
+    QA.registerAction("reader_sliders", _("Reader Sliders"), "nerd:F1DE", false, "reader", function(ctx)
+        local RUI = require("apps/reader/readerui")
+        local reader = RUI and RUI.instance
+        if not reader or not reader.document then
+            UIManager:show(InfoMessage:new{
+                text = _("Please open a book first"),
+                timeout = 2,
+            })
+            return
+        end
+        closeTouchMenu(ctx)
+        UIManager:scheduleIn(0, function()
+            require("qui_actions/qa_reader_sliders").show()
+        end)
+    end)
+
     -- Reading Insights
-    QA.registerAction("reading_insights", _("Reading Insights"), "nerd:F073", false, "common", function()
+    QA.registerAction("reading_insights", _("Reading Insights"), "nerd:F073", false, "common", function(ctx)
+        closeTouchMenu(ctx)
         UIManager:broadcastEvent(Event:new("ShowReadingInsightsPopup"))
     end)
 
     -- FileBrowserPlus
-    QA.registerAction("filebrowserplus", _("FileBrowserPlus"), "nerd:F029", true, "common", function()
+    QA.registerAction("filebrowserplus", _("FileBrowserPlus"), "nerd:F029", true, "common", function(ctx)
+        closeTouchMenu(ctx)
         local FM = require("apps/filemanager/filemanager")
         local fm = FM and FM.instance
         local RUI = require("apps/reader/readerui")
@@ -1380,10 +1453,11 @@ function QA.registerAllActions()
                 timeout = 2,
             })
         end
-    end)
+    end, pluginAvailable("filebrowserplus"))
 
     -- ZLibrary Search
-    QA.registerAction("zlibrary_search", _("ZLibrary Search"), "nerd:E76F", false, "common", function()
+    QA.registerAction("zlibrary_search", _("ZLibrary Search"), "nerd:EB73", false, "common", function(ctx)
+        closeTouchMenu(ctx)
         local FM = require("apps/filemanager/filemanager")
         local fm = FM and FM.instance
         local RUI = require("apps/reader/readerui")
@@ -1402,10 +1476,11 @@ function QA.registerAllActions()
                 timeout = 2,
             })
         end
-    end)
+    end, pluginAvailable("zlibrary"))
 
     -- CloudLibrary AutoSync
-    QA.registerAction("cloudlibrary_autosync", _("CloudLibrary - AutoSync"), "nerd:E33B", false, "common", function()
+    QA.registerAction("cloudlibrary_autosync", _("CloudLibrary - AutoSync"), "nerd:E33B", false, "common", function(ctx)
+        closeTouchMenu(ctx)
         local FM = require("apps/filemanager/filemanager")
         local fm = FM and FM.instance
         local RUI = require("apps/reader/readerui")
@@ -1424,10 +1499,11 @@ function QA.registerAllActions()
                 timeout = 2,
             })
         end
-    end)
+    end, pluginAvailable("cloudlibrary"))
 
     -- CloudLibrary Batch Download
-    QA.registerAction("cloudlibrary_batch_download_books", _("CloudLibrary - Batch Download"), "nerd:F409", false, "common", function()
+    QA.registerAction("cloudlibrary_batch_download_books", _("CloudLibrary - Batch Download"), "nerd:F409", false, "common", function(ctx)
+        closeTouchMenu(ctx)
         local FM = require("apps/filemanager/filemanager")
         local fm = FM and FM.instance
         local RUI = require("apps/reader/readerui")
@@ -1446,10 +1522,11 @@ function QA.registerAllActions()
                 timeout = 2,
             })
         end
-    end)
+    end, pluginAvailable("cloudlibrary"))
 
     -- CloudLibrary Settings
-    QA.registerAction("cloudlibrary_settings", _("CloudLibrary - Settings"), "nerd:E33D", false, "common", function()
+    QA.registerAction("cloudlibrary_settings", _("CloudLibrary - Settings"), "nerd:E33D", false, "common", function(ctx)
+        closeTouchMenu(ctx)
         local FM = require("apps/filemanager/filemanager")
         local fm = FM and FM.instance
         local RUI = require("apps/reader/readerui")
@@ -1461,21 +1538,18 @@ function QA.registerAllActions()
             plugin = reader.CloudLibrary
         end
         if plugin then
-            if reader then
-                plugin:onCloudLibrarySettingsReader()
-            else
-                plugin:onCloudLibrarySettingsFileManager()
-            end
+            plugin:onCloudLibraryQuickSettings()
         else
             UIManager:show(InfoMessage:new{
                 text = _("CloudLibrary plugin not found"),
                 timeout = 2,
             })
         end
-    end)
+    end, pluginAvailable("cloudlibrary"))
 
     -- Annotations Viewer
-    QA.registerAction("annotations_viewer", _("Annotations Viewer"), "nerd:F040", false, "common", function()
+    QA.registerAction("annotations_viewer", _("Annotations Viewer"), "nerd:F040", false, "common", function(ctx)
+        closeTouchMenu(ctx)
         local RUI = require("apps/reader/readerui")
         local FM = require("apps/filemanager/filemanager")
 
@@ -1502,7 +1576,281 @@ function QA.registerAllActions()
         else
             UIManager:broadcastEvent(Event:new("ShowAllAnnotations"))
         end
-    end)
+    end, pluginAvailable("annotationsviewer"))
+
+    -- ============================================================
+    -- SimpleUI library browse actions (Authors / Series / Tags)
+    -- ============================================================
+    do
+        local function _simpleUI_BM()
+            local m = package.loaded["features/library/sui_library_browse"]
+            if type(m) ~= "table" then return nil end
+            if type(m.isEnabled)        ~= "function"
+               or type(m.navigateTo)    ~= "function"
+               or type(m.navigateToRoot) ~= "function" then
+                return nil
+            end
+            return m
+        end
+
+        local function _simpleUI_liveFM()
+            local FM = package.loaded["apps/filemanager/filemanager"]
+            return FM and FM.instance
+        end
+
+        local function _browseAction(ctx, mode)
+            closeTouchMenu(ctx)
+
+            local su = ctx.show_unavailable or function(msg)
+                UIManager:show(InfoMessage:new{ text = msg, timeout = 2 })
+            end
+
+            local BM = _simpleUI_BM()
+            if not BM or not BM.isEnabled() then
+                su(_("Please check that SimpleUI is installed and 'Browse by Author / Series / Tags' is enabled."))
+                return
+            end
+
+            local fm = _simpleUI_liveFM() or ctx.fm
+            local fc = fm and fm.file_chooser
+            if not fc then return end
+
+            local ok_se, ScreenEngine = pcall(require, "engines/sui_screen_engine")
+            if ok_se and ScreenEngine and ScreenEngine.liveScreenIds then
+                for _i, id in ipairs(ScreenEngine.liveScreenIds()) do
+                    local inst = ScreenEngine.getInstance(id)
+                    if inst then
+                        inst._navbar_closing_intentionally = true
+                        pcall(function() UIManager:close(inst) end)
+                        inst._navbar_closing_intentionally = nil
+                    end
+                end
+            end
+
+            if ctx.already_active then
+                BM.navigateToRoot(fc, fm, mode)
+            else
+                BM.navigateTo(fm, mode)
+            end
+        end
+
+        QA.registerAction(
+            "Sui-author", _("Sui-author"),
+            "nerd:ED2F", false, "filemanager",
+            function(ctx) _browseAction(ctx, "author") end,
+            pluginAvailable("simpleui")
+        )
+        QA.registerAction(
+            "Sui-series", _("Sui-series"),
+            "nerd:ED18", false, "filemanager",
+            function(ctx) _browseAction(ctx, "series") end,
+            pluginAvailable("simpleui")
+        )
+        QA.registerAction(
+            "Sui-tags", _("Sui-tags"),
+            "nerd:F02C", false, "filemanager",
+            function(ctx) _browseAction(ctx, "tags") end,
+            pluginAvailable("simpleui")
+        )
+        QA.registerAction(
+            "Sui-toggle", _("Sui-Homescreen"),
+            "nerd:F46D", false, "common",
+            function(ctx)
+                closeTouchMenu(ctx)
+                UIManager:broadcastEvent(Event:new("SimpleUIToggleHomeLibrary"))
+            end,
+            pluginAvailable("simpleui")
+        )
+        QA.registerAction(
+            "Sui-settings", _("Sui-Settings"),
+            "nerd:F013", false, "common",
+            function(ctx)
+                closeTouchMenu(ctx)
+                UIManager:broadcastEvent(Event:new("SimpleUISettingsWindow"))
+            end,
+            pluginAvailable("simpleui")
+        )
+    end
+
+    -- ============================================================
+    -- Bookshelf (independent of SimpleUI)
+    -- ============================================================
+    QA.registerAction(
+        "bookshelf_toggle", _("Bookshelf"),
+        "nerd:E28B", false, "common",
+        function(ctx)
+            closeTouchMenu(ctx)
+            UIManager:broadcastEvent(Event:new("ToggleBookshelf"))
+        end,
+        pluginAvailable("bookshelf")
+    )
+
+    -- ============================================================
+    -- Storefront
+    -- ============================================================
+    QA.registerAction(
+        "storefront_open", _("Storefront"),
+        "nerd:ECFA", false, "common",
+        function(ctx)
+            closeTouchMenu(ctx)
+            UIManager:broadcastEvent(Event:new("StorefrontOpen"))
+        end,
+        pluginAvailable("storefront")
+    )
+
+    -- ============================================================
+    -- WeRead
+    -- ============================================================
+    QA.registerAction(
+        "weread_bookshelf", _("WeRead-Bookshelf"),
+        "nerd:ED10", false, "common",
+        function(ctx)
+            closeTouchMenu(ctx)
+            UIManager:broadcastEvent(Event:new("ShowWeReadBookshelf"))
+        end,
+        pluginAvailable("weread")
+    )
+    QA.registerAction(
+        "weread_search", _("WeRead-Search"),
+        "nerd:F00E", false, "common",
+        function(ctx)
+            closeTouchMenu(ctx)
+            UIManager:broadcastEvent(Event:new("ShowWeReadSearch"))
+        end,
+        pluginAvailable("weread")
+    )
+    QA.registerAction(
+        "weread_quick_menu", _("WeRead-QuickMenu"),
+        "nerd:F0CA", false, "reader",
+        function(ctx)
+            closeTouchMenu(ctx)
+            UIManager:broadcastEvent(Event:new("ShowWeReadQuickMenu"))
+        end,
+        pluginAvailable("weread")
+    )
+    QA.registerAction(
+        "weread_fetch_underlines", _("Weread AL-Fetch Underlines"),
+        "nerd:E884", false, "reader",
+        function(ctx)
+            closeTouchMenu(ctx)
+            UIManager:broadcastEvent(Event:new("WereadFetchUnderlines"))
+        end,
+        pluginAvailable("wereadannotationlite")
+    )
+
+    -- ============================================================
+    -- Rssreader
+    -- ============================================================
+    QA.registerAction(
+        "rssreader_open", _("Rssreader"),
+        "nerd:F09E", false, "common",
+        function(ctx)
+            closeTouchMenu(ctx)
+            UIManager:broadcastEvent(Event:new("RSSReader"))
+        end,
+        pluginAvailable("rssreader")
+    )
+
+    -- ============================================================
+    -- ArtGallery
+    -- ============================================================
+    QA.registerAction(
+        "artgallery_show", _("ArtGallery"),
+        "nerd:F03E", false, "reader",
+        function(ctx)
+            closeTouchMenu(ctx)
+            UIManager:broadcastEvent(Event:new("ArtGalleryShow"))
+        end,
+        pluginAvailable("artgallery")
+    )
+
+    -- ============================================================
+    -- FanQie (番茄小说)
+    -- ============================================================
+    QA.registerAction(
+        "fanqie_bookshelf", _("FanQie-Bookshelf"),
+        "nerd:E002", false, "common",
+        function(ctx)
+            closeTouchMenu(ctx)
+            UIManager:broadcastEvent(Event:new("ShowFanQieBookshelf"))
+        end,
+        pluginAvailable("fanqie")
+    )
+    QA.registerAction(
+        "fanqie_search", _("FanQie-SearchBooks"),
+        "nerd:F00E", false, "common",
+        function(ctx)
+            closeTouchMenu(ctx)
+            UIManager:broadcastEvent(Event:new("FanQieSearchBooks"))
+        end,
+        pluginAvailable("fanqie")
+    )
+    QA.registerAction(
+        "fanqie_toc", _("FanQie-Toc"),
+        "nerd:F277", false, "reader",
+        function(ctx)
+            closeTouchMenu(ctx)
+            UIManager:broadcastEvent(Event:new("ShowFanQieToc"))
+        end,
+        pluginAvailable("fanqie")
+    )
+    QA.registerAction(
+        "fanqie_shelf_or_toc", _("FanQie-Shelf/Toc"),
+        "nerd:E002", false, "common",
+        function(ctx)
+            closeTouchMenu(ctx)
+            UIManager:broadcastEvent(Event:new("ShowFanQieShelfOrToc"))
+        end,
+        pluginAvailable("fanqie")
+    )
+
+    -- ============================================================
+    -- FingerInk
+    -- ============================================================
+    QA.registerAction(
+        "fingerink_bar", _("FingerInk-toolbar"),
+        "nerd:E7E2", false, "reader",
+        function(ctx)
+            closeTouchMenu(ctx)
+            UIManager:broadcastEvent(Event:new("FingerInkBar"))
+        end,
+        pluginAvailable("fingerink")
+    )
+
+    -- ============================================================
+    -- SideToc (侧边目录)
+    -- ============================================================
+    QA.registerAction(
+        "toggle_side_toc", _("SideToc"),
+        "nerd:F0CA", false, "reader",
+        function(ctx)
+            closeTouchMenu(ctx)
+            UIManager:broadcastEvent(Event:new("ToggleSideToc"))
+        end,
+        pluginAvailable("sidetoc")
+    )
+
+    -- ============================================================
+    -- KOAssistant
+    -- ============================================================
+    QA.registerAction(
+        "koassistant_quick_actions", _("KOA-quickactions"),
+        "nerd:EDD9", false, "reader",
+        function(ctx)
+            closeTouchMenu(ctx)
+            UIManager:broadcastEvent(Event:new("KOAssistantQuickActions"))
+        end,
+        pluginAvailable("koassistant")
+    )
+    QA.registerAction(
+        "koassistant_ai_settings", _("KOA-quicksettings"),
+        "nerd:EDA7", false, "common",
+        function(ctx)
+            closeTouchMenu(ctx)
+            UIManager:broadcastEvent(Event:new("KOAssistantAISettings"))
+        end,
+        pluginAvailable("koassistant")
+    )
 
     -- ============================================================
     -- SimpleUI library browse actions (Authors / Series / Tags)
@@ -1590,10 +1938,8 @@ function QA.registerAllActions()
     if config and config.qa_common_enabled then
         -- QuickUI Settings
         QA.registerAction("quickui_settings", _("QuickUI Settings"), "nerd:F013", false, "common", function(ctx)
-            if ctx and ctx.touch_menu then
-                ctx.touch_menu:onClose()
-            end
-            
+            closeTouchMenu(ctx)
+
             local plugin = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.plugin_ref
             if plugin and plugin.quickuisettings then
                 plugin:quickuisettings()
@@ -1602,12 +1948,14 @@ function QA.registerAllActions()
 
         -- QA Settings
         QA.registerAction("qa_settings", _("QA Settings"), "nerd:E73A", false, "common", function(ctx)
+            closeTouchMenu(ctx)
             local settings = require("qui_actions/qa_settings")
             settings.showSettings()
         end)
 
         -- QA New
         QA.registerAction("qa_new", _("New Quick Action"), "nerd:F067", false, "common", function(ctx)
+            closeTouchMenu(ctx)
             local settings = require("qui_actions/qa_settings")
             settings.showCustomQADialog(nil, function()
                 local fm = require("apps/filemanager/filemanager").instance
@@ -1623,38 +1971,69 @@ function QA.registerAllActions()
 
         -- UI Font Switch
         QA.registerAction("ui_font_switch", _("UI Font Switcher"), "nerd:F30B", true, "common", function(ctx)
+            closeTouchMenu(ctx)
             local UIFont = require("qui_actions/qa_uifont")
             UIFont.showUIFontSwitcher()
         end)
 
-        -- ============================================================
-        -- System Icon Override (NEW)
-        -- ============================================================
+        -- System Icon Override
         QA.registerAction("system_icon_override", _("System Icon Override"), "nerd:E709", false, "common", function(ctx)
+            closeTouchMenu(ctx)
             local icon_picker = require("qui_actions/qa_icon_picker")
-            if ctx and ctx.touch_menu then
-                ctx.touch_menu:onClose()
-            end
             icon_picker.showIconPicker(nil, nil, nil, "system")
         end)
 
-        -- ============================================================
         -- Interface Filter
-        -- ============================================================
         QA.registerAction("interface_filter", _("Interface Filter"), "nerd:F0B0", false, "common", function(ctx)
+            closeTouchMenu(ctx)
             local settings = require("qui_actions/qa_settings")
-            if ctx and ctx.touch_menu then
-                ctx.touch_menu:onClose()
-            end
             settings.showInterfaceFilter()
         end)
-        
+
+        -- ============================================================
+        -- Vertical Bar actions
+        -- ============================================================
+        QA.registerAction("qa_vb_toggle", _("Toggle Vertical Bar"), "nerd:E8D8", false, "common", function(ctx)
+            closeTouchMenu(ctx)
+            local vb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.verticalbar
+            if vb and vb.toggle then
+                vb.toggle()
+            else
+                UIManager:show(InfoMessage:new{
+                    text = _("Vertical Bar module is disabled"), timeout = 2 })
+            end
+        end)
+
+        QA.registerAction("qa_vb_settings", _("Vertical Bar Settings"), "nerd:ED69", false, "common", function(ctx)
+            closeTouchMenu(ctx)
+            local settings = require("qui_actions/qa_settings")
+            if settings and settings.showVerticalBarSettings then
+                settings.showVerticalBarSettings()
+            end
+        end)
+
+        QA.registerAction("qa_add_vb_button", _("Add Vertical Bar Button"), "nerd:F055", false, "common", function(ctx)
+            closeTouchMenu(ctx)
+            local vb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.verticalbar
+            if vb and vb.showAddButtonMenu then
+                vb.showAddButtonMenu(function()
+                    local settings = require("qui_actions/qa_settings")
+                    if settings and settings.showVerticalBarSettings then
+                        settings.showVerticalBarSettings()
+                    end
+                end)
+            else
+                UIManager:show(InfoMessage:new{
+                    text = _("Vertical Bar module is disabled"), timeout = 2 })
+            end
+        end)
+
         -- ============================================================
         -- Panel actions (qa_panel_enabled)
         -- ============================================================
         if config.qa_panel_enabled then
-            -- QA Panel Settings
-            QA.registerAction("qa_panel_settings", _("QA Panel Settings"), "nerd:F1DE", false, "common", function(ctx)
+            QA.registerAction("qa_panel_settings", _("QA Panel Settings"), "nerd:F205", false, "common", function(ctx)
+                closeTouchMenu(ctx)
                 local settings = require("qui_actions/qa_settings")
                 if settings and settings.showPanelSettings then
                     settings.showPanelSettings()
@@ -1666,8 +2045,8 @@ function QA.registerAllActions()
                 end
             end)
 
-            -- QA Add Panel Button
             QA.registerAction("qa_add_panel_button", _("QA Add Panel Button"), "nerd:F055", false, "common", function(ctx)
+                closeTouchMenu(ctx)
                 local settings = require("qui_actions/qa_settings")
                 local fm = require("apps/filemanager/filemanager").instance
                 local touch_menu = nil
@@ -1689,8 +2068,8 @@ function QA.registerAllActions()
         -- Bottom Bar actions (qa_bb_enabled)
         -- ============================================================
         if config.qa_bb_enabled then
-            -- QA Bottom Bar Settings
-            QA.registerAction("qa_bb_settings", _("QA Bottom Bar Settings"), "nerd:F1DE", false, "common", function(ctx)
+            QA.registerAction("qa_bb_settings", _("QA Bottom Bar Settings"), "nerd:E241", false, "common", function(ctx)
+                closeTouchMenu(ctx)
                 local settings = require("qui_actions/qa_settings")
                 if settings and settings.showBottombarSettings then
                     settings.showBottombarSettings()
@@ -1702,8 +2081,8 @@ function QA.registerAllActions()
                 end
             end)
 
-            -- QA Add Bottom Bar Tab
             QA.registerAction("qa_add_bb_tab", _("QA Add Bottom Bar Tab"), "nerd:F055", false, "common", function(ctx)
+                closeTouchMenu(ctx)
                 local bb = require("qui_actions/qa_bottombar")
                 local settings = require("qui_actions/qa_settings")
                 if bb and bb.showAddTabMenu then
@@ -1725,6 +2104,7 @@ function QA.registerAllActions()
     -- ============================================================
     if config and config.cover_enabled then
         QA.registerAction("QuickUI_CoverSettings", _("Cover Visual Settings"), "nerd:E8C8", false, "filemanager", function(ctx)
+            closeTouchMenu(ctx)
             local RUI = require("apps/reader/readerui")
             local reader = RUI and RUI.instance
             if reader then
@@ -1733,9 +2113,6 @@ function QA.registerAllActions()
                     timeout = 2,
                 })
             else
-                if ctx and ctx.touch_menu then
-                    ctx.touch_menu:onClose()
-                end
                 local cover_module = require("qui_cover")
                 if cover_module and cover_module.showSettings then
                     cover_module.showSettings()
@@ -1748,8 +2125,8 @@ function QA.registerAllActions()
     -- Cloze actions (cl_enabled)
     -- ============================================================
     if config and config.cl_enabled then
-        -- Toggle Cloze Mode
         QA.registerAction("toggle_cloze_mode", _("Toggle Cloze Mode"), "nerd:F040", false, "reader", function(ctx)
+            closeTouchMenu(ctx)
             local RUI = require("apps/reader/readerui")
             local reader = RUI and RUI.instance
 
@@ -1757,9 +2134,6 @@ function QA.registerAllActions()
                 local cloze_module = require("qui_clozemode")
                 if cloze_module and cloze_module.toggleAll then
                     cloze_module:toggleAll()
-                end
-                if ctx and ctx.touch_menu then
-                    ctx.touch_menu:updateItems()
                 end
             else
                 UIManager:show(InfoMessage:new{
@@ -1769,8 +2143,8 @@ function QA.registerAllActions()
             end
         end)
 
-        -- Cloze Settings
         QA.registerAction("QuickUI_ClozeSettings", _("Cloze Settings"), "nerd:F441", false, "reader", function(ctx)
+            closeTouchMenu(ctx)
             local cloze_module = require("qui_clozemode")
             if cloze_module and cloze_module.showSettings then
                 cloze_module.showSettings()
@@ -1783,6 +2157,7 @@ function QA.registerAllActions()
     -- ============================================================
     if config and config.hf_enabled then
         QA.registerAction("QuickUI_HFSettings", _("Header & Footer Settings"), "nerd:E7B5", false, "reader", function(ctx)
+            closeTouchMenu(ctx)
             local hf_module = require("qui_header_footer")
             if hf_module and hf_module.showSettings then
                 hf_module.showSettings()

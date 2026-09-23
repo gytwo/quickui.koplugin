@@ -297,8 +297,8 @@ msgstr "图标大小"
 msgid "Tab Icon"
 msgstr "标签页图标"
 
-msgid "No actions configured, long press to add"
-msgstr "未配置操作，长按添加"
+msgid "No actions configured, tap to add"
+msgstr "未配置操作，点击添加"
 
 msgid "Action"
 msgstr "操作"
@@ -825,7 +825,7 @@ msgid "Font"
 msgstr "字体"
 
 msgid "Font Size"
-msgstr "字体大小"
+msgstr "字号"
 
 msgid "Bold"
 msgstr "粗体"
@@ -1057,11 +1057,48 @@ msgid "GitHub (Latest)"
 msgstr "GitHub（最新版）"
 
 msgid "GitHub (Pre-release)"
-msgid_plural "GitHub (Pre-release)"
-msgstr[0] "GitHub（预发布版）"
+msgstr "GitHub（预发布版）"
 
 msgid "Gitee (Latest)"
 msgstr "Gitee（最新版）"
+
+# update source dialog
+# 新版确认对话框
+msgid "New version found: %s%s\nCurrent version: %s\n\nDownload and install update?"
+msgstr "发现新版本：%s%s\n当前版本：%s\n\n是否下载并安装更新？"
+
+msgid "Current version is up to date (%s)\n\nDowngrade to a previous version?"
+msgstr "当前版本已是最新（%s）\n\n是否回退到历史版本？"
+
+msgid "Downgrade"
+msgstr "回退"
+
+msgid "Downgrade to %s"
+msgstr "回退到 %s"
+
+msgid "Current version: %s (re-download)"
+msgstr "当前版本：%s（重新下载）"
+
+msgid "Download and install update?"
+msgstr "是否下载并安装更新？"
+
+msgid "New version found: %s%s\nCurrent version: %s"
+msgstr "发现新版本：%s%s\n当前版本：%s"
+
+msgid "New version found: %s%s\nCurrent version: %s\n\nDownload and install update?"
+msgstr "发现新版本：%s%s\n当前版本：%s\n\n是否下载并安装更新？"
+
+msgid "Update installed successfully. KOReader needs to restart to apply changes. Restart now?"
+msgstr "更新安装成功。需要重启 KOReader 才能生效。是否立即重启？"
+
+msgid "Download failed, please check network connection and try again"
+msgstr "下载失败，请检查网络连接后重试"
+
+msgid "Automatic installation failed. Please manually extract %splugins/quickui.koplugin.zip to the plugins directory and restart"
+msgstr "自动安装失败。请手动将 %splugins/quickui.koplugin.zip 解压到插件目录后重启"
+
+msgid "No network connection, cannot check for updates"
+msgstr "无网络连接，无法检查更新"
 
 # ============================================================
 # UI Font Switcher
@@ -1629,3 +1666,232 @@ msgstr "同时添加"
 
 msgid "Add to Bottom Bar"
 msgstr "添加至底部栏"
+
+msgid "Action name..."
+msgstr "动作名称..."
+
+msgid "Sui-author"
+msgstr "Sui-作者"
+
+msgid "Sui-series"
+msgstr "Sui-系列"
+
+msgid "Sui-tags"
+msgstr "Sui-标签"
+
+msgid "Please check that SimpleUI is installed and 'Browse by Author / Series / Tags' is enabled."
+msgstr "请检查是否已安装 SimpleUI 并启用了「按作者/系列/标签浏览」。"
+
+
+# ============================================================
+# Module-not-available messages (all bars)
+# ============================================================
+
+msgid "Bottom Bar module not available"
+msgstr "底部栏模块不可用"
+
+msgid "Bottom Bar module not available (enable it first)"
+msgstr "底部栏模块不可用（请先启用）"
+
+msgid "Vertical Bar module not available"
+msgstr "竖向栏模块不可用"
+
+msgid "Vertical Bar module not available (enable it first)"
+msgstr "竖向栏模块不可用（请先启用）"
+
+msgid "Bottom Bar module is disabled"
+msgstr "底部栏模块已禁用"
+
+msgid "Vertical Bar module is disabled"
+msgstr "竖向栏模块已禁用"
+
+msgid "Quick Actions module is disabled"
+msgstr "快捷操作模块已禁用"
+
+msgid "Cover module is disabled"
+msgstr "封面模块已禁用"
+
+msgid "Cloze module is disabled"
+msgstr "遮盖模块已禁用"
+
+msgid "Header/Footer module is disabled"
+msgstr "页眉页脚模块已禁用"
+
+msgid "Panel module not available"
+msgstr "面板模块不可用"
+
+msgid "Bottom Bar module not fully loaded"
+msgstr "底部栏模块尚未完全加载"
+
+
+# ============================================================
+# Vertical Bar (侧边栏)
+# ============================================================
+
+msgid "Add"
+msgstr "添加"
+
+msgid "Vertical Bar"
+msgstr "侧边栏"
+
+msgid "Vertical Bar Settings"
+msgstr "侧边栏设置"
+
+msgid "Vertical Bar module not available"
+msgstr "侧边栏模块不可用"
+
+msgid "Vertical Bar module not available (enable it first)"
+msgstr "侧边栏模块不可用（请先启用）"
+
+msgid "Vertical Bar module is disabled"
+msgstr "侧边栏模块已禁用"
+
+msgid "Toggle Vertical Bar"
+msgstr "侧边栏开关"
+
+msgid "Add Vertical Bar Button"
+msgstr "添加侧边栏按钮"
+
+msgid "Enable Vertical Bar"
+msgstr "启用侧边栏"
+
+msgid "Side"
+msgstr "位置"
+
+msgid "Background"
+msgstr "背景"
+
+msgid "Light Gray"
+msgstr "浅灰"
+
+msgid "Animation"
+msgstr "动画"
+
+msgid "Fast"
+msgstr "快"
+
+msgid "Medium"
+msgstr "中"
+
+msgid "Slow"
+msgstr "慢"
+
+msgid "Arrange Buttons"
+msgstr "排列按钮"
+
+msgid "Bar Size"
+msgstr "栏大小"
+
+msgid "Icon Size"
+msgstr "图标大小"
+
+msgid "Label Size"
+msgstr "标签大小"
+
+msgid "No buttons configured"
+msgstr "未配置按钮"
+
+msgid "Apply preset (QA vb)"
+msgstr "应用预设（侧边栏）"
+
+msgid "QuickUI_VerticalBarToggle"
+msgstr "QuickUI-侧边栏开关"
+
+msgid "QuickUI_VerticalBarSettings"
+msgstr "QuickUI-侧边栏设置"
+
+msgid "QuickUI_AddVerticalBarButton"
+msgstr "QuickUI-添加侧边栏按钮"
+
+msgid "Add to Vertical Bar"
+msgstr "添加到侧边栏"
+
+msgid "Remove from Vertical Bar"
+msgstr "从侧边栏移除"
+
+msgid "Sliders"
+msgstr "滑块（面板）"
+
+msgid "Reset to %s"
+msgstr "重置为 %s"
+
+msgid "Swipe to page"
+msgstr "竖滑翻页"
+
+msgid "Reader Sliders"
+msgstr "阅读滑块"
+
+msgid "No reader sliders available for this document"
+msgstr "当前文档没有可用的阅读滑块"
+
+msgid "QuickUI_ReaderSliders"
+msgstr "QuickUI-打开阅读滑块"
+
+msgid "Sui-Homescreen"
+msgstr "Sui-主页"
+
+msgid "Sui-Settings"
+msgstr "Sui-设置"
+
+msgid "Bookshelf"
+msgstr "书架"
+
+msgid "Storefront"
+msgstr "商店"
+
+msgid "WeRead-Bookshelf"
+msgstr "微信阅读-书架"
+
+msgid "WeRead-Search"
+msgstr "微信阅读-搜索"
+
+msgid "WeRead-QuickMenu"
+msgstr "微阅菜单"
+
+msgid "Weread AL-Fetch Underlines"
+msgstr "微阅批注"
+
+msgid "Rssreader"
+msgstr "RSS阅读器"
+
+msgid "ArtGallery"
+msgstr "画廊"
+
+msgid "FanQie-Bookshelf"
+msgstr "番茄-书架"
+
+msgid "FanQie-SearchBooks"
+msgstr "番茄-搜索书籍"
+
+msgid "FanQie-Toc"
+msgstr "番茄-目录"
+
+msgid "FanQie-Shelf/Toc"
+msgstr "番茄-书架/目录"
+
+msgid "FingerInk-toolbar"
+msgstr "指尖绘画"
+
+msgid "SideToc"
+msgstr "侧边目录"
+
+msgid "KOA-quickactions"
+msgstr "KOA-快捷动作"
+
+msgid "KOA-quicksettings"
+msgstr "KOA-快速设置"
+
+msgid "Enable style tweaks"
+msgstr "启用样式微调"
+
+msgid "(hold: settings)"
+msgstr "（长按设置）"
+
+msgid "(hold: add)"
+msgstr "（长按添加）"
+
+msgid "Show Pager Row"
+msgstr "显示翻页行"
+
+msgid "Rows per Page"
+msgstr "每页行数"

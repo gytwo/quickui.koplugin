@@ -202,6 +202,12 @@ function QuickUI:registerDispatcherActions()
             title = _("QuickUI_SystemIconOverride"),
             general = true,
         })
+        Dispatcher:registerAction("QuickUI_ReaderSliders", {
+            category = "none",
+            event = "QuickUI_ReaderSliders",
+            title = _("QuickUI_ReaderSliders"),
+            reader = true,
+        })
         Dispatcher:registerAction("QuickUI_InterfaceFilter", {
             category = "none",
             event = "QuickUI_InterfaceFilter",
@@ -268,6 +274,25 @@ function QuickUI:registerDispatcherActions()
                 reader = true,
             })
         end
+        
+        Dispatcher:registerAction("QuickUI_VerticalBarToggle", {
+            category = "none",
+            event = "QuickUI_VerticalBarToggle",
+            title = _("QuickUI_VerticalBarToggle"),
+            general = true,
+        })
+        Dispatcher:registerAction("QuickUI_VerticalBarSettings", {
+            category = "none",
+            event = "QuickUI_VerticalBarSettings",
+            title = _("QuickUI_VerticalBarSettings"),
+            general = true,
+        })
+        Dispatcher:registerAction("QuickUI_AddVerticalBarButton", {
+            category = "none",
+            event = "QuickUI_AddVerticalBarButton",
+            title = _("QuickUI_AddVerticalBarButton"),
+            general = true,
+        })
     end
 end
 
@@ -277,6 +302,17 @@ end
 function QuickUI:onQuickUI_SystemIconOverride()
     local icon_picker = require("qui_actions/qa_icon_picker")
     icon_picker.showIconPicker(nil, nil, nil, "system")
+    return true
+end
+
+function QuickUI:onQuickUI_ReaderSliders()
+    local RUI = require("apps/reader/readerui")
+    local reader = RUI and RUI.instance
+    if not reader or not reader.document then
+        Notification:notify(_("Please open a book first"))
+        return true
+    end
+    require("qui_actions/qa_reader_sliders").show()
     return true
 end
 
@@ -458,6 +494,45 @@ function QuickUI:onQuickUI_ReaderBottombarToggle()
 
     if bb.refresh then
         bb.refresh()
+    end
+    return true
+end
+
+function QuickUI:onQuickUI_VerticalBarToggle()
+    local vb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.verticalbar
+    if not vb then
+        Notification:notify(_("Vertical Bar module is disabled"))
+        return true
+    end
+    if vb.toggle then
+        vb.toggle()
+    end
+    return true
+end
+
+function QuickUI:onQuickUI_VerticalBarSettings()
+    if not qa_settings then
+        Notification:notify(_("Quick Actions module is disabled"))
+        return true
+    end
+    if qa_settings.showVerticalBarSettings then
+        qa_settings.showVerticalBarSettings()
+    end
+    return true
+end
+
+function QuickUI:onQuickUI_AddVerticalBarButton()
+    local vb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.verticalbar
+    if not vb then
+        Notification:notify(_("Vertical Bar module is disabled"))
+        return true
+    end
+    if vb.showAddButtonMenu then
+        vb.showAddButtonMenu(function()
+            if qa_settings and qa_settings.showVerticalBarSettings then
+                qa_settings.showVerticalBarSettings()
+            end
+        end)
     end
     return true
 end
@@ -738,7 +813,7 @@ function QuickUI:buildMenuItems()
     end
 
     -- Default Config Management
-    local all_modules = {"qa_panel", "qa_bb", "qa_common", "cover", "cloze", "hf"}
+    local all_modules = {"qa_panel", "qa_bb", "qa_common", "qa_vb", "cover", "cloze", "hf"}
     local all_items = Utils.buildDefaultMenuItems(all_modules, function()
         refreshQuickPanel()
         local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
