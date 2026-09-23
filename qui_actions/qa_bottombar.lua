@@ -40,6 +40,8 @@ local settings = require("qui_actions.qa_settings")
 local M = {}
 
 M._add_tab_dialog = nil
+-- 记录上一次底栏高度，用于判断是否需要重排（signal）
+local _last_bb_height = nil
 
 -- ============================================================
 -- Constants
@@ -510,14 +512,6 @@ function getTabs()
     return {}
 end
 
-function M.isEnabled()
-    return Utils.getBool("qa_bb_enabled", true)
-end
-
-function M.setEnabled(enabled)
-    Utils.set("qa_bb_enabled", enabled)
-end
-
 -- ============================================================
 -- Execute Action
 -- ============================================================
@@ -725,94 +719,100 @@ local function isReaderWidget(widget)
     return checkChild(widget)
 end
 
+-- ============================================================
+-- ReaderFooter Integration
+--
+-- QuickUI 底栏寄生在原生 ReaderFooter 上，由 patch 后的
+-- ReaderFooter:paintTo / :resetLayout 调用这两个接口。
+-- ============================================================
+
+-- 供 ReaderFooter:paintTo 调用：绘制 QuickUI 底栏
+function M.paintIntoFooter(bb, x, y, footer)
+    local screen_h = Screen:getHeight()
+    local nav_h = M.TOTAL_H()
+    local bar_y = screen_h - nav_h
+
+    local tabs = getTabs() or {}
+    local active_action = (tabs and #tabs > 0) and tabs[1] or nil
+    local bar = M.buildBar(active_action)
+    bar:paintTo(bb, x, bar_y)
+    bar:free()
+end
+
+-- 供 ReaderFooter:resetLayout 调用：算 QuickUI 底栏 dimen
+function M.resetFooterLayout(footer)
+    local nav_h = M.TOTAL_H()
+    local screen_h = Screen:getHeight()
+    footer.dimen = Geom:new{
+        x = 0,
+        y = screen_h - nav_h,
+        w = Screen:getWidth(),
+        h = nav_h,
+    }
+end
+
 function M.wrapWithBottombar(inner_widget)
     if not Utils.getBool("qa_bb_enabled", true) then return inner_widget end
+    if inner_widget._bottombar_container then return inner_widget end
 
-    -- Guard: if inner_widget is already a bottombar container, avoid double-wrapping
-    if inner_widget._bottombar_container then
+    -- ReaderView 不再走 wrapWithBottombar，由 ReaderFooter patch 接管
+    if inner_widget.recalculate ~= nil and inner_widget.document ~= nil then
         return inner_widget
     end
 
     local screen_w = Screen:getWidth()
     local screen_h = Screen:getHeight()
     local nav_h = M.TOTAL_H()
-
     if nav_h <= 0 then return inner_widget end
-
-    local is_reader = isReaderWidget(inner_widget)
-    local overlap = is_reader and Utils.getBool("qa_bb_overlap", false) or false
 
     local content_h = screen_h - nav_h
     if content_h <= 0 then return inner_widget end
 
-    -- Check if this is a BookList (History/Collections) or Menu (coll_list)
+    -- 判断是否 BookList / Menu（history / collections / coll_list）
     local is_booklist = inner_widget.is_borderless and inner_widget.name and
                         (inner_widget.name == "history" or inner_widget.name == "collections" or inner_widget.name == "coll_list")
-
-    -- Injection scenario: the injected inner container should also be treated as a BookList
     local is_injected = inner_widget._bottombar_injected_container == true
     if is_injected then
         is_booklist = true
     end
 
-    -- ReaderView: its dimen is already shrunk in ReaderUI.new before creation,
-    -- so do NOT resize it here (would subtract nav_h twice).
-    local is_readerview = inner_widget.recalculate ~= nil and inner_widget.document ~= nil
-
-    if not overlap then
-        if is_booklist then
-            -- Injection case: inner IS the container itself, adjust it directly.
-            -- Non-injection case: adjust inner_widget[1].
-            local container = is_injected and inner_widget or inner_widget[1]
-            if container and container.dimen then
-                container.dimen.h = content_h
-                container.dimen.y = 0
-            end
-            local mgr_owner = inner_widget
-            if mgr_owner._manager and mgr_owner._manager.updateItemTable then
-                mgr_owner._manager:updateItemTable()
-            end
-            if mgr_owner.updateItems then
-                mgr_owner:updateItems()
-            end
-        elseif not is_readerview then
-            -- FM/FileChooser: original logic
-            if inner_widget.dimen then
-                inner_widget.dimen.h = content_h
-                inner_widget.dimen.w = screen_w
-                inner_widget.dimen.y = 0
-            end
-            if inner_widget.height ~= nil then
-                inner_widget.height = content_h
-            end
-            if inner_widget.y ~= nil then
-                inner_widget.y = 0
-            end
-
-            local fc = inner_widget.file_chooser or inner_widget
-            if fc then
-                if fc.height ~= nil then
-                    fc.height = content_h
-                end
-                if fc.y ~= nil then
-                    fc.y = 0
-                end
-                if fc.dimen then
-                    fc.dimen.h = content_h
-                    fc.dimen.y = 0
-                end
-                if fc._recalculateDimen then
-                    fc:_recalculateDimen()
-                end
-                if fc.updateItems then
-                    fc:updateItems()
-                end
-            end
+    -- 非 ReaderView：BookList / FileManager / FileChooser
+    if is_booklist then
+        local container = is_injected and inner_widget or inner_widget[1]
+        if container and container.dimen then
+            container.dimen.h = content_h
+            container.dimen.y = 0
         end
-        -- If is_readerview: no dimen change here, already handled in ReaderUI.new
+        local mgr_owner = inner_widget
+        if mgr_owner._manager and mgr_owner._manager.updateItemTable then
+            mgr_owner._manager:updateItemTable()
+        end
+        if mgr_owner.updateItems then
+            mgr_owner:updateItems()
+        end
+    else
+        if inner_widget.dimen then
+            inner_widget.dimen.h = content_h
+            inner_widget.dimen.w = screen_w
+            inner_widget.dimen.y = 0
+        end
+        if inner_widget.height ~= nil then inner_widget.height = content_h end
+        if inner_widget.y ~= nil then inner_widget.y = 0 end
+
+        local fc = inner_widget.file_chooser or inner_widget
+        if fc then
+            if fc.height ~= nil then fc.height = content_h end
+            if fc.y ~= nil then fc.y = 0 end
+            if fc.dimen then
+                fc.dimen.h = content_h
+                fc.dimen.y = 0
+            end
+            if fc._recalculateDimen then fc:_recalculateDimen() end
+            if fc.updateItems then fc:updateItems() end
+        end
     end
 
-    -- Build bottom bar (shared by all)
+    -- 构建底栏并包裹
     local tabs = getTabs() or {}
     local active_action = (tabs and #tabs > 0) and tabs[1] or nil
     local bar = M.buildBar(active_action)
@@ -832,7 +832,7 @@ function M.wrapWithBottombar(inner_widget)
     og._bottombar_container = og
 
     local is_bare = Utils.getString("qa_bb_style") == "bare"
-    local use_transparent = Utils.getBool("qa_bb_transparent", false) or overlap
+    local use_transparent = Utils.getBool("qa_bb_transparent", false)
     local bg = (use_transparent or is_bare) and nil or Blitbuffer.COLOR_WHITE
 
     local fc = FrameContainer:new{
@@ -842,8 +842,8 @@ function M.wrapWithBottombar(inner_widget)
         background = bg,
         og,
     }
-    fc._bottombar_inner = inner_widget      -- ★ 新增
-    fc._bottombar_container = og            -- ★ 新增
+    fc._bottombar_inner = inner_widget
+    fc._bottombar_container = og
     return fc
 end
 
@@ -910,42 +910,23 @@ end
 -- ============================================================
 
 function M.rebuildBottombar(skip_remove)
-    -- ============================================================
-    -- Fully disabled: tear down everything and restore full height
-    -- ============================================================
-    if not M.isEnabled() then
+    -- 全局禁用：只清理 touch zones，不再动 reader dimen
+    if not Utils.getBool("qa_bb_enabled", true) then
         M.removeBottombar()
 
+        -- reader footer 也要恢复原生高度
         local RUI = require("apps/reader/readerui")
         local reader = RUI.instance
-        if reader and reader.dimen and reader.dimen.h ~= Screen:getHeight() then
-            local full_dimen = Geom:new{
-                x = 0, y = 0,
-                w = Screen:getWidth(),
-                h = Screen:getHeight(),
-            }
-            reader.dimen = full_dimen
-            if reader.view and reader.view.onSetDimensions then
-                reader.view:onSetDimensions(full_dimen)
-            end
-            if reader.onScreenResize then
-                reader:onScreenResize(full_dimen)
-            end
-            UIManager:setDirty(reader, "full")
+        if reader and reader.view and reader.view.footer then
+            local height_changed = (_last_bb_height ~= nil) and (_last_bb_height ~= 0)
+            _last_bb_height = 0
+            reader.view.footer:refreshFooter(true, height_changed)
         end
         return
     end
 
-    -- ============================================================
-    -- Tear down existing wrappers (do NOT touch reader height)
-    -- ============================================================
+    -- 清理旧 touch zones
     if skip_remove then
-        -- On rotation: only clear _bottombar_original_inner, do not execute remove
-        local FM = require("apps/filemanager/filemanager")
-        local fm = FM.instance
-        if fm then
-            fm._bottombar_original_inner = nil
-        end
         local RUI = require("apps/reader/readerui")
         local reader = RUI.instance
         if reader then
@@ -955,87 +936,43 @@ function M.rebuildBottombar(skip_remove)
         M.removeBottombar()
     end
 
-    -- ============================================================
-    -- Refresh FileManager (injection handled by setupLayout wrapper)
-    -- ============================================================
+    -- FileManager：仍然走 wrapWithBottombar
     local FM = require("apps/filemanager/filemanager")
     local fm = FM.instance
     if fm and fm.setupLayout then
-        -- 清除注入标记，让 setupLayout 里的 wrapper 重跑注入逻辑
         fm._bottombar_injected = nil
         fm:setupLayout()
     end
-    
-    -- ============================================================
-    -- Wrap Reader
-    -- ============================================================
+
+    -- ReaderUI：不替换 reader[1]，只通知 footer 重算
     local RUI = require("apps/reader/readerui")
     local reader = RUI.instance
     if reader then
-        local config = _G.__QUICKUI_CONFIG
-        local show_in_reader = config and config.qa_bb_reader_enabled
-        local hide_in_pdf = config and config.qa_bb_hide_in_pdf
+        local show_in_reader = Utils.getBool("qa_bb_reader_enabled", true)
+        local hide_in_pdf = Utils.getBool("qa_bb_hide_in_pdf", true)
         local is_pdf = false
         if reader.document then
             local file = reader.document.file or ""
             is_pdf = file:match("%.pdf$") ~= nil
         end
-
         local should_show = show_in_reader ~= false and not (hide_in_pdf and is_pdf)
 
+        if reader.view and reader.view.footer then
+            reader.view.footer:applyFooterMode(reader.view.footer.mode) 
+            local new_h = should_show and M.TOTAL_H() or 0
+            local height_changed = (_last_bb_height ~= nil) and (_last_bb_height ~= new_h)
+            _last_bb_height = new_h
+
+            reader.view.footer:refreshFooter(true, height_changed)
+        end
         if should_show then
-            local inner_reader = reader[1]
-            while inner_reader and inner_reader._bottombar_inner do
-                inner_reader = inner_reader._bottombar_inner
-            end
-            reader._bottombar_original_inner = inner_reader
-
-            local new_wrapped_reader = M.wrapWithBottombar(inner_reader)
-            reader[1] = new_wrapped_reader
-            reader._bottombar_container = new_wrapped_reader
-
             M.registerTouchZones(reader)
         end
-
-        -- Unified: always reflow to the target height
-        local target_h
-        if should_show and not Utils.getBool("qa_bb_overlap", false) then
-            target_h = Screen:getHeight() - M.TOTAL_H()
-        else
-            target_h = Screen:getHeight()
-        end
-
-        -- Keep ReaderUI (reader) fullscreen so bottom-bar touch zones
-        -- near the screen bottom are still dispatched to it.
-        reader.dimen = Geom:new{
-            x = 0, y = 0,
-            w = Screen:getWidth(),
-            h = Screen:getHeight(),
-        }
-
-        -- Only shrink ReaderView so content avoids the bar.
-        local view_dimen = Geom:new{
-            x = 0, y = 0,
-            w = Screen:getWidth(),
-            h = target_h,
-        }
-        if reader.view and reader.view.onSetDimensions then
-            reader.view:onSetDimensions(view_dimen)
-        end
-        -- Do NOT call reader:onScreenResize (it would shrink reader.dimen too).
-
-        UIManager:setDirty(reader, "full")
     end
 
-    -- ============================================================
-    -- Wrap History/Collections/coll_list already on screen
-    -- ============================================================
+    -- History / Collections / coll_list：仍然走 wrapWithBottombar
     local stack = UIManager._window_stack or {}
-    local INJECT_NAMES = {
-        history = true,
-        collections = true,
-        coll_list = true,
-    }
+    local INJECT_NAMES = { history = true, collections = true, coll_list = true }
     for _, entry in ipairs(stack) do
         local w = entry.widget
         if w and w.covers_fullscreen and w.name and INJECT_NAMES[w.name] then
@@ -1043,7 +980,6 @@ function M.rebuildBottombar(skip_remove)
                 local inner = w[1]
                 if inner and not inner._bottombar_inner then
                     inner._bottombar_injected_container = true
-
                     local wrapped = M.wrapWithBottombar(inner)
                     if wrapped and wrapped ~= inner then
                         w[1] = wrapped
@@ -1060,17 +996,8 @@ function M.rebuildBottombar(skip_remove)
     end
 end
 
--- ============================================================
--- Remove Bottombar
--- ============================================================
-
---- Remove bottom bar from FileManager, Reader, and all injected fullscreen widgets
--- Tear down the bottom bar widget tree and clear all touch zones.
--- Does NOT touch reader height (caller handles that).
 function M.removeBottombar()
-    -- ============================================================
-    -- FileManager
-    -- ============================================================
+    -- FileManager：恢复 widget 树
     local FM = require("apps/filemanager/filemanager")
     local fm = FM and FM.instance
     if fm and fm._bottombar_original_inner then
@@ -1081,7 +1008,6 @@ function M.removeBottombar()
                 end
             end
         end
-
         if fm.touch_zone_dg then
             for id, _ in pairs(fm._zones or {}) do
                 if type(id) == "string" and id:match("^bb_") then
@@ -1089,7 +1015,6 @@ function M.removeBottombar()
                 end
             end
         end
-
         fm._ordered_touch_zones = {}
         if fm.touch_zone_dg then
             for _, zone_id in ipairs(fm.touch_zone_dg:serialize()) do
@@ -1098,19 +1023,16 @@ function M.removeBottombar()
                 end
             end
         end
-
         fm[1] = fm._bottombar_original_inner
         fm._bottombar_container = nil
         fm._bottombar_original_inner = nil
         UIManager:setDirty(fm, "ui")
     end
 
-    -- ============================================================
-    -- Reader (widget tree only, height is caller's responsibility)
-    -- ============================================================
+    -- Reader：只清 touch zones，不恢复 reader[1]，不调 refreshFooter
     local RUI = require("apps/reader/readerui")
     local reader = RUI and RUI.instance
-    if reader and reader._bottombar_original_inner then
+    if reader then
         if reader._zones then
             for id, _ in pairs(reader._zones) do
                 if type(id) == "string" and id:match("^bb_") then
@@ -1118,7 +1040,6 @@ function M.removeBottombar()
                 end
             end
         end
-
         if reader.touch_zone_dg then
             for id, _ in pairs(reader._zones or {}) do
                 if type(id) == "string" and id:match("^bb_") then
@@ -1126,7 +1047,6 @@ function M.removeBottombar()
                 end
             end
         end
-
         reader._ordered_touch_zones = {}
         if reader.touch_zone_dg then
             for _, zone_id in ipairs(reader.touch_zone_dg:serialize()) do
@@ -1135,17 +1055,9 @@ function M.removeBottombar()
                 end
             end
         end
-
-        reader[1] = reader._bottombar_original_inner
-        reader._bottombar_container = nil
-        reader._bottombar_original_inner = nil
-        reader._bottombar_overlap_last = nil
-        UIManager:setDirty(reader, "ui")
     end
 
-    -- ============================================================
-    -- History / Collections / coll_list / homescreen
-    -- ============================================================
+    -- History / Collections / homescreen：恢复 widget 树
     local stack = UIManager._window_stack or {}
     local INJECT_NAMES = { history = true, collections = true, coll_list = true, homescreen = true }
     for _, entry in ipairs(stack) do
@@ -1173,7 +1085,7 @@ end
 function M.refresh()
     -- Keep SimpleUI's reserved height in sync — it reads this live on every
     -- getContentHeight() call, so the value must reflect the current size.
-    _G.__QUICKUI_BAR_HEIGHT = M.isEnabled() and M.TOTAL_H() or 0
+    _G.__QUICKUI_BAR_HEIGHT = Utils.getBool("qa_bb_enabled", true) and M.TOTAL_H() or 0
 
     M.rebuildBottombar()
 
@@ -1461,13 +1373,13 @@ function M.init()
             if orig_onSwapRotation then
                 result = orig_onSwapRotation(self)
             end
-            if _G.__QUICKUI_CONFIG and _G.__QUICKUI_CONFIG.qa_bb_enabled then
+            if Utils.getBool("qa_bb_enabled", true) then
                 M.rebuildBottombar(true)
             end
             return result
         end
     end
-    UIManager:scheduleIn(0.5, hookDeviceListener)
+    UIManager:scheduleIn(0, hookDeviceListener)
 
     -- Android: hook Device.input.handleMiscEv to catch APP_CMD_CONFIG_CHANGED
     local function hookAndroidRotation()
@@ -1484,16 +1396,16 @@ function M.init()
                 result = orig_handleMiscEv(this, ev)
             end
             if ev.code == C.APP_CMD_CONFIG_CHANGED then
-                if _G.__QUICKUI_CONFIG and _G.__QUICKUI_CONFIG.qa_bb_enabled then
+                if Utils.getBool("qa_bb_enabled", true) then 
                     M.rebuildBottombar(true)
                 end
             end
             return result
         end
     end
-    UIManager:scheduleIn(0.5, hookAndroidRotation)
+    UIManager:scheduleIn(0, hookAndroidRotation)
     
-    UIManager:scheduleIn(0.1, function()
+    UIManager:scheduleIn(0, function()
        M.rebuildBottombar()
     end)
 end
