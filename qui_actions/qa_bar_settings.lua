@@ -1550,21 +1550,47 @@ function Bars.getBottomBarMenuItems()
         end,
     }
 
+    -- ★ 新增：直接切换原生 reclaim_height
     items[#items + 1] = {
         text = _("Allow overlap with content (Reader only)"),
+        help_text = _("Same as KOReader's status bar 'Overlap status bar' setting. The bottom bar will be drawn on top of the content instead of reserving space for it."),
+        enabled_func = function()
+            local RUI = require("apps/reader/readerui")
+            return RUI and RUI.instance ~= nil
+        end,
         checked_func = function()
-            return Utils.getBool("qa_bb_overlap", false)
+            local RUI = require("apps/reader/readerui")
+            local reader = RUI and RUI.instance
+            if reader and reader.view and reader.view.footer then
+                return reader.view.footer.settings.reclaim_height == true
+            end
+            return false
         end,
         callback = function(touchmenu_instance)
-            Utils.set("qa_bb_overlap", not Utils.getBool("qa_bb_overlap", false))
+            local RUI = require("apps/reader/readerui")
+            local reader = RUI and RUI.instance
+            if not (reader and reader.view and reader.view.footer) then
+                UIManager:show(Notification:new{
+                    text = _("Please open a book first"),
+                    timeout = 2,
+                })
+                return
+            end
+
+            local footer = reader.view.footer
+            -- 切换 settings
+            footer.settings.reclaim_height = not footer.settings.reclaim_height
+            -- ★ 同步实例字段（关键：ReaderTypeset:onSetPageMargins 读的是 footer.reclaim_height）
+            footer.reclaim_height = footer.settings.reclaim_height
+            -- 持久化到 G_reader_settings，跟原生菜单一致
+            G_reader_settings:saveSetting("footer", footer.settings)
+            -- 触发重排
+            footer:refreshFooter(true, true)
+
             if touchmenu_instance then touchmenu_instance:updateItems() end
-            bb.refresh()
-            UIManager:show(Notification:new{
-                text = _("Overlap mode changed"),
-                timeout = 2,
-            })
         end,
     }
+
 
     items[#items + 1] = {
         text = _("Hide in PDF"),
