@@ -948,114 +948,43 @@ end
 
 -- ============================================================
 -- Patch FileChooser for Bottom Navigation Bar
+--
+-- Only marks FileChooser instances so Menu:init knows to inject the
+-- QuickUI bottom bar into its footer. No widget-tree replacement is
+-- done here; the actual injection happens in Menu:init (see
+-- Utils.patchMenuForBottombar).
 -- ============================================================
-
 function Utils.patchFileChooserForBottombar()
     local FileChooser = require("ui/widget/filechooser")
-    if FileChooser._quickui_bottombar_patched then return end
-    FileChooser._quickui_bottombar_patched = true
+    if FileChooser._quickui_inject_patched then return end
+    FileChooser._quickui_inject_patched = true
 
-    -- ── 缩高度（原有逻辑不变） ──────────────────────────────
-    local orig_init = FileChooser.init
-    FileChooser.init = function(fc_self, ...)
-        if fc_self.height == nil and fc_self.width == nil then
-            local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
-            if bb and Utils.getBool("qa_bb_enabled", true) then
-                local screen_h = Screen:getHeight()
-                local nav_h = bb.TOTAL_H()
-                fc_self.height = screen_h - nav_h
-                fc_self.y = 0
-            end
+    local orig_new = FileChooser.new
+    FileChooser.new = function(class, attrs, ...)
+        attrs = attrs or {}
+        if attrs.name == "filemanager" then
+            attrs._quickui_bb_inject = true
         end
-        return orig_init(fc_self, ...)
-    end
-
-    local orig_recalc = FileChooser._recalculateDimen
-    FileChooser._recalculateDimen = function(fc_self, ...)
-        local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
-        if bb and Utils.getBool("qa_bb_enabled", true) then
-            local screen_h = Screen:getHeight()
-            local nav_h = bb.TOTAL_H()
-            local content_h = screen_h - nav_h
-            if fc_self.height ~= content_h then fc_self.height = content_h end
-            if fc_self.y ~= 0 then fc_self.y = 0 end
-        end
-        return orig_recalc(fc_self, ...)
-    end
-
-    local orig_update = FileChooser.updateItems
-    FileChooser.updateItems = function(fc_self, ...)
-        local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
-        if bb and Utils.getBool("qa_bb_enabled", true) then
-            local screen_h = Screen:getHeight()
-            local nav_h = bb.TOTAL_H()
-            local content_h = screen_h - nav_h
-            if fc_self.height ~= content_h then fc_self.height = content_h end
-            if fc_self.y ~= 0 then fc_self.y = 0 end
-        end
-        return orig_update(fc_self, ...)
-    end
-
-    -- ★ 新增：一次性注入，等价于 ReaderUI 的 patchReaderUIForBottombar ──
-    local FileManager = require("apps/filemanager/filemanager")
-    if not FileManager._quickui_fm_inject_patched then
-        FileManager._quickui_fm_inject_patched = true
-        local orig_setup = FileManager.setupLayout
-        FileManager.setupLayout = function(fm_self)
-            orig_setup(fm_self)
-
-            local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
-            if not (bb and Utils.getBool("qa_bb_enabled", true)) then return end
-
-            -- 用 fm_self[1] 判断：orig_setup 重建了它，_bottombar_container 一定是 nil
-            if fm_self[1] and fm_self[1]._bottombar_container then return end
-
-            local inner = fm_self[1]
-            if inner and inner._bottombar_inner then
-                inner = inner._bottombar_inner
-            end
-            if not inner then return end
-
-            local wrapped = bb.wrapWithBottombar(inner)
-            if wrapped and wrapped ~= inner then
-                fm_self[1] = wrapped
-                fm_self._bottombar_injected = true
-                fm_self._bottombar_inner = inner
-                fm_self._bottombar_original_inner = inner
-                
-                -- hook FileManager:onSetRotationMode
-                local orig_onSetRotationMode = FileManager.onSetRotationMode
-                function FileManager:onSetRotationMode(mode)
-                    self._quickui_rotating = true
-                    local result = orig_onSetRotationMode(self, mode)
-                    self._quickui_rotating = nil
-                    return result
-                end
-
-                if fm_self._quickui_rotating then
-                    UIManager:setDirty(fm_self, "full")
-                end
-                
-                UIManager:scheduleIn(0, function()
-                    if bb.registerTouchZones then bb.registerTouchZones(fm_self) end
-                end)
-            end
-        end
+        return orig_new(class, attrs, ...)
     end
 end
 
 -- ============================================================
 -- Patch ReaderUI for Bottom Navigation Bar
+--
+-- ReaderUI keeps its own footer (ReaderFooter) which we take over via
+-- Utils.patchReaderFooterForBottombar. Here we only register the touch
+-- zones for the bottom bar after a ReaderUI instance is created.
 -- ============================================================
 function Utils.patchReaderUIForBottombar()
     local ReaderUI = require("apps/reader/readerui")
     if ReaderUI._quickui_bottombar_patched then return end
     ReaderUI._quickui_bottombar_patched = true
 
-    -- 关键：先 patch ReaderFooter，让底栏寄生在原生 footer 上
+    -- Take over the native ReaderFooter first, so all consumers of
+    -- footer:getHeight() automatically use the QuickUI bar height.
     Utils.patchReaderFooterForBottombar()
 
-    -- ReaderUI.new 只保留 touch zones 注册，不改 dimen、不替换 instance[1]
     local orig_new = ReaderUI.new
     ReaderUI.new = function(class, attrs, ...)
         local instance = orig_new(class, attrs, ...)
@@ -1164,56 +1093,201 @@ end
 
 -- ============================================================
 -- Patch BookList for Bottom Navigation Bar
+--
+-- Marks Menu (and BookList, which inherits Menu and does not override
+-- new) instances used as list screens by the FileManager family, so
+-- Menu:init installs the QuickUI bottom bar.
+--
+-- Identification is by attrs._manager: all of History, Collections,
+-- the Collections list (coll_list), the collection folder list
+-- (coll_folder_list) and FileSearcher pass their owning widget as
+-- _manager when creating their Menu. FileChooser is the only one
+-- without _manager and is handled separately by
+-- patchFileChooserForBottombar (name == "filemanager").
+--
+-- This is more robust than matching attrs.name, because coll_list and
+-- coll_folder_list are plain Menu:new{} calls without a name attribute.
 -- ============================================================
-
 function Utils.patchBookListForBottombar()
-    local BookList = require("ui/widget/booklist")
-    if BookList._quickui_patched then return end
-    BookList._quickui_patched = true
+    local Menu = require("ui/widget/menu")
+    if Menu._quickui_inject_patched then return end
+    Menu._quickui_inject_patched = true
 
-    local orig_new = BookList.new
-    BookList.new = function(class, attrs, ...)
+    local orig_new = Menu.new
+    Menu.new = function(class, attrs, ...)
         attrs = attrs or {}
-        local is_booklist = attrs.name == "history" or attrs.name == "collections" or attrs.name == "coll_list" or attrs.name == "filesearcher" 
-
-        if is_booklist then
-            local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
-            if bb and Utils.getBool("qa_bb_enabled", true) then
-                local nav_h = bb.TOTAL_H()
-                attrs.height = Screen:getHeight() - nav_h
-                attrs.width = Screen:getWidth()
-                attrs._navbar_height_reduced = true
-            end
+        if attrs._manager then
+            attrs._quickui_bb_inject = true
         end
+        return orig_new(class, attrs, ...)
+    end
+end
 
-        local instance = orig_new(class, attrs, ...)
+-- ============================================================
+-- Patch Menu for Bottom Navigation Bar
+--
+-- Injects the QuickUI bottom bar into Menu's footer, just below the
+-- page_info row. The bar is wrapped together with the original page_info
+-- inside a VerticalGroup so it moves as a whole with the page-info row.
+--
+-- Width handling:
+--   VerticalGroup:getSize() returns max(child widths) for w, so once the
+--   bar (which spans the full screen width) is inside the group,
+--   page_info.w becomes inner_dimen.w. BottomContainer then centers
+--   page_info with no horizontal offset — the same net position the
+--   original page_info had, since BottomContainer also centered it on
+--   inner_dimen.w before. No horizontal shift is introduced.
+--
+-- Height handling:
+--   page_info:getSize().h becomes orig_page_info.h + bar.h. CoverBrowser
+--   reads page_info:getSize().h in its own _recalculateDimen overrides
+--   (MosaicMenu / ListMenu) and reserves the extra space automatically.
+--   The original Menu reads bottom_height from two Buttons instead, so
+--   Menu:_recalculateDimen is patched below to subtract nav_h explicitly.
+--
+-- Cache handling and bar rebuild:
+--   VerticalGroup:resetLayout() only clears its own _size/_offsets; it
+--   does not recurse into children. We patch it to:
+--     1) recurse into children, so the inner HorizontalGroup
+--        (orig_page_info) recomputes its layout after
+--        page_info_text:setText(); without this the new text would be
+--        painted at the old offsets and overlap the neighbouring chevron.
+--     2) rebuild the QuickUI bottom bar (its 2nd child in our page_info
+--        VerticalGroup). This covers every update path because both
+--        Menu:updateItems and CoverBrowser's CoverMenu:updateItems call
+--        page_info:resetLayout(). Rebuilding keeps dynamic icons and
+--        labels (wifi on/off, cloze on/off, changed tabs) in sync with
+--        the current state, which would otherwise stay frozen at
+--        Menu:init time. A re-entrancy flag prevents infinite recursion.
+--
+-- Registry:
+--   Every Menu instance created with _quickui_bb_inject is registered in
+--   _G.__QUICKUI_MENU_REGISTRY so qa_bottombar's rebuildBottombar() can
+--   refresh it directly. UIManager._window_stack is not enough here:
+--   FileChooser, in particular, is a child of the FileManager widget and
+--   never appears on the stack, so iterating the stack would miss it.
+-- ============================================================
+function Utils.patchMenuForBottombar()
+    local Menu = require("ui/widget/menu")
+    if Menu._quickui_bottombar_patched then return end
+    Menu._quickui_bottombar_patched = true
 
-        if is_booklist then
-            local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
-            if bb and Utils.getBool("qa_bb_enabled", true) then
-                local inner = instance[1]
-                if inner and not inner._bottombar_inner then
-                    inner._bottombar_injected_container = true
-                    local wrapped = bb.wrapWithBottombar(inner)
-                    if wrapped and wrapped ~= inner then
-                        instance[1] = wrapped
-                        instance._bottombar_injected = true
-                        instance._bottombar_inner = inner
-                    else
-                        inner._bottombar_injected_container = nil
+    local BottomContainer = require("ui/widget/container/bottomcontainer")
+    local VerticalGroup = require("ui/widget/verticalgroup")
+
+    -- Global registry of Menu instances with the QuickUI bar installed.
+    -- Lives on _G so qa_bottombar.lua can reach it without a direct
+    -- require cycle.
+    local registry = _G.__QUICKUI_MENU_REGISTRY
+    if not registry then
+        registry = { list = {}, set = {} }
+        _G.__QUICKUI_MENU_REGISTRY = registry
+    end
+
+    if not VerticalGroup._quickui_recursive_reset then
+        VerticalGroup._quickui_recursive_reset = true
+        local orig_resetLayout = VerticalGroup.resetLayout
+        function VerticalGroup:resetLayout()
+            orig_resetLayout(self)
+
+            -- Rebuild the QuickUI bottom bar and re-register its touch
+            -- zones if this is a page_info container we created.
+            if self._quickui_bb_container and not self._quickui_bb_rebuilding then
+                local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
+                if bb then
+                    self._quickui_bb_rebuilding = true
+                    local old_bar = self[2]
+                    if old_bar then
+                        old_bar:free()
+                    end
+                    self[2] = bb.buildBar(nil)
+                    self._quickui_bb_rebuilding = nil
+
+                    if self._quickui_menu and bb.registerTouchZones then
+                        bb.registerTouchZones(self._quickui_menu)
                     end
                 end
+            end
 
-                UIManager:setDirty(instance, "full") 
-                UIManager:scheduleIn(0, function()
-                    if bb.registerTouchZones then
-                        bb.registerTouchZones(instance)
-                    end
-                end)
+            for _, widget in ipairs(self) do
+                if widget.resetLayout then
+                    widget:resetLayout()
+                end
+            end
+        end
+    end
+
+    local orig_init = Menu.init
+    function Menu:init()
+        orig_init(self)
+
+        local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
+        if not (bb and self._quickui_bb_inject) then return end
+
+        local nav_h = bb.TOTAL_H()
+        if nav_h <= 0 then return end
+
+        local orig_page_info = self.page_info
+        self.page_info = VerticalGroup:new{
+            align = "center",
+            orig_page_info,
+            bb.buildBar(nil),
+        }
+        self.page_info._quickui_menu = self
+        self.page_info._quickui_bb_container = true
+
+        local content = self[1] and self[1][1]
+        if content then
+            content[#content] = BottomContainer:new{
+                dimen = self.inner_dimen:copy(),
+                self.page_info,
+            }
+
+            local page_return = content[#content - 1]
+            if page_return and page_return.dimen then
+                page_return.dimen.h = self.inner_dimen.h - nav_h
             end
         end
 
-        return instance
+        bb.registerTouchZones(self)
+
+        -- Register this Menu so rebuildBottombar() can refresh it even
+        -- when it is not an entry on UIManager._window_stack.
+        if not registry.set[self] then
+            registry.set[self] = true
+            registry.list[#registry.list + 1] = self
+        end
+    end
+
+    local orig_recalc = Menu._recalculateDimen
+    function Menu:_recalculateDimen(no_recalculate_dimen)
+        orig_recalc(self, no_recalculate_dimen)
+
+        local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
+        if not (bb and self._quickui_bb_inject) then return end
+
+        local nav_h = bb.TOTAL_H()
+        if nav_h <= 0 then return end
+
+        self.available_height = self.available_height - nav_h
+        self.item_dimen.h = math.floor(self.available_height / self.perpage)
+    end
+
+    -- Drop the Menu from the registry when it is torn down.
+    local orig_onCloseWidget = Menu.onCloseWidget
+    function Menu:onCloseWidget()
+        if registry.set[self] then
+            registry.set[self] = nil
+            for i = #registry.list, 1, -1 do
+                if registry.list[i] == self then
+                    table.remove(registry.list, i)
+                    break
+                end
+            end
+        end
+        if orig_onCloseWidget then
+            return orig_onCloseWidget(self)
+        end
     end
 end
 
