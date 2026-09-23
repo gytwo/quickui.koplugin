@@ -41,7 +41,7 @@ local DEFAULT_SETTINGS = {
     qa_panel_reader_zoom         = false,
 
     -- Bottom Bar Settings
-    qa_bb_enabled = false,
+    qa_bb_enabled = true,
     qa_bb_mode = "both",
     qa_bb_style = "default",
     qa_bb_size_pct = 100,
