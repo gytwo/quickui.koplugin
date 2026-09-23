@@ -662,6 +662,37 @@ function M.registerTouchZones(plugin_or_widget, widget)
                 end,
             }
         end
+    else
+        -- ============================================================
+        -- Empty tabs: register a full-width tap zone to open the
+        -- Add Tab menu.
+        --
+        -- The reader's bottom bar is painted via paintIntoFooter(),
+        -- which frees the bar widget right after painting, so the
+        -- hint_wrapper inside buildBar never enters the widget tree
+        -- and its own touch zone is inert.
+        -- FileManager's bottom bar is injected into Menu's page_info,
+        -- so its hint_wrapper works, and registering this fallback
+        -- would overlap with it. Only register for the reader.
+        -- ============================================================
+        local is_filemanager = fm_self.file_chooser ~= nil
+        if not is_filemanager then
+            zones[#zones + 1] = {
+                id = "bb_empty_tap",
+                ges = "tap",
+                overrides = { "tap_left_bottom_corner", "tap_right_bottom_corner" },
+                screen_zone = {
+                    ratio_x = 0,
+                    ratio_y = bar_y / screen_h,
+                    ratio_w = 1,
+                    ratio_h = nav_h / screen_h,
+                },
+                handler = function()
+                    M.showAddTabMenu()
+                    return true
+                end,
+            }
+        end
     end
 
     -- Register hold-settings zone LAST so tab hold zones take priority
