@@ -58,7 +58,6 @@ local DEFAULT_SETTINGS = {
     qa_bb_labels = false,
     qa_bb_tabs = {"home", "annotations_viewer", "continue", "reading_insights", "qa_add_bb_tab","search","cloudlibrary_batch_download_books", "zlibrary_search"},
     qa_bb_reader_enabled = true,
-    qa_bb_overlap = false,  -- Allow bottom bar to overlap content
     qa_bb_hide_in_pdf = true,
 
     -- Common Settings
@@ -961,7 +960,7 @@ function Utils.patchFileChooserForBottombar()
     FileChooser.init = function(fc_self, ...)
         if fc_self.height == nil and fc_self.width == nil then
             local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
-            if bb and bb.isEnabled and bb.isEnabled() then
+            if bb and Utils.getBool("qa_bb_enabled", true) then
                 local screen_h = Screen:getHeight()
                 local nav_h = bb.TOTAL_H()
                 fc_self.height = screen_h - nav_h
@@ -974,7 +973,7 @@ function Utils.patchFileChooserForBottombar()
     local orig_recalc = FileChooser._recalculateDimen
     FileChooser._recalculateDimen = function(fc_self, ...)
         local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
-        if bb and bb.isEnabled and bb.isEnabled() then
+        if bb and Utils.getBool("qa_bb_enabled", true) then
             local screen_h = Screen:getHeight()
             local nav_h = bb.TOTAL_H()
             local content_h = screen_h - nav_h
@@ -987,7 +986,7 @@ function Utils.patchFileChooserForBottombar()
     local orig_update = FileChooser.updateItems
     FileChooser.updateItems = function(fc_self, ...)
         local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
-        if bb and bb.isEnabled and bb.isEnabled() then
+        if bb and Utils.getBool("qa_bb_enabled", true) then
             local screen_h = Screen:getHeight()
             local nav_h = bb.TOTAL_H()
             local content_h = screen_h - nav_h
@@ -1006,7 +1005,7 @@ function Utils.patchFileChooserForBottombar()
             orig_setup(fm_self)
 
             local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
-            if not (bb and bb.isEnabled and bb.isEnabled()) then return end
+            if not (bb and Utils.getBool("qa_bb_enabled", true)) then return end
 
             -- 已经注入过则跳过（幂等）
             if fm_self._bottombar_injected then return end
@@ -1041,82 +1040,113 @@ function Utils.patchReaderUIForBottombar()
     if ReaderUI._quickui_bottombar_patched then return end
     ReaderUI._quickui_bottombar_patched = true
 
-    local Geom = require("ui/geometry")
+    -- 关键：先 patch ReaderFooter，让底栏寄生在原生 footer 上
+    Utils.patchReaderFooterForBottombar()
+
+    -- ReaderUI.new 只保留 touch zones 注册，不改 dimen、不替换 instance[1]
     local orig_new = ReaderUI.new
-
     ReaderUI.new = function(class, attrs, ...)
-        attrs = attrs or {}
-
-        -- ============================================================
-        -- Same gating logic as rebuildBottombar:
-        --   1. Bottom bar globally enabled
-        --   2. "Show in reader" is not false
-        --   3. Not (hide_in_pdf AND current doc is PDF)
-        -- ============================================================
-        local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
-        local should_inject = false
-        local shrink_height = false
-        local nav_h = 0
-
-        if bb and bb.isEnabled and bb.isEnabled() then
-            local config = _G.__QUICKUI_CONFIG
-            local show_in_reader = config and config.qa_bb_reader_enabled
-            local hide_in_pdf = config and config.qa_bb_hide_in_pdf
-            local is_pdf = false
-            if attrs.document and attrs.document.file then
-                is_pdf = attrs.document.file:match("%.pdf$") ~= nil
-            end
-
-            if show_in_reader ~= false and not (hide_in_pdf and is_pdf) then
-                should_inject = true
-                nav_h = bb.TOTAL_H()
-                -- Only shrink reader height when overlap is NOT enabled
-                if not Utils.getBool("qa_bb_overlap", false) then
-                    shrink_height = true
-                end
-            end
-        end
-
-        -- Shrink the reader's dimen BEFORE ReaderView is created,
-        -- so CREngine/PDF layout uses the reduced height from the start.
-        -- Skip when overlap mode is enabled (content should go under the bar).
-        if should_inject and shrink_height and nav_h > 0 and attrs.dimen then
-            local d = attrs.dimen
-            attrs.dimen = Geom:new{
-                x = d.x or 0,
-                y = d.y or 0,
-                w = d.w or Screen:getWidth(),
-                h = (d.h or Screen:getHeight()) - nav_h,
-            }
-        end
-
         local instance = orig_new(class, attrs, ...)
 
-        if should_inject then
-            -- Inject the bottom bar widget into reader[1]
-            local inner = instance[1]
-            if inner and not inner._bottombar_inner then
-                inner._bottombar_injected_container = true
-                local wrapped = bb.wrapWithBottombar(inner)
-                if wrapped and wrapped ~= inner then
-                    instance[1] = wrapped
-                    instance._bottombar_injected = true
-                    instance._bottombar_inner = inner
-                    instance._bottombar_original_inner = inner
-                else
-                    inner._bottombar_injected_container = nil
-                end
+        UIManager:scheduleIn(0, function()
+            local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
+            if bb and bb.registerTouchZones then
+                bb.registerTouchZones(instance)
             end
-
-            -- Register touch zones after the reader is on screen
-            UIManager:scheduleIn(0, function()
-                if bb.registerTouchZones then
-                    bb.registerTouchZones(instance)
-                end
-            end)
-        end
+        end)
 
         return instance
+    end
+end
+
+-- ============================================================
+-- Patch ReaderFooter for Bottom Navigation Bar
+--
+-- 让 QuickUI 底栏"寄生"在原生 ReaderFooter 上：
+--   - getHeight    → 接管时返回 QuickUI 底栏高度
+--   - paintTo      → 接管时绘制 QuickUI 底栏
+--   - resetLayout  → 接管时由 QuickUI 底栏算 dimen
+--   - applyFooterMode → 接管时强制 footer_visible = true
+--
+-- 这样所有 footer:getHeight() 的消费点（onSetPageMargins /
+-- recalculate / onGotoViewRel / _gotoPos / pagemap）自动使用
+-- QuickUI 底栏高度，无需改动任何消费点。
+-- ============================================================
+function Utils.patchReaderFooterForBottombar()
+    local ReaderFooter = require("apps/reader/modules/readerfooter")
+    if ReaderFooter._quickui_bottombar_patched then return end
+    ReaderFooter._quickui_bottombar_patched = true
+
+    -- 统一的"是否用 QuickUI 底栏接管"判断
+    local function shouldUseQuickUIBottombar(footer)
+        local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
+        if not (bb and Utils.getBool("qa_bb_enabled", true)) then return false end
+
+        local config = _G.__QUICKUI_CONFIG
+        if config and config.qa_bb_reader_enabled == false then return false end
+
+        local hide_in_pdf = config and config.qa_bb_hide_in_pdf
+        local doc = footer.ui and footer.ui.document
+        local is_pdf = doc and doc.file and doc.file:match("%.pdf$") ~= nil
+        if hide_in_pdf and is_pdf then return false end
+
+        return true, bb
+    end
+
+    -- getHeight：接管时返回 QuickUI 底栏高度
+    local orig_getHeight = ReaderFooter.getHeight
+    function ReaderFooter:getHeight()
+        local active, bb = shouldUseQuickUIBottombar(self)
+        if active then
+            return bb.TOTAL_H()
+        end
+        return orig_getHeight(self)
+    end
+
+    -- paintTo：接管时绘制 QuickUI 底栏
+    local orig_paintTo = ReaderFooter.paintTo
+    function ReaderFooter:paintTo(bb, x, y)
+        local active, quickui_bb = shouldUseQuickUIBottombar(self)
+        if active then
+            quickui_bb.paintIntoFooter(bb, x, y, self)
+            return
+        end
+        return orig_paintTo(self, bb, x, y)
+    end
+
+    -- resetLayout：方案 B —— 先跑原生 resetLayout 初始化所有字段，
+    -- 再用 QuickUI 的 dimen 覆盖 footer.dimen。
+    local orig_resetLayout = ReaderFooter.resetLayout
+    function ReaderFooter:resetLayout(force_reset)
+        local active, bb = shouldUseQuickUIBottombar(self)
+        if active then
+            -- ① 先跑原生：初始化 _saved_screen_width / _saved_screen_height
+            --    / progress_bar / separator_line / footer_positioner 等字段，
+            --    避免后续 _updateFooterText / onUpdateFooter 访问 nil 崩。
+            orig_resetLayout(self, force_reset)
+            -- ② 再用 QuickUI 的 dimen 覆盖 footer.dimen，
+            --    让 footer 的占位区域与 QuickUI 底栏一致。
+            bb.resetFooterLayout(self)
+            return
+        end
+        return orig_resetLayout(self, force_reset)
+    end
+
+    -- applyFooterMode：接管时强制 footer_visible = true
+    local orig_applyFooterMode = ReaderFooter.applyFooterMode
+    function ReaderFooter:applyFooterMode(mode)
+        local active = shouldUseQuickUIBottombar(self)
+        if active and self.view then
+            local prev = self.view.footer_visible
+            self.view.footer_visible = true
+            if prev ~= self.view.footer_visible then
+                self:updateFooterContainer()
+                self:resetLayout(true)
+                self.visibility_change = true
+            end
+            return
+        end
+        return orig_applyFooterMode(self, mode)
     end
 end
 
@@ -1136,7 +1166,7 @@ function Utils.patchBookListForBottombar()
 
         if is_booklist then
             local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
-            if bb and bb.isEnabled and bb.isEnabled() then
+            if bb and Utils.getBool("qa_bb_enabled", true) then
                 local nav_h = bb.TOTAL_H()
                 attrs.height = Screen:getHeight() - nav_h
                 attrs.width = Screen:getWidth()
@@ -1148,9 +1178,7 @@ function Utils.patchBookListForBottombar()
 
         if is_booklist then
             local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
-            if bb and bb.isEnabled and bb.isEnabled() then
-                -- Inject the bottom bar BEFORE UIManager:show runs,
-                -- so the very first paint already includes the bar (single flash).
+            if bb and Utils.getBool("qa_bb_enabled", true) then
                 local inner = instance[1]
                 if inner and not inner._bottombar_inner then
                     inner._bottombar_injected_container = true
@@ -1164,8 +1192,6 @@ function Utils.patchBookListForBottombar()
                     end
                 end
 
-                -- Register touch zones after the widget is on screen
-                -- (needs dimen to be settled).
                 UIManager:scheduleIn(0, function()
                     if bb.registerTouchZones then
                         bb.registerTouchZones(instance)
