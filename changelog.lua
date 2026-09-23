@@ -98,6 +98,7 @@ return {
     "Cover: support SimpleUI virtual paths for folder covers (Mosaic & List)",
     "Header & Footer: hide footer while the QuickUI bottom bar is shown in the reader",
     "Bottom bar: inject into FileManager via FileManager.setupLayout (one-shot injection)",
+    "Bottom bar: attach bottom bar to ReaderFooter, fix flicker and progress misplacement in Reader",
     "Bottom bar: show on filesearch results screen",
     "Bottom bar: add dispatcher action-toggle bottom bar in reader",
     "i18n: improve Chinese translation",
