@@ -1024,7 +1024,18 @@ function Utils.patchFileChooserForBottombar()
                 fm_self._bottombar_injected = true
                 fm_self._bottombar_inner = inner
                 fm_self._bottombar_original_inner = inner
-                UIManager:setDirty(fm_self, "full")
+                -- hook FileManager:onSetRotationMode
+                local orig_onSetRotationMode = FileManager.onSetRotationMode
+                function FileManager:onSetRotationMode(mode)
+                    self._quickui_rotating = true
+                    local result = orig_onSetRotationMode(self, mode)
+                    self._quickui_rotating = nil
+                    return result
+                end
+
+                if fm_self._quickui_rotating then
+                    UIManager:setDirty(fm_self, "full")
+                end
                 UIManager:scheduleIn(0, function()
                     if bb.registerTouchZones then bb.registerTouchZones(fm_self) end
                 end)
@@ -1192,7 +1203,7 @@ function Utils.patchBookListForBottombar()
                         inner._bottombar_injected_container = nil
                     end
                 end
-
+                UIManager:setDirty(instance, "full") 
                 UIManager:scheduleIn(0, function()
                     if bb.registerTouchZones then
                         bb.registerTouchZones(instance)
