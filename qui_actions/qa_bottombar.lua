@@ -1359,52 +1359,6 @@ function M.init()
         _G.__QUICKUI_BAR_HEIGHT = 0
     end
     
-    -- Hook screen rotation
-    local function hookDeviceListener()
-        local ok, DeviceListener = pcall(require, "device/devicelistener")
-        if not ok or not DeviceListener then
-            logger.warn("QuickUI QA BottomBar: DeviceListener not found")
-            return
-        end
-
-        local orig_onSwapRotation = DeviceListener.onSwapRotation
-        function DeviceListener:onSwapRotation()
-            local result
-            if orig_onSwapRotation then
-                result = orig_onSwapRotation(self)
-            end
-            if Utils.getBool("qa_bb_enabled", true) then
-                M.rebuildBottombar(true)
-            end
-            return result
-        end
-    end
-    UIManager:scheduleIn(0, hookDeviceListener)
-
-    -- Android: hook Device.input.handleMiscEv to catch APP_CMD_CONFIG_CHANGED
-    local function hookAndroidRotation()
-        local Device = require("device")
-        if not Device.isAndroid or not Device.input then return end
-        if Device.input._quickui_hooked then return end
-        Device.input._quickui_hooked = true
-
-        local C = require("ffi").C
-        local orig_handleMiscEv = Device.input.handleMiscEv
-        Device.input.handleMiscEv = function(this, ev)
-            local result
-            if orig_handleMiscEv then
-                result = orig_handleMiscEv(this, ev)
-            end
-            if ev.code == C.APP_CMD_CONFIG_CHANGED then
-                if Utils.getBool("qa_bb_enabled", true) then 
-                    M.rebuildBottombar(true)
-                end
-            end
-            return result
-        end
-    end
-    UIManager:scheduleIn(0, hookAndroidRotation)
-    
     UIManager:scheduleIn(0, function()
        M.rebuildBottombar()
     end)
