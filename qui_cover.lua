@@ -65,6 +65,19 @@ local MAX_BANNER_CACHE = 50
 function Cover.init(plugin_ref)
     plugin = plugin_ref
 
+    -- CoverBrowser is an optional third-party plugin. When it is not
+    -- loaded, its modules (mosaicmenu / listmenu) do not exist and
+    -- patching them would raise an uncaught error that propagates up
+    -- to main.lua:init and prevents QuickUI as a whole from loading.
+    -- Detect it up front and bail out cleanly.
+    local ok_loader, loader = pcall(require, "pluginloader")
+    local cb_loaded = ok_loader and loader and loader.loaded_plugins
+        and loader.loaded_plugins["coverbrowser"] ~= nil
+    if not cb_loaded then
+        logger.info("QuickUI Cover: CoverBrowser not loaded, skipping module patches")
+        return
+    end
+    
     Cover._patchMosaic()
     Cover._patchList()
     Cover._patchHideUpFolder()
