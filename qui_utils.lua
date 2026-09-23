@@ -1007,11 +1007,9 @@ function Utils.patchFileChooserForBottombar()
             local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
             if not (bb and Utils.getBool("qa_bb_enabled", true)) then return end
 
-            -- 已经注入过则跳过（幂等）
-            if fm_self._bottombar_injected then return end
+            -- 用 fm_self[1] 判断：orig_setup 重建了它，_bottombar_container 一定是 nil
+            if fm_self[1] and fm_self[1]._bottombar_container then return end
 
-            -- 拿 fm_self[1] 作为 inner。如果它已经被 QuickUI 包过（比如
-            -- rebuildBottombar 先跑过一次），剥到真正的 inner。
             local inner = fm_self[1]
             if inner and inner._bottombar_inner then
                 inner = inner._bottombar_inner
@@ -1024,6 +1022,7 @@ function Utils.patchFileChooserForBottombar()
                 fm_self._bottombar_injected = true
                 fm_self._bottombar_inner = inner
                 fm_self._bottombar_original_inner = inner
+                
                 -- hook FileManager:onSetRotationMode
                 local orig_onSetRotationMode = FileManager.onSetRotationMode
                 function FileManager:onSetRotationMode(mode)
@@ -1036,6 +1035,7 @@ function Utils.patchFileChooserForBottombar()
                 if fm_self._quickui_rotating then
                     UIManager:setDirty(fm_self, "full")
                 end
+                
                 UIManager:scheduleIn(0, function()
                     if bb.registerTouchZones then bb.registerTouchZones(fm_self) end
                 end)
@@ -1203,6 +1203,7 @@ function Utils.patchBookListForBottombar()
                         inner._bottombar_injected_container = nil
                     end
                 end
+
                 UIManager:setDirty(instance, "full") 
                 UIManager:scheduleIn(0, function()
                     if bb.registerTouchZones then
