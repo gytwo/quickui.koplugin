@@ -522,25 +522,20 @@ end
 
 -- ============================================================
 -- Touch Zone Registration
+--
+-- mode:
+--   nil / "register" (default) : clear this widget's bb_* zones,
+--                                then register fresh zones for the
+--                                current tab set.
+--   "remove"                   : only clear this widget's bb_* zones,
+--                                do not register anything. Used when
+--                                the bar is hidden, so stale zones
+--                                stop firing immediately instead of
+--                                waiting for the next rebuild.
 -- ============================================================
-
-function M.registerTouchZones(plugin_or_widget, widget)
+function M.registerTouchZones(plugin_or_widget, widget, mode)
     local fm_self = widget or plugin_or_widget
     if not fm_self then return end
-
-    local tabs = getTabs() or {}
-    local num_tabs = #tabs
-    local screen_w = Screen:getWidth()
-    local screen_h = Screen:getHeight()
-    local nav_h = M.TOTAL_H()
-    local bar_y = screen_h - nav_h
-    local side_m = M.SIDE_M()
-    local usable_w = screen_w - side_m * 2
-
-    if nav_h <= 0 then
-        -- Bottom bar is hidden or disabled, skip touch zone registration
-        return
-    end
 
     -- ============================================================
     -- Clear ALL previously registered bottom-bar zones.
@@ -577,6 +572,29 @@ function M.registerTouchZones(plugin_or_widget, widget)
                 table.insert(fm_self._ordered_touch_zones, fm_self._zones[zone_id])
             end
         end
+    end
+
+    -- "remove" mode: only clear, do not register anything.
+    -- Placed before the nav_h check so a hide/disable with
+    -- nav_h == 0 still clears stale zones.
+    if mode == "remove" then
+        return
+    end
+
+    -- ==== register ====
+
+    local tabs = getTabs() or {}
+    local num_tabs = #tabs
+    local screen_w = Screen:getWidth()
+    local screen_h = Screen:getHeight()
+    local nav_h = M.TOTAL_H()
+    local bar_y = screen_h - nav_h
+    local side_m = M.SIDE_M()
+    local usable_w = screen_w - side_m * 2
+
+    if nav_h <= 0 then
+        -- Bottom bar is hidden or disabled, skip touch zone registration
+        return
     end
 
     -- ============================================================
@@ -720,38 +738,6 @@ local function isReaderWidget(widget)
 end
 
 -- ============================================================
--- ReaderFooter Integration
---
--- QuickUI 底栏寄生在原生 ReaderFooter 上，由 patch 后的
--- ReaderFooter:paintTo / :resetLayout 调用这两个接口。
--- ============================================================
-
--- 供 ReaderFooter:paintTo 调用：绘制 QuickUI 底栏
-function M.paintIntoFooter(bb, x, y, footer)
-    local screen_h = Screen:getHeight()
-    local nav_h = M.TOTAL_H()
-    local bar_y = screen_h - nav_h
-
-    local tabs = getTabs() or {}
-    local active_action = (tabs and #tabs > 0) and tabs[1] or nil
-    local bar = M.buildBar(active_action)
-    bar:paintTo(bb, x, bar_y)
-    bar:free()
-end
-
--- 供 ReaderFooter:resetLayout 调用：算 QuickUI 底栏 dimen
-function M.resetFooterLayout(footer)
-    local nav_h = M.TOTAL_H()
-    local screen_h = Screen:getHeight()
-    footer.dimen = Geom:new{
-        x = 0,
-        y = screen_h - nav_h,
-        w = Screen:getWidth(),
-        h = nav_h,
-    }
-end
-
--- ============================================================
 -- Inject into a SimpleUI ScreenWidget
 --
 -- SimpleUI's Homescreen (engines/sui_screen_engine.lua) wraps its content
@@ -789,6 +775,7 @@ function M.injectIntoScreenWidget(w)
     w._quickui_bb_injected = true
 
     M.registerTouchZones(w)
+    UIManager:setDirty(w, "ui") 
 end
 
 -- Removes a previously injected bar (used when the bar is disabled at
@@ -813,25 +800,10 @@ end
 -- Rebuild Bottombar
 -- ============================================================
 
-function M.rebuildBottombar(skip_remove)
-    if not Utils.getBool("qa_bb_enabled", true) then
-        M.removeBottombar()
-
-        local RUI = require("apps/reader/readerui")
-        local reader = RUI.instance
-        if reader and reader.view and reader.view.footer then
-            local height_changed = (_last_bb_height ~= nil) and (_last_bb_height ~= 0)
-            _last_bb_height = 0
-            reader.view.footer:refreshFooter(true, height_changed)
-        end
-        return
-    end
-
-    -- Refresh every Menu that has the QuickUI bar installed. We use the
-    -- QuickUI Menu registry rather than UIManager._window_stack because
-    -- FileChooser is a child of the FileManager widget and never appears
-    -- on the stack — iterating the stack alone would leave FileManager's
-    -- bottom bar stale after tab add/remove.
+function M.rebuildBottombar()
+    -- Menu registry 遍历：重建 FileManager / History / Collections
+    -- 等 Menu 的底栏。这些底栏注入在 Menu 的 page_info widget 树里，
+    -- 靠 updateItems -> resetLayout 重建。
     local registry = _G.__QUICKUI_MENU_REGISTRY
     if registry and registry.list then
         for i = #registry.list, 1, -1 do
@@ -840,70 +812,26 @@ function M.rebuildBottombar(skip_remove)
                 w:_recalculateDimen()
                 w:updateItems(1, true)
             else
-                -- Drop stale entries (widget already torn down).
                 table.remove(registry.list, i)
                 if w then registry.set[w] = nil end
             end
         end
     end
 
-    -- Reader: notify its footer.
+    -- Reader: 触发 resetLayout，重建底栏 widget + 重注册触摸区。
+    -- ReaderFooter 的 patch 会处理实际的重建。
     local RUI = require("apps/reader/readerui")
     local reader = RUI.instance
-    if reader then
-        local show_in_reader = Utils.getBool("qa_bb_reader_enabled", true)
-        local hide_in_pdf = Utils.getBool("qa_bb_hide_in_pdf", true)
-        local is_pdf = false
-        if reader.document then
-            local file = reader.document.file or ""
-            is_pdf = file:match("%.pdf$") ~= nil
+    if reader and reader.view and reader.view.footer then
+        local show = Utils.getBool("qa_bb_reader_enabled", true)
+        local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
+        if bb and not show then
+            bb.registerTouchZones(reader, nil, "remove")
         end
-        local should_show = show_in_reader ~= false and not (hide_in_pdf and is_pdf)
-
-        if reader.view and reader.view.footer then
-            reader.view.footer:applyFooterMode(reader.view.footer.mode)
-            local new_h = should_show and M.TOTAL_H() or 0
-            local height_changed = (_last_bb_height ~= nil) and (_last_bb_height ~= new_h)
-            _last_bb_height = new_h
-
-            reader.view.footer:refreshFooter(true, height_changed)
-        end
-        if should_show then
-            M.registerTouchZones(reader)
-        end
-    end
-end
-
-function M.removeBottombar()
-    -- Reader: clear the registered bottom-bar touch zones. We do not
-    -- touch the widget tree, since the ReaderUI still owns its view
-    -- hierarchy; the footer patch is responsible for restoring the
-    -- native footer height when the bar is disabled.
-    local RUI = require("apps/reader/readerui")
-    local reader = RUI and RUI.instance
-    if reader then
-        if reader._zones then
-            for id in pairs(reader._zones) do
-                if type(id) == "string" and id:match("^bb_") then
-                    reader._zones[id] = nil
-                end
-            end
-        end
-        if reader.touch_zone_dg then
-            for id in pairs(reader._zones or {}) do
-                if type(id) == "string" and id:match("^bb_") then
-                    reader.touch_zone_dg:removeNode(id)
-                end
-            end
-        end
-        reader._ordered_touch_zones = {}
-        if reader.touch_zone_dg then
-            for _, zone_id in ipairs(reader.touch_zone_dg:serialize()) do
-                if reader._zones and reader._zones[zone_id] then
-                    table.insert(reader._ordered_touch_zones, reader._zones[zone_id])
-                end
-            end
-        end
+        local new_h = show and M.TOTAL_H() or 0
+        local height_changed = (_last_bb_height ~= nil) and (_last_bb_height ~= new_h)
+        _last_bb_height = new_h
+        reader.view.footer:refreshFooter(true, height_changed)
     end
 end
 
@@ -1176,11 +1104,11 @@ end
 -- ============================================================
 
 function M.init()
-    Utils.patchMenuForBottombar()
-    Utils.patchFileChooserForBottombar()
-    Utils.patchReaderUIForBottombar()
-    Utils.patchBookListForBottombar()
-    Utils.patchSimpleUIHomescreenForBottombar()
+    Utils.patchMenuForBottombar()          -- ①
+    Utils.patchFileChooserForBottombar()   -- ②
+    Utils.patchReaderUIForBottombar()      -- ③
+    Utils.patchBookListForBottombar()      -- ④
+    Utils.patchSimpleUIHomescreenForBottombar()  -- ⑤
 
     Utils.registerRefreshHandler("qa_bb", M.refresh)
 
