@@ -804,7 +804,11 @@ function M.rebuildBottombar()
     local RUI = require("apps/reader/readerui")
     local reader = RUI.instance
     if reader and reader.view and reader.view.footer then
-        reader.view.footer:refreshFooter(true, true)
+        local show = Utils.getBool("qa_bb_reader_enabled", true)
+        local new_h = show and M.TOTAL_H() or 0
+        local height_changed = (_last_bb_height ~= nil) and (_last_bb_height ~= new_h)
+        _last_bb_height = new_h
+        reader.view.footer:refreshFooter(true, height_changed)
     end
 end
 
