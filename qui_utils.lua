@@ -1018,91 +1018,88 @@ end
 -- ============================================================
 -- Patch ReaderFooter for Bottom Navigation Bar
 --
--- 让 QuickUI 底栏"寄生"在原生 ReaderFooter 上：
---   - getHeight    → 接管时返回 QuickUI 底栏高度
---   - paintTo      → 接管时绘制 QuickUI 底栏
---   - resetLayout  → 接管时由 QuickUI 底栏算 dimen
---   - applyFooterMode → 接管时强制 footer_visible = true
+-- Mirrors patchMenuForBottombar: the QuickUI bottom bar is injected
+-- as a child widget of ReaderFooter's footer_content, wrapped together
+-- with the original footer content in a VerticalGroup. The bar widget
+-- therefore lives in the widget tree, and is rebuilt automatically
+-- whenever the container is re-laid-out.
 --
--- 这样所有 footer:getHeight() 的消费点（onSetPageMargins /
--- recalculate / onGotoViewRel / _gotoPos / pagemap）自动使用
--- QuickUI 底栏高度，无需改动任何消费点。
+-- This replaces the previous "parasitic" approach (patching getHeight,
+-- paintTo, resetLayout and applyFooterMode), which kept the bar out of
+-- the widget tree and had to clear/re-register its touch zones manually.
 -- ============================================================
 function Utils.patchReaderFooterForBottombar()
     local ReaderFooter = require("apps/reader/modules/readerfooter")
     if ReaderFooter._quickui_bottombar_patched then return end
     ReaderFooter._quickui_bottombar_patched = true
 
-    -- 统一的"是否用 QuickUI 底栏接管"判断
-    local function shouldUseQuickUIBottombar(footer)
+    local VerticalGroup = require("ui/widget/verticalgroup")
+
+    -- 统一的"是否应该显示 QuickUI 底栏"判断
+    local function shouldShowQuickUIBottombar(footer)
         local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
         if not (bb and Utils.getBool("qa_bb_enabled", true)) then return false end
+        if not Utils.getBool("qa_bb_reader_enabled", true) then return false end
 
-        local config = _G.__QUICKUI_CONFIG
-        if config and config.qa_bb_reader_enabled == false then return false end
-
-        local hide_in_pdf = config and config.qa_bb_hide_in_pdf
-        local doc = footer.ui and footer.ui.document
-        local is_pdf = doc and doc.file and doc.file:match("%.pdf$") ~= nil
-        if hide_in_pdf and is_pdf then return false end
+        if Utils.getBool("qa_bb_hide_in_pdf", true) then
+            local doc = footer.ui and footer.ui.document
+            local is_pdf = doc and doc.file and doc.file:match("%.pdf$") ~= nil
+            if is_pdf then return false end
+        end
 
         return true, bb
     end
 
-    -- getHeight：接管时返回 QuickUI 底栏高度
-    local orig_getHeight = ReaderFooter.getHeight
-    function ReaderFooter:getHeight()
-        local active, bb = shouldUseQuickUIBottombar(self)
-        if active then
-            return bb.TOTAL_H()
+    local orig_updateFooterContainer = ReaderFooter.updateFooterContainer
+    function ReaderFooter:updateFooterContainer()
+        if self.view then
+        self.view.footer_visible = true
         end
-        return orig_getHeight(self)
+        
+        if self.footer_content and self.footer_content._quickui_bb_container then
+            self.footer_content:free()
+        end
+
+        orig_updateFooterContainer(self)
+
+        local show, bb = shouldShowQuickUIBottombar(self)
+        if not show then return end
+
+        local nav_h = bb.TOTAL_H()
+        if nav_h <= 0 then return end
+
+        local orig_footer_content = self.footer_content
+        self.footer_content = VerticalGroup:new{
+            align = "center",
+            orig_footer_content,
+            bb.buildBar(nil),
+        }
+        self.footer_content._quickui_bb_container = true
+        self.footer_content._quickui_footer = self
+
+        self.footer_positioner[1] = self.footer_content
     end
 
-    -- paintTo：接管时绘制 QuickUI 底栏
-    local orig_paintTo = ReaderFooter.paintTo
-    function ReaderFooter:paintTo(bb, x, y)
-        local active, quickui_bb = shouldUseQuickUIBottombar(self)
-        if active then
-            quickui_bb.paintIntoFooter(bb, x, y, self)
-            return
-        end
-        return orig_paintTo(self, bb, x, y)
-    end
-
-    -- resetLayout：方案 B —— 先跑原生 resetLayout 初始化所有字段，
-    -- 再用 QuickUI 的 dimen 覆盖 footer.dimen。
     local orig_resetLayout = ReaderFooter.resetLayout
     function ReaderFooter:resetLayout(force_reset)
-        local active, bb = shouldUseQuickUIBottombar(self)
-        if active then
-            -- ① 先跑原生：初始化 _saved_screen_width / _saved_screen_height
-            --    / progress_bar / separator_line / footer_positioner 等字段，
-            --    避免后续 _updateFooterText / onUpdateFooter 访问 nil 崩。
-            orig_resetLayout(self, force_reset)
-            -- ② 再用 QuickUI 的 dimen 覆盖 footer.dimen，
-            --    让 footer 的占位区域与 QuickUI 底栏一致。
-            bb.resetFooterLayout(self)
-            return
-        end
-        return orig_resetLayout(self, force_reset)
-    end
+        orig_resetLayout(self, force_reset)
 
-    -- applyFooterMode：接管时强制 footer_visible = true
-    local orig_applyFooterMode = ReaderFooter.applyFooterMode
-    function ReaderFooter:applyFooterMode(mode)
-        local active = shouldUseQuickUIBottombar(self)
-        if active and self.view then
-            local prev = self.view.footer_visible
-            self.view.footer_visible = true
-            if prev ~= self.view.footer_visible then
-                self:updateFooterContainer()
-                self:resetLayout(true)
-                self.visibility_change = true
-            end
-            return
+        local fc = self.footer_content
+        if not (fc and fc._quickui_bb_container) then return end
+        if fc._quickui_bb_rebuilding then return end
+
+        local show, bb = shouldShowQuickUIBottombar(self)
+        if not show then return end
+
+        fc._quickui_bb_rebuilding = true
+        local old_bar = fc[2]
+        if old_bar then old_bar:free() end
+        fc[2] = bb.buildBar(nil)
+        fc._quickui_bb_rebuilding = nil
+
+        if self.ui then
+            bb.registerTouchZones(self.ui)
         end
-        return orig_applyFooterMode(self, mode)
     end
 end
 
