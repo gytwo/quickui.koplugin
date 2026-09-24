@@ -9,7 +9,6 @@ local Screen = require("device").screen
 local _ = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local UIManager = require("ui/uimanager")
-local Geom = require("ui/geometry")  
 
 local Utils = {}
 
@@ -1019,55 +1018,22 @@ end
 -- ============================================================
 -- Patch ReaderFooter for Bottom Navigation Bar
 --
--- The QuickUI bottom bar is stacked on top of the native footer
--- content: the native footer and the QuickUI bar are drawn in the
--- same screen band, both bottom-aligned. The container's height is
--- max(native_footer_h, quickui_bar_h); its width follows the native
--- footer width, so the native footer keeps its horizontal alignment.
+-- Mirrors patchMenuForBottombar: the QuickUI bottom bar is injected
+-- as a child widget of ReaderFooter's footer_content, wrapped together
+-- with the original footer content in a VerticalGroup. The bar widget
+-- therefore lives in the widget tree, and is rebuilt automatically
+-- whenever the container is re-laid-out.
 --
--- Implemented with a small custom StackContainer instead of
--- OverlapGroup, because:
---   - OverlapGroup:paintTo defaults each child to (x, y) unless it
---     has overlap_align / overlap_offset, which is fine, but
---   - OverlapGroup:getSize() caches _size and OverlapGroup:init()
---     syncs _size with dimen once; any later change to a child's
---     size (e.g. the native footer's footer_container.dimen.w
---     being recomputed in resetLayout) is not reflected.
--- StackContainer recomputes both dimensions on every getSize() call.
---
--- Each child is wrapped in a BottomContainer so it is bottom-aligned
--- inside the container. Both BottomContainer.dimen.w and
--- BottomContainer.dimen.h are kept in sync with the child sizes in
--- resetLayout, otherwise BottomContainer:paintTo would center the
--- child with a stale dimen.w and shift it horizontally.
+-- This replaces the previous "parasitic" approach (patching getHeight,
+-- paintTo, resetLayout and applyFooterMode), which kept the bar out of
+-- the widget tree and had to clear/re-register its touch zones manually.
 -- ============================================================
 function Utils.patchReaderFooterForBottombar()
     local ReaderFooter = require("apps/reader/modules/readerfooter")
     if ReaderFooter._quickui_bottombar_patched then return end
     ReaderFooter._quickui_bottombar_patched = true
 
-    local Geom = require("ui/geometry")
-    local WidgetContainer = require("ui/widget/container/widgetcontainer")
-    local BottomContainer = require("ui/widget/container/bottomcontainer")
-
-    -- StackContainer: two children drawn at the same position.
-    -- Width: first child's width. Height: max of both children.
-    -- Unlike OverlapGroup, recompute on every call (no _size cache
-    -- that would go stale when a child resizes).
-    local StackContainer = WidgetContainer:extend{}
-
-    function StackContainer:getSize()
-        local w = self[1] and self[1]:getSize().w or 0
-        local h1 = self[1] and self[1]:getSize().h or 0
-        local h2 = self[2] and self[2]:getSize().h or 0
-        return Geom:new{ w = w, h = math.max(h1, h2) }
-    end
-
-    function StackContainer:paintTo(bb, x, y)
-        for _, widget in ipairs(self) do
-            widget:paintTo(bb, x, y)
-        end
-    end
+    local VerticalGroup = require("ui/widget/verticalgroup")
 
     -- 统一的"是否应该显示 QuickUI 底栏"判断
     local function shouldShowQuickUIBottombar(footer)
@@ -1099,31 +1065,10 @@ function Utils.patchReaderFooterForBottombar()
         if nav_h <= 0 then return end
 
         local orig_footer_content = self.footer_content
-        local orig_w = orig_footer_content:getSize().w
-        local orig_h = orig_footer_content:getSize().h
-        local total_h = math.max(orig_h, nav_h)
-
-logger.info("QuickUI: updateFooterContainer",
-    "orig_w =", orig_w,
-    "orig_h =", orig_h,
-    "nav_h =", nav_h,
-    "total_h =", total_h,
-    "screen_w =", Screen:getWidth())
-
-        local orig_layer = BottomContainer:new{
-            dimen = Geom:new{ w = orig_w, h = total_h },
+        self.footer_content = VerticalGroup:new{
+            align = "center",
             orig_footer_content,
-        }
-
-        local bar_layer = BottomContainer:new{
-            dimen = Geom:new{ w = orig_w, h = total_h },
             bb.buildBar(nil),
-        }
-
-        self.footer_content = StackContainer:new{
-            dimen = Geom:new{ w = orig_w, h = total_h },
-            orig_layer,
-            bar_layer,
         }
         self.footer_content._quickui_bb_container = true
         self.footer_content._quickui_footer = self
@@ -1142,50 +1087,10 @@ logger.info("QuickUI: updateFooterContainer",
         local show, bb = shouldShowQuickUIBottombar(self)
         if not show then return end
 
-        if self.view then
-            self.view.footer_visible = true
-        end
-
         fc._quickui_bb_rebuilding = true
-
-        -- 清 orig_footer_content 的尺寸缓存。orig_resetLayout 刚把
-        -- footer_container.dimen.w 设为 screen_w，但 FrameContainer 和
-        -- 它的 VerticalGroup 还缓存着旧的（0）尺寸，必须清掉才能重算。
-        local orig_footer_content = fc[1] and fc[1][1]
-        if orig_footer_content then
-            orig_footer_content._size = nil
-            if orig_footer_content[1] then
-                orig_footer_content[1]._size = nil
-            end
-        end
-
-        local orig_w = orig_footer_content and orig_footer_content:getSize().w or Screen:getWidth()
-        local orig_h = orig_footer_content and orig_footer_content:getSize().h or 0
-        local nav_h = bb.TOTAL_H()
-        local total_h = math.max(orig_h, nav_h)
-
-        logger.info("QuickUI: resetLayout",
-            "orig_w =", orig_w,
-            "orig_h =", orig_h,
-            "nav_h =", nav_h,
-            "total_h =", total_h,
-            "screen_w =", Screen:getWidth())
-
-        local bar_layer = fc[2]
-        if bar_layer then
-            local old_bar = bar_layer[1]
-            if old_bar then old_bar:free() end
-            bar_layer[1] = bb.buildBar(nil)
-        end
-
-        if fc[1] then fc[1].dimen.w = orig_w end
-        if fc[2] then fc[2].dimen.w = orig_w end
-        fc.dimen.w = orig_w
-
-        if fc[1] then fc[1].dimen.h = total_h end
-        if fc[2] then fc[2].dimen.h = total_h end
-        fc.dimen.h = total_h
-
+        local old_bar = fc[2]
+        if old_bar then old_bar:free() end
+        fc[2] = bb.buildBar(nil)
         fc._quickui_bb_rebuilding = nil
 
         if self.ui then
