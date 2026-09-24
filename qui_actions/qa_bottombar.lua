@@ -844,18 +844,31 @@ end
 -- Rebuild Bottombar
 -- ============================================================
 
-function M.rebuildBottombar(skip_remove)
-    if not Utils.getBool("qa_bb_enabled", true) then
+function M.rebuildBottombar()
+    -- Always tear down old bb_* zones first — the bar is being rebuilt
+    -- from scratch, so anything previously registered is stale. Doing
+    -- this only inside registerTouchZones (i.e. only when should_show
+    -- is true) leaves stale zones behind when the bar is hidden.
         M.removeBottombar()
 
-        local RUI = require("apps/reader/readerui")
-        local reader = RUI.instance
-        if reader and reader.view and reader.view.footer then
-            local height_changed = (_last_bb_height ~= nil) and (_last_bb_height ~= 0)
-            _last_bb_height = 0
-            reader.view.footer:refreshFooter(true, height_changed)
+    -- Refresh every Menu that has the QuickUI bar installed. We use the
+    -- QuickUI Menu registry rather than UIManager._window_stack because
+    -- FileChooser is a child of the FileManager widget and never appears
+    -- on the stack — iterating the stack alone would leave FileManager's
+    -- bottom bar stale after tab add/remove.
+    local registry = _G.__QUICKUI_MENU_REGISTRY
+    if registry and registry.list then
+        for i = #registry.list, 1, -1 do
+            local w = registry.list[i]
+            if w and w.updateItems then
+                w:_recalculateDimen()
+                w:updateItems(1, true)
+            else
+                -- Drop stale entries (widget already torn down).
+                table.remove(registry.list, i)
+                if w then registry.set[w] = nil end
+            end
         end
-        return
     end
 
     -- Refresh every Menu that has the QuickUI bar installed. We use the
