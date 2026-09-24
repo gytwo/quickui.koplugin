@@ -662,38 +662,7 @@ function M.registerTouchZones(plugin_or_widget, widget)
                 end,
             }
         end
-    else
-        -- ============================================================
-        -- Empty tabs: register a full-width tap zone to open the
-        -- Add Tab menu.
-        --
-        -- The reader's bottom bar is painted via paintIntoFooter(),
-        -- which frees the bar widget right after painting, so the
-        -- hint_wrapper inside buildBar never enters the widget tree
-        -- and its own touch zone is inert.
-        -- FileManager's bottom bar is injected into Menu's page_info,
-        -- so its hint_wrapper works, and registering this fallback
-        -- would overlap with it. Only register for the reader.
-        -- ============================================================
-        local is_filemanager = fm_self.file_chooser ~= nil
-        if not is_filemanager then
-            zones[#zones + 1] = {
-                id = "bb_empty_tap",
-                ges = "tap",
-                overrides = { "tap_left_bottom_corner", "tap_right_bottom_corner" },
-                screen_zone = {
-                    ratio_x = 0,
-                    ratio_y = bar_y / screen_h,
-                    ratio_w = 1,
-                    ratio_h = nav_h / screen_h,
-                },
-                handler = function()
-                    M.showAddTabMenu()
-                    return true
-                end,
-            }
-        end
-    end
+    end   
 
     -- Register hold-settings zone LAST so tab hold zones take priority
     -- when their screen_zones overlap.
@@ -748,38 +717,6 @@ local function isReaderWidget(widget)
         return false
     end
     return checkChild(widget)
-end
-
--- ============================================================
--- ReaderFooter Integration
---
--- QuickUI 底栏寄生在原生 ReaderFooter 上，由 patch 后的
--- ReaderFooter:paintTo / :resetLayout 调用这两个接口。
--- ============================================================
-
--- 供 ReaderFooter:paintTo 调用：绘制 QuickUI 底栏
-function M.paintIntoFooter(bb, x, y, footer)
-    local screen_h = Screen:getHeight()
-    local nav_h = M.TOTAL_H()
-    local bar_y = screen_h - nav_h
-
-    local tabs = getTabs() or {}
-    local active_action = (tabs and #tabs > 0) and tabs[1] or nil
-    local bar = M.buildBar(active_action)
-    bar:paintTo(bb, x, bar_y)
-    bar:free()
-end
-
--- 供 ReaderFooter:resetLayout 调用：算 QuickUI 底栏 dimen
-function M.resetFooterLayout(footer)
-    local nav_h = M.TOTAL_H()
-    local screen_h = Screen:getHeight()
-    footer.dimen = Geom:new{
-        x = 0,
-        y = screen_h - nav_h,
-        w = Screen:getWidth(),
-        h = nav_h,
-    }
 end
 
 -- ============================================================
@@ -845,17 +782,9 @@ end
 -- ============================================================
 
 function M.rebuildBottombar()
-    -- Always tear down old bb_* zones first — the bar is being rebuilt
-    -- from scratch, so anything previously registered is stale. Doing
-    -- this only inside registerTouchZones (i.e. only when should_show
-    -- is true) leaves stale zones behind when the bar is hidden.
-        M.removeBottombar()
-
-    -- Refresh every Menu that has the QuickUI bar installed. We use the
-    -- QuickUI Menu registry rather than UIManager._window_stack because
-    -- FileChooser is a child of the FileManager widget and never appears
-    -- on the stack — iterating the stack alone would leave FileManager's
-    -- bottom bar stale after tab add/remove.
+    -- Menu registry 遍历：重建 FileManager / History / Collections
+    -- 等 Menu 的底栏。这些底栏注入在 Menu 的 page_info widget 树里，
+    -- 靠 updateItems -> resetLayout 重建。
     local registry = _G.__QUICKUI_MENU_REGISTRY
     if registry and registry.list then
         for i = #registry.list, 1, -1 do
@@ -864,90 +793,18 @@ function M.rebuildBottombar()
                 w:_recalculateDimen()
                 w:updateItems(1, true)
             else
-                -- Drop stale entries (widget already torn down).
                 table.remove(registry.list, i)
                 if w then registry.set[w] = nil end
             end
         end
     end
 
-    -- Refresh every Menu that has the QuickUI bar installed. We use the
-    -- QuickUI Menu registry rather than UIManager._window_stack because
-    -- FileChooser is a child of the FileManager widget and never appears
-    -- on the stack — iterating the stack alone would leave FileManager's
-    -- bottom bar stale after tab add/remove.
-    local registry = _G.__QUICKUI_MENU_REGISTRY
-    if registry and registry.list then
-        for i = #registry.list, 1, -1 do
-            local w = registry.list[i]
-            if w and w.updateItems then
-                w:_recalculateDimen()
-                w:updateItems(1, true)
-            else
-                -- Drop stale entries (widget already torn down).
-                table.remove(registry.list, i)
-                if w then registry.set[w] = nil end
-            end
-        end
-    end
-
-    -- Reader: notify its footer.
+    -- Reader: 触发 resetLayout，重建底栏 widget + 重注册触摸区。
+    -- ReaderFooter 的 patch 会处理实际的重建。
     local RUI = require("apps/reader/readerui")
     local reader = RUI.instance
-    if reader then
-        local show_in_reader = Utils.getBool("qa_bb_reader_enabled", true)
-        local hide_in_pdf = Utils.getBool("qa_bb_hide_in_pdf", true)
-        local is_pdf = false
-        if reader.document then
-            local file = reader.document.file or ""
-            is_pdf = file:match("%.pdf$") ~= nil
-        end
-        local should_show = show_in_reader ~= false and not (hide_in_pdf and is_pdf)
-
-        if reader.view and reader.view.footer then
-            reader.view.footer:applyFooterMode(reader.view.footer.mode)
-            local new_h = should_show and M.TOTAL_H() or 0
-            local height_changed = (_last_bb_height ~= nil) and (_last_bb_height ~= new_h)
-            _last_bb_height = new_h
-
-            reader.view.footer:refreshFooter(true, height_changed)
-        end
-        if should_show then
-            M.registerTouchZones(reader)
-        end
-    end
-end
-
-function M.removeBottombar()
-    -- Reader: clear the registered bottom-bar touch zones. We do not
-    -- touch the widget tree, since the ReaderUI still owns its view
-    -- hierarchy; the footer patch is responsible for restoring the
-    -- native footer height when the bar is disabled.
-    local RUI = require("apps/reader/readerui")
-    local reader = RUI and RUI.instance
-    if reader then
-        if reader._zones then
-            for id in pairs(reader._zones) do
-                if type(id) == "string" and id:match("^bb_") then
-                    reader._zones[id] = nil
-                end
-            end
-        end
-        if reader.touch_zone_dg then
-            for id in pairs(reader._zones or {}) do
-                if type(id) == "string" and id:match("^bb_") then
-                    reader.touch_zone_dg:removeNode(id)
-                end
-            end
-        end
-        reader._ordered_touch_zones = {}
-        if reader.touch_zone_dg then
-            for _, zone_id in ipairs(reader.touch_zone_dg:serialize()) do
-                if reader._zones and reader._zones[zone_id] then
-                    table.insert(reader._ordered_touch_zones, reader._zones[zone_id])
-                end
-            end
-        end
+    if reader and reader.view and reader.view.footer then
+        reader.view.footer:refreshFooter(true, true)
     end
 end
 
