@@ -107,16 +107,7 @@ end
 -- PanelFrame -- concentric rounded rect + optional white fill
 -- ============================================================
 
-local PANEL_SHADOW_DAY   = Blitbuffer.gray(0.5)
-local PANEL_SHADOW_NIGHT = Blitbuffer.gray(0.15)
-
-local function _shadowGray()
-    local ok, sync = pcall(require("lib/bookshelf_night_mode_sync"))
-    if ok and sync and sync.active and sync.active() then
-        return PANEL_SHADOW_NIGHT
-    end
-    return PANEL_SHADOW_DAY
-end
+local PANEL_SHADOW_DAY   = Blitbuffer.gray(0.3)
 
 local PanelFrame = WidgetContainer:extend{
     bordersize = 0,
@@ -148,7 +139,7 @@ function PanelFrame:paintTo(bb, x, y)
 
     if self.shadow and self.shadow > 0 then
         bb:paintRoundedRect(x + self.shadow, y + self.shadow, sz.w, sz.h,
-            _shadowGray(), r)
+            PANEL_SHADOW_DAY, r)
     end
     bb:paintRoundedRect(x, y, sz.w, sz.h, Blitbuffer.COLOR_BLACK, r)
 
