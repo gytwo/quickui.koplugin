@@ -979,11 +979,17 @@ end
 function Utils.patchReaderUIForBottombar()
     local ReaderUI = require("apps/reader/readerui")
     if ReaderUI._quickui_bottombar_patched then return end
+
+    -- Do not patch at all when the bar is disabled — keep ReaderFooter
+    -- and ReaderUI native. This avoids wrapping ReaderUI.new and
+    -- patching ReaderFooter for nothing, and guarantees no hidden
+    -- touch zones or layout changes when the bar is off.
+    if not Utils.getBool("qa_bb_enabled", true) then return end
+            
     ReaderUI._quickui_bottombar_patched = true
 
-    -- Take over the native ReaderFooter first, so all consumers of
-    -- footer:getHeight() automatically use the QuickUI bar height.
     Utils.patchReaderFooterForBottombar()
+
 
     local orig_new = ReaderUI.new
     ReaderUI.new = function(class, attrs, ...)
@@ -991,9 +997,18 @@ function Utils.patchReaderUIForBottombar()
 
         UIManager:scheduleIn(0, function()
             local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
-            if bb and bb.registerTouchZones then
-                bb.registerTouchZones(instance)
+            if not (bb and bb.registerTouchZones) then return end
+
+            -- Reader-scope checks (these can change between books, so
+            -- they must stay here rather than at patch time).
+            if not Utils.getBool("qa_bb_reader_enabled", true) then return end
+
+            if Utils.getBool("qa_bb_hide_in_pdf", true) then
+                local doc = instance.document
+                local is_pdf = doc and doc.file and doc.file:match("%.pdf$") ~= nil
+                if is_pdf then return end
             end
+            bb.registerTouchZones(instance)
         end)
 
         return instance
