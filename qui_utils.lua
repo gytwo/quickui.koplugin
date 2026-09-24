@@ -1052,6 +1052,10 @@ function Utils.patchReaderFooterForBottombar()
 
     local orig_updateFooterContainer = ReaderFooter.updateFooterContainer
     function ReaderFooter:updateFooterContainer()
+        if self.view then
+            self.view.footer_visible = true
+        end
+        
         if self.footer_content and self.footer_content._quickui_bb_container then
             self.footer_content:free()
         end
