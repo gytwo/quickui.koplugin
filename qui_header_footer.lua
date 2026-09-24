@@ -254,6 +254,15 @@ function HeaderFooter.init(plugin)
     function ReaderView:paintTo(bb, x, y)
         originalPaintTo(self, bb, x, y)
 
+        -- ★ 修复：只在渲染目标是屏幕时叠加 header/footer。
+        -- ReaderThumbnail 生成缩略图时也调用 ReaderView:paintTo，
+        -- 但传的是新建的离屏 bb（尺寸是几百像素，不是屏幕尺寸）。
+        -- 若往它上面画 header/footer，坐标用 Screen:getWidth/Height()
+        -- 会严重越界，导致缩略图子进程崩溃 → page_scrubber 显示 "!"。
+        if bb ~= Screen.bb then
+            return
+        end
+
         if self.render_mode ~= nil and not cfg(S.PDF_ENABLED) then return end
 
         local header_enabled = cfg(S.HEADER_ENABLED)
