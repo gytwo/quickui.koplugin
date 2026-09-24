@@ -103,4 +103,10 @@ return {
     "Bottom bar: add dispatcher action-toggle bottom bar in reader",
     "i18n: improve Chinese translation",
 },
+["1.1.1"] = {
+    "Bottom bar: inject the bar as a child widget of ReaderFooter's footer_content, alongside the native footer content",
+    "Bottom bar: clear Reader touch zones immediately when 'Show in Reader' is turned off",
+    "Bottom bar: only reflow the reader when the bar height actually changes, fixing the flicker on opening a book",
+    "Bottom bar: refresh the SimpleUI homescreen bar immediately when tabs are added or removed",
+},
 }
