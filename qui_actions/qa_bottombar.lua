@@ -522,25 +522,20 @@ end
 
 -- ============================================================
 -- Touch Zone Registration
+--
+-- mode:
+--   nil / "register" (default) : clear this widget's bb_* zones,
+--                                then register fresh zones for the
+--                                current tab set.
+--   "remove"                   : only clear this widget's bb_* zones,
+--                                do not register anything. Used when
+--                                the bar is hidden, so stale zones
+--                                stop firing immediately instead of
+--                                waiting for the next rebuild.
 -- ============================================================
-
-function M.registerTouchZones(plugin_or_widget, widget)
+function M.registerTouchZones(plugin_or_widget, widget, mode)
     local fm_self = widget or plugin_or_widget
     if not fm_self then return end
-
-    local tabs = getTabs() or {}
-    local num_tabs = #tabs
-    local screen_w = Screen:getWidth()
-    local screen_h = Screen:getHeight()
-    local nav_h = M.TOTAL_H()
-    local bar_y = screen_h - nav_h
-    local side_m = M.SIDE_M()
-    local usable_w = screen_w - side_m * 2
-
-    if nav_h <= 0 then
-        -- Bottom bar is hidden or disabled, skip touch zone registration
-        return
-    end
 
     -- ============================================================
     -- Clear ALL previously registered bottom-bar zones.
@@ -577,6 +572,29 @@ function M.registerTouchZones(plugin_or_widget, widget)
                 table.insert(fm_self._ordered_touch_zones, fm_self._zones[zone_id])
             end
         end
+    end
+
+    -- "remove" mode: only clear, do not register anything.
+    -- Placed before the nav_h check so a hide/disable with
+    -- nav_h == 0 still clears stale zones.
+    if mode == "remove" then
+        return
+    end
+
+    -- ==== register ====
+
+    local tabs = getTabs() or {}
+    local num_tabs = #tabs
+    local screen_w = Screen:getWidth()
+    local screen_h = Screen:getHeight()
+    local nav_h = M.TOTAL_H()
+    local bar_y = screen_h - nav_h
+    local side_m = M.SIDE_M()
+    local usable_w = screen_w - side_m * 2
+
+    if nav_h <= 0 then
+        -- Bottom bar is hidden or disabled, skip touch zone registration
+        return
     end
 
     -- ============================================================
@@ -662,7 +680,7 @@ function M.registerTouchZones(plugin_or_widget, widget)
                 end,
             }
         end
-    end   
+    end
 
     -- Register hold-settings zone LAST so tab hold zones take priority
     -- when their screen_zones overlap.
@@ -757,6 +775,7 @@ function M.injectIntoScreenWidget(w)
     w._quickui_bb_injected = true
 
     M.registerTouchZones(w)
+    UIManager:setDirty(w, "ui") 
 end
 
 -- Removes a previously injected bar (used when the bar is disabled at
@@ -805,6 +824,10 @@ function M.rebuildBottombar()
     local reader = RUI.instance
     if reader and reader.view and reader.view.footer then
         local show = Utils.getBool("qa_bb_reader_enabled", true)
+        local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
+        if bb and not show then
+            bb.registerTouchZones(reader, nil, "remove")
+        end
         local new_h = show and M.TOTAL_H() or 0
         local height_changed = (_last_bb_height ~= nil) and (_last_bb_height ~= new_h)
         _last_bb_height = new_h
@@ -1081,11 +1104,11 @@ end
 -- ============================================================
 
 function M.init()
-    Utils.patchMenuForBottombar()
-    Utils.patchFileChooserForBottombar()
-    Utils.patchReaderUIForBottombar()
-    Utils.patchBookListForBottombar()
-    Utils.patchSimpleUIHomescreenForBottombar()
+    Utils.patchMenuForBottombar()          -- ①
+    Utils.patchFileChooserForBottombar()   -- ②
+    Utils.patchReaderUIForBottombar()      -- ③
+    Utils.patchBookListForBottombar()      -- ④
+    Utils.patchSimpleUIHomescreenForBottombar()  -- ⑤
 
     Utils.registerRefreshHandler("qa_bb", M.refresh)
 
