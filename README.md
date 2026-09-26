@@ -21,7 +21,7 @@ QuickUI is a comprehensive KOReader enhancement plugin that integrates **five co
 > 💡 **Inspiration**:
 - [shortcutstoolbar.koplugin](https://github.com/xusoo/shortcutstoolbar.koplugin)
 - [simpleui.koplugin](https://github.com/doctorhetfield-cmd/simpleui.koplugin)
-- [zen_ui.koplugin](https://github.com/AnthonyGress/zen_ui.koplugin)
+- [zenos.koplugin](https://github.com/xZenLabs/zen-os)
 - [metadata.koplugin](https://github.com/ZHA30/metadata.koplugin) (metadata editor reference)
 - [kopatches repo](https://github.com/gytwo/kopatches)
 - [KOReader.patches](https://github.com/joshuacant/KOReader.patches)
