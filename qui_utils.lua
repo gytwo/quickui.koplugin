@@ -144,6 +144,11 @@ local DEFAULT_SETTINGS = {
     hf_right_offset = 0,
     hf_time_format = "24h",
     hf_progress_decimals = 2,
+
+    -- Metadata
+    metadata_enabled = true,
+    metadata_google_books_key = "",
+    metadata_hardcover_token = "",
 }
 
 -- ============================================================
@@ -360,6 +365,11 @@ function Utils.getDefaultKeys(module_key)
             "hf_header_top_padding", "hf_footer_bottom_padding",
             "hf_left_offset", "hf_right_offset",
             "hf_time_format", "hf_progress_decimals",
+        },
+        metadata = {
+            "metadata_enabled",
+            "metadata_google_books_key",
+            "metadata_hardcover_token",
         },
     }
     return keys[module_key] or {}
