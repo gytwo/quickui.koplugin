@@ -111,4 +111,18 @@ return {
     "Header & Footer: fix thumbnail generation failure by skipping the header/footer overlay on off-screen buffers (thumbnails, Book Map, Page Browser)",
     "Vertical Bar: Remove invalid file references to avoid possible crashes",
 },
+["1.2.0"] = {
+    -- Metadata module
+    "Metadata: new module for editing book metadata (title, authors, series, genres, language, publisher, description)",
+    "Metadata: embedded EPUB metadata read/write with OPF parsing and transactional recovery",
+    "Metadata: non-EPUB books store metadata in a sidecar file",
+    "Metadata: long-press a book to open \"Edit metadata\" in FileManager, History, Collections, and FileSearcher",
+    "Metadata: online metadata sources — Douban, Google Books, Hardcover, Open Library",
+    "Metadata: provider picker with per-provider API key configuration, editable search query, and paged result preview",
+    "Metadata: apply results field-by-field; manually edited fields are preserved",
+    "Metadata: restore previous metadata (EPUB only, one-step undo)",
+    "Metadata: Dispatcher action QuickUI_EditMetadata for gesture / shortcut binding",
+    "Metadata: new \"Metadata Settings\" submenu under QuickUI, with an \"Enable Metadata Editor\" toggle",
+    "Metadata: configurable via the standard preset system (save / apply / reset)",
+},
 }
