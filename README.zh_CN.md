@@ -257,6 +257,79 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
 
 <img src="pictures/Qui-settings-HF.png" alt="Qui-settings-HF" width="400" />
 
+### 5. 📖 元数据编辑
+
+编辑书籍的元数据（标题、作者、系列、分类、语言、出版社、简介），支持手动修改和在线搜索两种方式。
+
+#### 可编辑字段
+
+| 字段 | 说明 |
+| :--- | :--- |
+| **标题** | 书名 |
+| **作者** | 多个作者，一行一个 |
+| **系列** | 系列名称 + 系列位置 |
+| **分类** | 多个分类，一行一个 |
+| **语言** | ISO 代码，如 `zh`、`en`、`ja` |
+| **出版社** | 出版社名称（仅 EPUB） |
+| **简介** | 书籍简介，支持多段 |
+
+#### 编辑方法
+
+**手动修改**：点任意字段行，在弹出的输入框里直接编辑。改过的字段前面会显示 `●` 标记。
+
+**在线搜索**：点「Find metadata online」，在弹出的搜索框里修改关键词，选择数据源（豆瓣、Google Books、Hardcover、Open Library）后搜索。搜索结果可逐条预览，满意后点「应用」。**手动改过的字段不会被在线数据覆盖**。
+
+- 豆瓣、Open Library 无需配置，直接可用
+- Google Books 需 API key，Hardcover 需 API token，未配置时点击会弹出输入框，配完自动搜索
+- 未配置 key 的数据源，在列表里标注 `(API key required)`
+
+#### 应用方式
+
+**EPUB**：直接修改 EPUB 内嵌的 OPF 元数据，重新打包替换原文件。修改前会生成备份：
+
+| 文件 | 用途 |
+| :--- | :--- |
+| `书名.epub.quickui-metadata.bak` | 修改前的原始 EPUB |
+| `书名.epub.quickui-metadata.bak.json` | 配套的侧车快照 |
+
+只要这两个文件在，编辑器里就会出现「恢复原始元数据」，可一键还原到修改前的版本。**确认不需要还原了，可以删除这两个文件**（书本身不受影响，下次再编辑时会自动生成新的备份）。
+
+**非 EPUB（PDF、MOBI、AZW3、FB2、TXT 等）**：不修改原文件，而是在书的 `.sdr/` 文件夹里写入自定义元数据：
+'书名.sdr/
+└── custom_metadata.lua'
+
+此元数据仅对 KOReader 生效，不会随文件拷贝到其他阅读器。删除该自定义元数据即可恢复。
+
+#### 入口
+
+**方式一：长按书籍**
+- 在文件管理器、历史记录、收藏集、文件搜索结果里，**长按一本书** → 菜单里选「Edit metadata」
+- 如果这本书正在阅读器中打开，此项会**灰掉**
+
+**方式二：QuickUI 设置**
+- 工具 → QuickUI → **Metadata Settings** → 「Edit current book's metadata」
+- 如果文件管理器里有勾选的书，直接编辑；勾选多本时弹出列表让用户挑；没有勾选时提示先选书
+
+**方式三：Dispatcher 动作**
+- 动作名：`QuickUI_EditMetadata`
+- 在**手势管理**里绑定到任意手势，或在 **Dispatcher** 设置里绑定到快捷键
+- 触发时编辑文件管理器中当前选中的书
+
+> ⚠️ **正在阅读器中打开的书无法编辑元数据**，请先关闭再操作。
+
+#### 来源
+
+本模块的元数据读写逻辑改编自 [zen_ui.koplugin](https://github.com/AnthonyGress/zen_ui.koplugin)（MIT 协议）。
+
+在线数据源的抓取方式参考 [metadata.koplugin](https://github.com/)。
+
+第三方库：
+
+- **SLAXML / SLAXDOM**（v0.8，MIT，Copyright © 2013-2018 Gavin Kistner）—— XML 解析
+- **ca-bundle.crt**（certifi 2026.6.17，MPL-2.0）—— HTTPS 证书校验
+
+详见 [`LICENSES.md`](LICENSES.md)。
+
 ---
 
 ## 💡 轻量化替代方案：独立补丁
