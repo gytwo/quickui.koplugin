@@ -2104,3 +2104,6 @@ msgstr "Open Library"
 
 msgid "Find metadata online"
 msgstr "在线查找元数据"
+
+msgid "QuickUI_EditMetadata"
+msgstr "QuickUI-编辑元数据"
