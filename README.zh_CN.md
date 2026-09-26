@@ -407,7 +407,7 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**五大核心功能
 
 #### 来源
 
-本模块的元数据读写逻辑改编自 [zen_ui.koplugin](https://github.com/AnthonyGress/zen_ui.koplugin)（MIT 协议）。
+本模块的元数据读写逻辑改编自-[zenos.koplugin](https://github.com/xZenLabs/zen-os)（MIT 协议）。
 
 在线数据源的抓取方式参考 [metadata.koplugin](https://github.com/ZHA30/metadata.koplugin)。
 
