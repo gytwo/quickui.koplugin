@@ -260,6 +260,79 @@ Supports five types of custom actions:
 
 <img src="pictures/Qui-settings-HF.png" alt="Qui-settings-HF" width="400" />
 
+### 5. 📖 Metadata Editor
+
+Edit book metadata (title, authors, series, genres, language, publisher, description), either manually or by searching online sources.
+
+#### Editable fields
+
+| Field | Notes |
+| :--- | :--- |
+| **Title** | Book title |
+| **Authors** | Multiple authors, one per line |
+| **Series** | Series name + position |
+| **Genres** | Multiple genres, one per line |
+| **Language** | ISO code, e.g. `zh`, `en`, `ja` |
+| **Publisher** | Publisher name (EPUB only) |
+| **Description** | Book description, multi-paragraph |
+
+#### How to edit
+
+**Manually**: tap any field row and edit in the popup input. Edited fields are marked with `●`.
+
+**Online search**: tap "Find metadata online", edit the query, pick a source (Douban, Google Books, Hardcover, Open Library), search. Preview each result, then tap "Apply". **Manually edited fields are never overwritten.**
+
+- Douban and Open Library work without configuration
+- Google Books needs an API key, Hardcover needs an API token — tapping one without a key prompts for input, then searches automatically
+- Unconfigured sources are labelled `(API key required)`
+
+#### How changes are applied
+
+**EPUB**: the embedded OPF metadata is edited and the file is repacked. Before replacement, a backup is created:
+
+| File | Purpose |
+| :--- | :--- |
+| `book.epub.quickui-metadata.bak` | Original EPUB before the edit |
+| `book.epub.quickui-metadata.bak.json` | Sidecar snapshot |
+
+As long as both files exist, the editor shows "Restore original metadata" — a one-step undo. **Delete both files if you no longer need to undo** (the book itself is unaffected; the next edit will create a fresh backup).
+
+**Non-EPUB (PDF, MOBI, AZW3, FB2, TXT, etc.)**: the original file is not modified. Custom metadata is written to the book's `.sdr/` folder:
+'book.sdr/
+└── custom_metadata.lua'
+
+This metadata is KOReader-only and does not travel with the file to other readers. Delete the custom metadata to revert.
+
+#### How to open
+
+**Option 1: Long-press a book**
+- In FileManager, History, Collections, or FileSearcher, **long-press a book** → "Edit metadata"
+- The entry is greyed out if the book is currently open in the reader
+
+**Option 2: QuickUI Settings**
+- Tools → QuickUI → **Metadata Settings** → "Edit current book's metadata"
+- If one book is checked, opens it directly; if multiple are checked, shows a picker; if none, prompts to select a book first
+
+**Option 3: Dispatcher action**
+- Action name: `QuickUI_EditMetadata`
+- Bind it to a gesture in **Gestures**, or to a shortcut in **Dispatcher**
+- It edits the currently selected book in the file manager
+
+> ⚠️ **A book currently open in the reader cannot have its metadata edited.** Close it first.
+
+#### Credits
+
+The metadata read/write logic in this module is adapted from [zen_ui.koplugin](https://github.com/AnthonyGress/zen_ui.koplugin) (MIT).
+
+The online source scrapers reference [metadata.koplugin](https://github.com/).
+
+Vendored libraries:
+
+- **SLAXML / SLAXDOM** (v0.8, MIT, Copyright © 2013-2018 Gavin Kistner) — XML parsing
+- **ca-bundle.crt** (certifi 2026.6.17, MPL-2.0) — HTTPS certificate validation
+
+See [`LICENSES.md`](LICENSES.md) for details.
+
 ---
 
 ## 💡 Lightweight Alternative: Standalone Patches
