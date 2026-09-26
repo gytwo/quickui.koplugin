@@ -27,6 +27,7 @@ local cover_module = nil
 local actions_module = nil
 local cloze_module = nil
 local hf_module = nil
+local metadata_module = nil
 local updates_module = nil
 
 local icon_picker = nil
@@ -129,6 +130,17 @@ function QuickUI:init()
         end
     end
 
+    -- Metadata
+    ok, metadata_module = pcall(require, "qui_metadata/qm_init")
+    if ok and metadata_module then
+        if metadata_module.init then
+            metadata_module.init(self)
+        end
+    else
+        logger.warn("QuickUI: Metadata failed to load:", metadata_module)
+        metadata_module = nil
+    end
+
     -- Updates
     ok, updates_module = pcall(require, "qui_updates")
     if ok and updates_module and updates_module.init then
@@ -195,6 +207,15 @@ function QuickUI:registerDispatcherActions()
         })
     end
 
+    if config and config.metadata_enabled then
+        Dispatcher:registerAction("QuickUI_EditMetadata", {
+            category = "none",
+            event = "QuickUI_EditMetadata",
+            title = _("QuickUI_EditMetadata"),
+            filemanager = true,
+        })
+    end
+    
     if config and config.qa_common_enabled then
         Dispatcher:registerAction("QuickUI_SystemIconOverride", {
             category = "none",
@@ -380,6 +401,20 @@ function QuickUI:onQuickUI_HFSettings()
         return true
     end
     hf_module.showSettings()
+    return true
+end
+
+function QuickUI:onQuickUI_EditMetadata()
+    if not metadata_module then
+        Notification:notify(_("Metadata module is disabled"))
+        return true
+    end
+    metadata_module.edit_current(function()
+        local fm = require("apps/filemanager/filemanager").instance
+        if fm and fm.file_chooser then
+            fm.file_chooser:updateItems()
+        end
+    end)
     return true
 end
 
@@ -719,6 +754,27 @@ function QuickUI:buildMenuItems()
         end,
     })
 
+    table.insert(items, {
+        text = _("Enable Metadata Editor"),
+        checked_func = function()
+            local config = _G.__QUICKUI_CONFIG
+            return config and config.metadata_enabled
+        end,
+        callback = function()
+            local config = _G.__QUICKUI_CONFIG
+            config.metadata_enabled = not config.metadata_enabled
+            Utils.saveConfig()
+            UIManager:show(ConfirmBox:new{
+                text = _("Restart required.\n\nRestart KOReader now?"),
+                ok_text = _("Restart"),
+                cancel_text = _("Later"),
+                ok_callback = function()
+                    UIManager:restartKOReader()
+                end,
+            })
+        end,
+    })
+
     -- Quick Actions Settings
     if qa_settings then
         local qa_root = qa_settings.buildRootMenuItems()
@@ -812,8 +868,34 @@ function QuickUI:buildMenuItems()
         end
     end
 
+    -- Metadata Settings
+    if metadata_module then
+        local function getFlattenedMenuItems(module, method_name)
+            if not module or not module[method_name] then
+                return nil
+            end
+            local result = module[method_name](self)
+            if type(result) == "function" then
+                result = result()
+            end
+            if type(result) == "table" and #result > 0 then
+                return result
+            end
+            return nil
+        end
+
+        local md_items = getFlattenedMenuItems(metadata_module, "getMenuItems")
+        if md_items and #md_items > 0 then
+            resolveSubItems(md_items)
+            table.insert(items, {
+                text = _("Metadata Settings"),
+                sub_item_table = md_items,
+            })
+        end
+    end
+    
     -- Default Config Management
-    local all_modules = {"qa_panel", "qa_bb", "qa_common", "qa_vb", "cover", "cloze", "hf"}
+    local all_modules = {"qa_panel", "qa_bb", "qa_common", "qa_vb", "cover", "cloze", "hf", "metadata"}
     local all_items = Utils.buildDefaultMenuItems(all_modules, function()
         refreshQuickPanel()
         local bb = _G.__QUICKUI_PLUGIN_STORE and _G.__QUICKUI_PLUGIN_STORE.bottombar
