@@ -1,6 +1,6 @@
 # QuickUI - KOReader 增强插件
 
-> **QuickUI: 快捷操作 · 封面美化 · 遮盖模式 · 页眉页脚 — 更高效的 KOReader。**
+> **QuickUI: 快捷操作 · 封面美化 · 遮盖模式 · 页眉页脚 · 元数据编辑 — 更高效的 KOReader。**
 
 > **作者**：gytwo | **许可证**：AGPL-3.0 | **兼容**：KOReader ≥ v2026.03
 
@@ -8,19 +8,21 @@
 
 ## 📖 概述
 
-QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能**，让您的阅读体验更流畅、更高效：
+QuickUI 是一个综合性 KOReader 增强插件，集成了**五大核心功能**，让您的阅读体验更流畅、更高效：
 
 | 功能模块 | 描述 |
 | :--- | :--- |
-| ⚡ **快捷操作** | 可自定义的快捷操作中心：面板、底部栏、自定义动作、图标选择、UI 字体切换等 |
+| ⚡ **快捷操作** | 可自定义的快捷操作中心：面板、底部栏、侧边竖栏、自定义动作、图标选择、UI 字体切换等 |
 | 🎨 **封面美化** | 占位图、徽章、圆角、统一比例、文件夹预览等封面视觉优化 |
 | 🔍 **遮盖模式** | 标注遮罩模式，用于复习和自测（高亮、下划线、删除线） |
 | 📐 **页眉页脚** | 阅读页面顶部/底部显示时间、页码、进度、章节、电量等信息 |
+| 📖 **元数据编辑** | 编辑书籍元数据（标题、作者、系列等），支持手动修改与在线搜索 |
 
 > 💡 **灵感来源**：
 - [shortcutstoolbar.koplugin](https://github.com/xusoo/shortcutstoolbar.koplugin)
 - [simpleui.koplugin](https://github.com/doctorhetfield-cmd/simpleui.koplugin)
 - [zen_ui.koplugin](https://github.com/AnthonyGress/zen_ui.koplugin)
+- [metadata.koplugin](https://github.com/ZHA30/metadata.koplugin)（元数据编辑模块参考）
 - [kopatches repo](https://github.com/gytwo/kopatches)
 - [KOReader.patches](https://github.com/joshuacant/KOReader.patches)
 
@@ -113,6 +115,11 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
 | `QuickUI_CoverSettings` | 封面设置 | 文件管理器 | 封面视觉设置 |
 | `QuickUI_ClozeSettings` | 遮盖设置 | 阅读器 | 遮盖模式设置 |
 | `QuickUI_HFSettings` | 页眉页脚设置 | 阅读器 | 页眉页脚设置 |
+| `qa_vb_toggle` | 切换垂直栏 | 通用 | 显示/隐藏侧边竖栏 |
+| `qa_vb_settings` | 垂直栏设置 | 通用 | 打开侧边竖栏设置 |
+| `qa_add_vb_button` | 添加垂直栏按钮 | 通用 | 向侧边竖栏添加按钮 |
+| `reader_sliders` | 阅读滑块 | 阅读器 | 打开完整排版滑块弹窗 |
+| `QuickUI_EditMetadata` | 编辑元数据 | 文件管理器 | 编辑选中书籍的元数据 |
 
 <table>
   <tr>
@@ -147,15 +154,88 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
   </tr>
 </table>
 
-#### 📌 1.3 自定义操作
+#### 📌 1.3 侧边竖栏
+
+贴边显示的竖排快捷启动栏。
+
+**启用方式**：
+
+| 方式 | 操作 |
+| :--- | :--- |
+| **QuickUI 设置** | 工具 → QuickUI → Quick Actions Settings → 垂直栏 → 勾选「启用垂直栏」 |
+| **Dispatcher 动作** | 绑定 `QuickUI_VerticalBarToggle` 到手势 / 快捷键，触发一次切换显示/隐藏 |
+| **快捷面板按钮** | 在面板或底部栏添加 `qa_vb_toggle`（「切换垂直栏」）按钮 |
+| **内置操作池** | 添加 `qa_vb_settings`（打开设置）或 `qa_add_vb_button`（添加按钮）到面板 |
+
+**操作方式**：
+
+- **拖动**：横向滑动把栏移到屏幕另一侧
+- **点按钮**：执行该操作
+- **长按按钮**：编辑该按钮
+- **上下滑**：翻页（若启用「滑动手势翻页」）
+- **点栏外**：收起
+
+**配置项**：
+
+| 配置项 | 选项/说明 |
+| :--- | :--- |
+| **启用/禁用** | 全局开关 |
+| **位置** | 左侧 / 右侧 |
+| **背景** | 白色 / 浅灰 / 透明 |
+| **动画** | 关 / 快 / 中 / 慢 |
+| **滑动手势翻页** | 上下滑动切换按钮页 |
+| **按钮管理** | 添加/删除/排列 |
+| **标签显示** | 开关 |
+| **栏大小** | 60% ~ 150%（步进 10%） |
+| **图标大小** | 50% ~ 200%（步进 10%） |
+| **标签大小** | 50% ~ 200%（步进 10%） |
+| **长按操作** | 编辑按钮 / 打开设置 |
+
+#### 📌 1.4 阅读排版滑块
+
+阅读器内的排版调整滑块。
+
+**启用方式**：
+
+| 方式 | 操作 |
+| :--- | :--- |
+| **Dispatcher 动作** | 绑定 `QuickUI_ReaderSliders` 到手势 / 快捷键，打开完整弹窗 |
+| **内置操作池** | 添加 `reader_sliders`（「阅读滑块」）到面板或竖栏，点一下打开弹窗 |
+| **内嵌到面板/竖栏** | 在面板或竖栏设置里开启对应的滑块开关，直接显示内嵌滑块 |
+
+**操作方式**：
+
+- **左右拖动滑块**：调整数值
+- **点 −/+ 按钮**：步进调整
+- **点数值**：弹出 SpinWidget 精调，可设为默认值
+- **长按标签**：重置为默认
+- **长按滑块**：打开完整滑块列表弹窗
+
+**滑块列表**：
+
+| 滑块 | 说明 | 适用 |
+| :--- | :--- | :--- |
+| **字号** | 正文字号（12-90） | Reflowable（EPUB / FB2 / TXT） |
+| **行距** | 行间距百分比（50-200%） | Reflowable |
+| **对比度** | 字体 Gamma（10-56） | Reflowable / PDF |
+| **左右边距** | 页面左右留白（0-140） | Reflowable |
+| **上边距** | 页面上方留白（0-140） | Reflowable |
+| **下边距** | 页面下方留白（0-140） | Reflowable |
+| **PDF 对比度** | PDF 渲染对比度（0.8-50） | PDF / DJVU |
+| **PDF 缩放** | 缩放因子、重叠、行/列数 | PDF / DJVU |
+| **首行缩进** | 段落首行缩进方式 | Reflowable |
+| **段间距** | 段落间距方式 | Reflowable |
+| **CJK 优化** | 中日韩排版优化 | Reflowable |
+
+#### 📌 1.5 自定义操作
 
 支持五种类型的自定义快捷操作：
 
 | 类型 | 说明 | 默认界面 |
 | :--- | :--- | :--- |
 | 📁 **文件夹** | 快速跳转到指定文件夹 | 文件管理器，可更改 |
-| 📚 **收藏集** | 快速打开指定的收藏集 | 文件管理器 ，可更改|
-| 🔌 **插件/补丁** | 启动任意插件或菜单补丁 | 通用 ，可更改|
+| 📚 **收藏集** | 快速打开指定的收藏集 | 文件管理器，可更改 |
+| 🔌 **插件/补丁** | 启动任意插件或菜单补丁 | 通用，可更改 |
 | ⚙️ **系统操作** | 调用 Dispatcher 系统操作 | 自动判断，可更改 |
 | 📋 **录制菜单操作** | 录制任意菜单项为快捷操作 | 自动判断，锁定（不可更改） |
 
@@ -166,7 +246,7 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
   </tr>
 </table>
 
-#### 📌 1.4 图标选择器
+#### 📌 1.6 图标选择器
 
 | 功能 | 说明 |
 | :--- | :--- |
@@ -184,7 +264,7 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
   </tr>
 </table>
 
-#### 📌 1.5 UI 字体切换
+#### 📌 1.7 UI 字体切换
 
 | 字体类型 | 默认字体 | 说明 |
 | :--- | :--- | :--- |
@@ -198,7 +278,7 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
 
 <img src="pictures/Qui-settings-QA-uifontswitch.png" alt="Qui-settings-QA-uifontswitch" width="400" />
 
-#### 📌 1.6 界面过滤
+#### 📌 1.8 界面过滤
 
 | 功能 | 说明 |
 | :--- | :--- |
@@ -257,6 +337,8 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
 
 <img src="pictures/Qui-settings-HF.png" alt="Qui-settings-HF" width="400" />
 
+---
+
 ### 5. 📖 元数据编辑
 
 编辑书籍的元数据（标题、作者、系列、分类、语言、出版社、简介），支持手动修改和在线搜索两种方式。
@@ -295,8 +377,10 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
 只要这两个文件在，编辑器里就会出现「恢复原始元数据」，可一键还原到修改前的版本。**确认不需要还原了，可以删除这两个文件**（书本身不受影响，下次再编辑时会自动生成新的备份）。
 
 **非 EPUB（PDF、MOBI、AZW3、FB2、TXT 等）**：不修改原文件，而是在书的 `.sdr/` 文件夹里写入自定义元数据：
-'书名.sdr/
-└── custom_metadata.lua'
+```
+书名.sdr/
+└── custom_metadata.lua
+```
 
 此元数据仅对 KOReader 生效，不会随文件拷贝到其他阅读器。删除该自定义元数据即可恢复。
 
@@ -315,13 +399,17 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
 - 在**手势管理**里绑定到任意手势，或在 **Dispatcher** 设置里绑定到快捷键
 - 触发时编辑文件管理器中当前选中的书
 
+**方式四：快捷面板 / 竖栏按钮**
+- 在快捷操作池里添加 `QuickUI_EditMetadata`（「编辑元数据」）操作
+- 加到面板或竖栏后，点一下编辑当前选中的书
+
 > ⚠️ **正在阅读器中打开的书无法编辑元数据**，请先关闭再操作。
 
 #### 来源
 
 本模块的元数据读写逻辑改编自 [zen_ui.koplugin](https://github.com/AnthonyGress/zen_ui.koplugin)（MIT 协议）。
 
-在线数据源的抓取方式参考 [metadata.koplugin](https://github.com/)。
+在线数据源的抓取方式参考 [metadata.koplugin](https://github.com/ZHA30/metadata.koplugin)。
 
 第三方库：
 
@@ -338,7 +426,7 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
 
 ### 方案一：在 QuickUI 中按需禁用模块
 
-您可以在 QuickUI 的设置菜单中，独立开启或关闭四大功能模块，无需删除插件文件：
+您可以在 QuickUI 的设置菜单中，独立开启或关闭各功能模块，无需删除插件文件：
 
 | 功能模块 | 设置入口 | 说明 |
 | :--- | :--- | :--- |
@@ -346,6 +434,7 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
 | **封面美化** | `工具 → QuickUI` | 取消勾选 **"启用封面美化"** |
 | **遮盖模式** | `工具 → QuickUI` | 取消勾选 **"启用遮盖模式"** |
 | **页眉页脚** | `工具 → QuickUI` | 取消勾选 **"启用页眉页脚"** |
+| **元数据编辑** | `工具 → QuickUI` | 取消勾选 **"启用元数据编辑器"** |
 
 > 禁用模块后，需要**重启 KOReader** 才能生效。
 
@@ -353,11 +442,9 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
 
 如果您希望获得更轻量、纯粹的单功能体验，可以直接使用以下独立补丁。这些补丁仅包含单一功能，代码更精简，也无需通过插件管理。
 
-这三个补丁的作者与 QuickUI 相同，功能一脉相承：
-
 | 对应模块 | 独立补丁文件 | 功能描述 | 获取地址 |
 | :--- | :--- | :--- | :--- |
-| **快捷操作** | `2-quickactions.lua` | 可自定义的快捷操作面板（与 QuickUI 中的面板功能一致） | [kopatches 仓库](https://github.com/gytwo/kopatches) |
+| **快捷操作** | `2-quickactions.lua` | 可自定义的快捷操作面板 | [kopatches 仓库](https://github.com/gytwo/kopatches) |
 | **封面美化** | `2-fm-cover.lua` | 全面的封面和文件夹封面视觉优化 | [kopatches 仓库](https://github.com/gytwo/kopatches) |
 | **遮盖模式** | `2-reader-clozemode.lua` | 标注遮盖模式，用于复习和自测 | [kopatches 仓库](https://github.com/gytwo/kopatches) |
 
@@ -368,16 +455,6 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
 3. 重启 KOReader 即可生效。
 
 > 卸载独立补丁：直接删除对应的 `.lua` 文件即可，可选删除自动生成的配置文件。
-
-#### 如何选择？
-
-| 场景 | 推荐方案 |
-| :--- | :--- |
-| 希望**集成管理**所有功能，喜欢 All-in-One | 使用 **QuickUI 插件**，并按需禁用模块 |
-| 只对**某一个功能**感兴趣，追求极简 | 使用对应的 **独立补丁** |
-| 想尝鲜或试用特定功能 | 先试用独立补丁，再决定是否迁移到 QuickUI |
-
-> 💡 **提示**：QuickUI 与独立补丁**不要同时安装**，否则可能导致功能冲突。请根据需要二选一。
 
 ---
 
@@ -398,6 +475,11 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**四大核心功能
 | 底部栏开关 | `QuickUI_BottombarToggle` | 常规 |
 | 底部栏设置 | `QuickUI_BottombarSettings` | 常规 |
 | 添加底部栏按钮 | `QuickUI_AddBottomBarTab` | 常规 |
+| 切换侧边竖栏 | `QuickUI_VerticalBarToggle` | 常规 |
+| 侧边竖栏设置 | `QuickUI_VerticalBarSettings` | 常规 |
+| 添加侧边竖栏按钮 | `QuickUI_AddVerticalBarButton` | 常规 |
+| 阅读排版滑块 | `QuickUI_ReaderSliders` | 阅读器 |
+| 编辑元数据 | `QuickUI_EditMetadata` | 文件管理器 |
 
 ---
 
@@ -409,51 +491,48 @@ quickui.koplugin/
 ├── main.lua
 ├── README.md
 ├── README.zh_CN.md
+├── LICENSES.md
 │
 ├── locales/
-│   └── zh_CN.po
+│ └── zh_CN.po
 │
 ├── qui_actions/
-│   ├── qa_actions.lua
-│   ├── qa_bottombar.lua
-│   ├── qa_icon_picker.lua
-│   ├── qa_init.lua
-│   ├── qa_menu_recorder.lua
-│   ├── qa_panel.lua
-│   ├── qa_plugin_scan.lua
-│   ├── qa_settings.lua
-│   └── qa_uifont.lua
+│ ├── qa_actions.lua # 动作注册表（内置 + 自定义）和执行逻辑
+│ ├── qa_bar_settings.lua # 面板 / 底部栏 / 竖栏的编辑器与栏设置
+│ ├── qa_bottombar.lua # 底部导航栏构建器
+│ ├── qa_icon_picker.lua # 图标选择器（Nerd Font + SVG/PNG）
+│ ├── qa_init.lua # Quick Actions 模块入口
+│ ├── qa_menu_recorder.lua # 菜单动作录制器
+│ ├── qa_panel.lua # 快捷面板构建器
+│ ├── qa_plugin_scan.lua # 插件扫描器
+│ ├── qa_reader_sliders.lua # 阅读排版滑块（字号/行距/页边距/PDF 缩放等）
+│ ├── qa_settings.lua # Quick Actions 设置菜单
+│ ├── qa_uifont.lua # UI 字体切换器
+│ └── qa_vertical_bar.lua # 侧边竖栏构建器
 │
-├── qui_cover.lua
-├── qui_clozemode.lua
-├── qui_header_footer.lua
-├── qui_i18n.lua
-├── qui_updates.lua
-└── qui_utils.lua
+├── qui_metadata/
+│ ├── qm_init.lua # 元数据模块入口
+│ ├── qm_editor.lua # 字段编辑器 UI
+│ ├── qm_service.lua # 元数据读写调度（EPUB / sidecar）
+│ ├── qm_epub.lua # EPUB OPF 解析、重打包、事务恢复
+│ ├── qm_http.lua # 统一 HTTP / HTTPS 层
+│ ├── qm_isbn.lua # ISBN 校验
+│ ├── qm_google_books.lua # Google Books 数据源
+│ ├── qm_hardcover.lua # Hardcover 数据源
+│ ├── qm_open_library.lua # Open Library 数据源
+│ ├── qm_douban.lua # 豆瓣数据源（HTML 抓取）
+│ ├── qm_provider_picker.lua # 搜索源选择 / 搜索 / 结果预览
+│ ├── qm_slaxml.lua # SLAXML v0.8（XML 解析）
+│ ├── qm_slaxdom.lua # SLAXML DOM 封装
+│ └── ca-bundle.crt # certifi 根证书链
+│
+├── qui_cover.lua # 封面美化模块
+├── qui_clozemode.lua # 遮盖模式模块
+├── qui_header_footer.lua # 页眉页脚模块
+├── qui_i18n.lua # 国际化加载器
+├── qui_updates.lua # 更新检查
+└── qui_utils.lua # 通用工具函数
 ```
-| 文件 | 用途 |
-| :--- | :--- |
-| `_meta.lua` | 插件元数据（名称、版本、作者） |
-| `changelog.lua` | 版本历史和更新记录 |
-| `main.lua` | 主入口，注册 Dispatcher 动作，构建主菜单 |
-| `README.md` | 英文说明文档 |
-| `README.zh_CN.md` | 中文说明文档 |
-| `locales/zh_CN.po` | 简体中文翻译 |
-| `qui_actions/qa_actions.lua` | 动作注册表（内置 + 自定义）和执行逻辑 |
-| `qui_actions/qa_bottombar.lua` | 底部导航栏构建器 |
-| `qui_actions/qa_icon_picker.lua` | 图标选择器（Nerd Font + SVG/PNG） |
-| `qui_actions/qa_init.lua` | Quick Actions 模块入口 |
-| `qui_actions/qa_menu_recorder.lua` | 菜单动作录制器（用于自定义动作） |
-| `qui_actions/qa_panel.lua` | 快捷面板构建器 |
-| `qui_actions/qa_plugin_scan.lua` | 插件扫描器 |
-| `qui_actions/qa_settings.lua` | Quick Actions 设置菜单 |
-| `qui_actions/qa_uifont.lua` | UI 字体切换器 |
-| `qui_cover.lua` | 封面美化模块 |
-| `qui_clozemode.lua` | 遮盖模式模块 |
-| `qui_header_footer.lua` | 页眉页脚模块 |
-| `qui_i18n.lua` | 国际化加载器（加载 .po 文件） |
-| `qui_updates.lua` | 更新检查（GitHub / Gitee） |
-| `qui_utils.lua` | 通用工具函数（配置、序列化、字体、颜色） |
 
 ---
 
@@ -467,10 +546,12 @@ quickui.koplugin/
 | :--- | :--- | :--- |
 | 面板 | `qa_panel_*` | 面板启用、按钮布局、形状、大小、标签、滑块等 |
 | 底部栏 | `qa_bb_*` | 底部栏启用、模式、样式、大小、颜色、标签等 |
+| 侧边竖栏 | `qa_vb_*` | 侧边竖栏启用、位置、样式、大小、标签等 |
 | 快捷操作通用 | `qa_common_*` | 自定义操作、界面过滤、图标替换、UI 字体替换等 |
 | 封面 | `cover_*` | 封面样式、徽章、比例、圆角、文件夹模式等 |
 | 遮盖 | `cl_*` | 遮盖启用、切换方式、可遮盖样式 |
 | 页眉页脚 | `hf_*` | 页眉页脚启用、内容、字体、边距、时间格式等 |
+| 元数据 | `metadata_*` | 元数据模块开关、Google Books API key、Hardcover token |
 
 ### 预设管理
 
@@ -478,11 +559,12 @@ quickui.koplugin/
 
 | 预设范围 | 涵盖模块 |
 | :--- | :--- |
-| 全部 | 面板 + 底部栏 + 快捷操作通用 + 封面 + 遮盖 + 页眉页脚 |
-| 快捷操作 | 面板 + 底部栏 + 快捷操作通用 |
+| 全部 | 面板 + 底部栏 + 侧边竖栏 + 快捷操作通用 + 封面 + 遮盖 + 页眉页脚 + 元数据 |
+| 快捷操作 | 面板 + 底部栏 + 侧边竖栏 + 快捷操作通用 |
 | 封面 | 仅封面设置 |
 | 遮盖 | 仅遮盖设置 |
 | 页眉页脚 | 仅页眉页脚设置 |
+| 元数据 | 仅元数据设置 |
 
 ---
 
