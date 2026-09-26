@@ -64,6 +64,11 @@ THE SOFTWARE.
 `qui_metadata/ca-bundle.crt` is from certifi 2026.6.17, a modified version
 of Mozilla's root certificate store.
 
-This Source Code Form is subject to the terms of the Mozilla Public License,
-v. 2.0. If a copy of the MPL was not distributed with this file, You can
-obtain one at https://mozilla.org/MPL/2.0/.
+This file is distributed under the Mozilla Public License, v. 2.0 (MPL-2.0),
+separate from the rest of this project. The rest of QuickUI is licensed under
+AGPL-3.0; the MPL-2.0 terms apply only to this specific file.
+
+A copy of the MPL-2.0 is available at:
+https://mozilla.org/MPL/2.0/
+
+Source: https://github.com/certifi/python-certifi
