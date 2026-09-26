@@ -2101,3 +2101,6 @@ msgstr "Hardcover"
 
 msgid "Open Library"
 msgstr "Open Library"
+
+msgid "find metadata online"
+msgstr "在线查找元数据"
