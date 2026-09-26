@@ -1895,3 +1895,209 @@ msgstr "显示翻页行"
 
 msgid "Rows per Page"
 msgstr "每页行数"
+
+# Metadata module
+
+msgid "Not set"
+msgstr "未设置"
+
+msgid "Title"
+msgstr "标题"
+
+msgid "Authors"
+msgstr "作者"
+
+msgid "Series"
+msgstr "系列"
+
+msgid "Language"
+msgstr "语言"
+
+msgid "Publisher"
+msgstr "出版社"
+
+msgid "Description"
+msgstr "简介"
+
+msgid "Position"
+msgstr "位置"
+
+msgid "Genres"
+msgstr "标签"
+
+msgid "Edit Metadata"
+msgstr "编辑元数据"
+
+msgid "Edit metadata"
+msgstr "编辑元数据"
+
+msgid "Restore original metadata"
+msgstr "恢复原始元数据"
+
+msgid "Restore the previous metadata and discard your unsaved changes?"
+msgstr "恢复上一版元数据并丢弃未保存的更改？"
+
+msgid "Restore the previous metadata for this book?"
+msgstr "恢复这本书的上一版元数据？"
+
+msgid "Cancel"
+msgstr "取消"
+
+msgid "Restore"
+msgstr "恢复"
+
+msgid "Save"
+msgstr "保存"
+
+msgid "Saving metadata..."
+msgstr "正在保存元数据..."
+
+msgid "Metadata saved"
+msgstr "元数据已保存"
+
+msgid "Failed to read metadata"
+msgstr "读取元数据失败"
+
+msgid "Failed to open editor: "
+msgstr "打开编辑器失败："
+
+msgid "This book is currently open in the reader.\n\nClose it first, then edit its metadata."
+msgstr "这本书正在阅读器中打开。\n\n请先关闭，再编辑元数据。"
+
+msgid "An EPUB title is required."
+msgstr "EPUB 标题不能为空。"
+
+msgid "An EPUB language is required."
+msgstr "EPUB 语言不能为空。"
+
+msgid "Series position must be a number."
+msgstr "系列位置必须是数字。"
+
+msgid "Saving metadata failed."
+msgstr "保存元数据失败。"
+
+msgid "Metadata restored"
+msgstr "元数据已恢复"
+
+msgid "Restoring metadata failed."
+msgstr "恢复元数据失败。"
+
+msgid "You have unsaved changes."
+msgstr "有未保存的更改。"
+
+msgid "Keep editing"
+msgstr "继续编辑"
+
+msgid "Discard"
+msgstr "丢弃"
+
+msgid "Applied %d fields"
+msgstr "已应用 %d 个字段"
+
+msgid "Applied %d fields, kept %d manual edits"
+msgstr "已应用 %d 个字段，保留 %d 个手动编辑"
+
+# Provider picker
+
+msgid "Search metadata"
+msgstr "搜索元数据"
+
+msgid "Title or ISBN"
+msgstr "书名或 ISBN"
+
+msgid "No match found"
+msgstr "没有匹配结果"
+
+msgid "Search failed"
+msgstr "搜索失败"
+
+msgid "Searching %s..."
+msgstr "正在搜索 %s..."
+
+msgid "Enter a title or ISBN first."
+msgstr "请先输入书名或 ISBN。"
+
+msgid "API key required"
+msgstr "需要 API key"
+
+msgid "API key"
+msgstr "API key"
+
+msgid "Paste the key/token here"
+msgstr "在此粘贴 key/token"
+
+msgid "Save & Search"
+msgstr "保存并搜索"
+
+msgid "Please enter the API key first."
+msgstr "请先输入 API key。"
+
+msgid "This provider requires an API key."
+msgstr "此源需要 API key。"
+
+msgid "Configure API keys"
+msgstr "配置 API key"
+
+msgid "Provider API Keys"
+msgstr "源 API key"
+
+msgid "configured"
+msgstr "已配置"
+
+msgid "not set"
+msgstr "未设置"
+
+msgid "Select a match"
+msgstr "选择一项"
+
+msgid "Book Details"
+msgstr "书籍详情"
+
+msgid "Previous"
+msgstr "上一页"
+
+msgid "Next"
+msgstr "下一页"
+
+msgid "Apply"
+msgstr "应用"
+
+msgid "This result has no usable metadata."
+msgstr "此结果没有可用的元数据。"
+
+# 菜单 / 设置
+
+msgid "Metadata Settings"
+msgstr "元数据设置"
+
+msgid "Enable Metadata Editor"
+msgstr "启用元数据编辑器"
+
+msgid "Edit current book's metadata"
+msgstr "编辑当前书籍的元数据"
+
+msgid "Google Books API key"
+msgstr "Google Books API key"
+
+msgid "Hardcover API token"
+msgstr "Hardcover API token"
+
+msgid "Open Library: no key required"
+msgstr "Open Library：无需 key"
+
+msgid "Metadata module is disabled"
+msgstr "元数据模块已禁用"
+
+# Provider 名称
+
+msgid "Douban"
+msgstr "豆瓣"
+
+msgid "Google Books"
+msgstr "Google Books"
+
+msgid "Hardcover"
+msgstr "Hardcover"
+
+msgid "Open Library"
+msgstr "Open Library"
