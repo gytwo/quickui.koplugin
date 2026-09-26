@@ -22,7 +22,7 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**五大核心功能
 - [shortcutstoolbar.koplugin](https://github.com/xusoo/shortcutstoolbar.koplugin)
 - [simpleui.koplugin](https://github.com/doctorhetfield-cmd/simpleui.koplugin)
 - [zen_ui.koplugin](https://github.com/AnthonyGress/zen_ui.koplugin)
-- [[metadata.koplugin]](https://github.com/ZHA30/metadata.koplugin)（元数据编辑模块参考）
+- [metadata.koplugin](https://github.com/ZHA30/metadata.koplugin)（元数据编辑模块参考）
 - [kopatches repo](https://github.com/gytwo/kopatches)
 - [KOReader.patches](https://github.com/joshuacant/KOReader.patches)
 
@@ -409,7 +409,7 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**五大核心功能
 
 本模块的元数据读写逻辑改编自 [zen_ui.koplugin](https://github.com/AnthonyGress/zen_ui.koplugin)（MIT 协议）。
 
-在线数据源的抓取方式参考 [[metadata.koplugin]](https://github.com/ZHA30/metadata.koplugin)。
+在线数据源的抓取方式参考 [metadata.koplugin](https://github.com/ZHA30/metadata.koplugin)。
 
 第三方库：
 
