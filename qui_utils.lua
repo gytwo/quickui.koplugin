@@ -547,7 +547,7 @@ function Utils.buildDefaultMenuItems(module_keys, refresh_callback)
         suffix = " (" .. module_keys[1] .. ")"
     else
         local qa_modules = {qa_common=true, qa_panel=true, qa_bb=true, qa_vb=true}
-        local all_modules = {qa_common=true, qa_panel=true, qa_bb=true, qa_vb=true, cover=true, cloze=true, hf=true}
+        local all_modules = {qa_common=true, qa_panel=true, qa_bb=true, qa_vb=true, cover=true, cloze=true, hf=true, metadata=true}
 
         local is_qa = true
         local is_all = true
@@ -560,7 +560,7 @@ function Utils.buildDefaultMenuItems(module_keys, refresh_callback)
             end
         end
 
-        if is_all and n == 7 then
+        if is_all and n == 8 then
             suffix = " (All)"
         elseif is_qa and n == 4 then
             suffix = " (QA)"
