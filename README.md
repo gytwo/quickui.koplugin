@@ -407,7 +407,7 @@ This metadata is KOReader-only and does not travel with the file to other reader
 
 #### Credits
 
-The metadata read/write logic in this module is adapted from [zen_ui.koplugin](https://github.com/AnthonyGress/zen_ui.koplugin) (MIT).
+The metadata read/write logic in this module is adapted from-[zenos.koplugin](https://github.com/xZenLabs/zen-os)(MIT).
 
 The online source scrapers reference [metadata.koplugin](https://github.com/ZHA30/metadata.koplugin).
 
