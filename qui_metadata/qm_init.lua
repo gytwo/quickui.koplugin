@@ -185,6 +185,34 @@ local function pick_one(files, on_done)
     UIManager:show(dialog)
 end
 
+function M.edit_selected(files)
+    if not files or #files == 0 then
+        return
+    end
+
+    -- Exit selection mode before opening the editor.
+    local FM = require("apps/filemanager/filemanager")
+    local fm = FM and FM.instance
+    if fm and fm.selected_files then
+        -- Clear the dim highlight on all selected items.
+        if fm.file_chooser and fm.file_chooser.item_table then
+            for _i, item in ipairs(fm.file_chooser.item_table) do
+                if item.is_file then
+                    item.dim = nil
+                end
+            end
+            fm.file_chooser:updateItems(1, true)
+        end
+        fm:onToggleSelectMode(true)
+    end
+
+    if #files == 1 then
+        return M.edit(files[1])
+    end
+    return pick_one(files)
+end
+
+
 function M.edit_current(on_done)
     local files = collect_selected_files()
 
@@ -380,7 +408,7 @@ function M.init(plugin_ref)
         fm._quickui_metadata_row_registered = true
 
         fm:addFileDialogButtons("quickui_metadata_edit",
-            function(file, is_file, _book_props)
+            function(file, is_file, _book_props, close_cb)
                 if not is_file then return nil end
                 if not getBool("metadata_enabled") then return nil end
 
@@ -391,7 +419,12 @@ function M.init(plugin_ref)
                         text = _("Edit metadata"),
                         enabled = not busy,
                         callback = function()
-                            if fm.file_chooser and fm.file_chooser.file_dialog then
+                            if close_cb then
+                                -- SimpleUI's BookHoldDialog passes its own
+                                -- close_cb as the 4th arg.
+                                close_cb()
+                            elseif fm.file_chooser and fm.file_chooser.file_dialog then
+                                -- Native FileManager dialog: close it directly.
                                 UIManager:close(fm.file_chooser.file_dialog)
                                 fm.file_chooser.file_dialog = nil
                             end
@@ -434,6 +467,53 @@ function M.init(plugin_ref)
         ReaderMenu.setUpdateItemTable = function(self, ...)
             orig(self, ...)
             inject_into_menu(self)
+        end
+    end
+    
+    -- ------------------------------------------------------------
+    -- Multi-select long-press menu (selected_files mode)
+    -- FileManager:onShowPlusMenu() builds its buttons from
+    -- FileManager:getPlusDialogButtons(). Patch that to append our
+    -- "Edit metadata" row when at least one file is selected.
+    -- ------------------------------------------------------------
+    local FileManager = require("apps/filemanager/filemanager")
+    if not FileManager._quickui_metadata_plus_patched then
+        FileManager._quickui_metadata_plus_patched = true
+        local orig_getPlusDialogButtons = FileManager.getPlusDialogButtons
+        FileManager.getPlusDialogButtons = function(self, ...)
+            local title, buttons = orig_getPlusDialogButtons(self, ...)
+            if not getBool("metadata_enabled") then
+                return title, buttons
+            end
+            if not self.selected_files then
+                return title, buttons
+            end
+
+            local editable = {}
+            local lfs = require("libs/libkoreader-lfs")
+            for file, selected in pairs(self.selected_files) do
+                if selected and lfs.attributes(file, "mode") == "file" then
+                    if not is_current_reader_file(file) then
+                        editable[#editable + 1] = file
+                    end
+                end
+            end
+
+            if #editable == 0 then
+                return title, buttons
+            end
+
+            local row = {{
+                text = _("Edit metadata") .. " (" .. #editable .. ")",
+                callback = function()
+                    UIManager:close(self.plus_dialog)
+                    UIManager:nextTick(function()
+                        M.edit_selected(editable)
+                    end)
+                end,
+            }}
+            table.insert(buttons, 7, row)
+            return title, buttons
         end
     end
 end
