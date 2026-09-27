@@ -2108,5 +2108,11 @@ msgstr "在线查找元数据"
 msgid "QuickUI_EditMetadata"
 msgstr "QuickUI-编辑元数据"
 
+msgid "Searching "
+msgstr "正在搜索 "
+
+msgid "Edit which book? (%d selected)"
+msgstr "编辑哪本书？（已选 %d 本）"
+
 msgid "No book selected.\n\nLong-press a book and choose \"Edit metadata\", or enable selection mode and check exactly one book first."
 msgstr "未选中书籍。\n\n请长按一本书并选择「编辑元数据」，或先进入选择模式勾选一本书。"
