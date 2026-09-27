@@ -239,7 +239,7 @@ function M.edit_current(on_done)
         UIManager:show(InfoMessage:new{
             text = _("The selected book(s) are currently open in the reader.\n\n"
                 .. "Close them first, then try again."),
-            timeout = 4,
+            timeout = 2,
         })
         return
     end
@@ -250,7 +250,7 @@ function M.edit_current(on_done)
         UIManager:show(InfoMessage:new{
             text = _("This book is currently open in the reader.\n\n"
                 .. "Close it first, then edit its metadata."),
-            timeout = 4,
+            timeout = 2,
         })
         return
     end
@@ -259,7 +259,7 @@ function M.edit_current(on_done)
         text = _("No book selected.\n\nLong-press a book and choose "
             .. "\"Edit metadata\", or enable selection mode and check "
             .. "exactly one book first."),
-        timeout = 4,
+        timeout = 2,
     })
 end
 
