@@ -116,7 +116,7 @@ return {
     "Metadata: new module for editing book metadata (title, authors, series, genres, language, publisher, description)",
     "Metadata: embedded EPUB metadata read/write with OPF parsing and transactional recovery",
     "Metadata: non-EPUB books store metadata in a sidecar file",
-    "Metadata: long-press a book to open \"Edit metadata\" in FileManager, History, Collections, and FileSearcher",
+    "Metadata: long-press a book to open \"Edit metadata\" in FileManager",
     "Metadata: online metadata sources — Douban, Google Books, Hardcover, Open Library",
     "Metadata: provider picker with per-provider API key configuration, editable search query, and paged result preview",
     "Metadata: apply results field-by-field; manually edited fields are preserved",
