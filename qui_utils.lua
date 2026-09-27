@@ -19,7 +19,7 @@ local Utils = {}
 local DEFAULT_SETTINGS = {
     -- Panel Settings
     qa_panel_enabled = true,
-    qa_panel_slots = {"wifi", "night", "rotate", "screenshot", "filebrowserplus","restart", "search", "quickui_settings", "qa_add_panel_button", "qa_new"},
+     qa_panel_slots = {"wifi", "night", "rotate", "screenshot","filebrowserplus", "restart", "search", "quickui_settings", "edit_metadata",  "qa_add_panel_button", "qa_new"},
     qa_panel_shape = "round",
     qa_panel_bg = "flat",
     qa_panel_labels = true,
@@ -76,7 +76,7 @@ local DEFAULT_SETTINGS = {
     -- Vertical Bar Settings
     qa_vb_enabled = true,
     qa_vb_side = "right",
-    qa_vb_slots = {"qa_settings","system_icon_override", "ui_font_switch", "QuickUI_CoverSettings", "bookshelf_toggle", "Sui-toggle", "continue", "annotations_viewer","artgallery_show",  "fontlist", "reader_sliders", "QuickUI_HFSettings", "toggle_cloze_mode", "fingerink_bar", "toggle_side_toc", "reading_insights", "rssreader_open", "zlibrary_search", "fanqie_shelf_or_toc", "fanqie_search","weread_bookshelf", "weread_search", "weread_fetch_underlines",  "weread_quick_menu", "Sui-settings", "Sui-author", "Sui-series", "Sui-tags",  "koassistant_quick_actions", "koassistant_ai_settings", "storefront_open", "qa_add_vb_button"},
+    qa_vb_slots = {"qa_settings","system_icon_override", "ui_font_switch", "QuickUI_CoverSettings", "edit_metadata", "bookshelf_toggle", "Sui-toggle", "continue", "annotations_viewer","artgallery_show",  "fontlist", "reader_sliders", "QuickUI_HFSettings", "toggle_cloze_mode", "fingerink_bar", "toggle_side_toc", "reading_insights", "rssreader_open", "zlibrary_search", "fanqie_shelf_or_toc", "fanqie_search","weread_bookshelf", "weread_search", "weread_fetch_underlines",  "weread_quick_menu", "Sui-settings", "Sui-author", "Sui-series", "Sui-tags",  "koassistant_quick_actions", "koassistant_ai_settings", "storefront_open", "qa_add_vb_button"},
     qa_vb_labels = true,
     qa_vb_size_pct = 100,
     qa_vb_icon_scale_pct = 100,
