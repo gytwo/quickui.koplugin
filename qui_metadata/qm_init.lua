@@ -73,15 +73,60 @@ local function is_current_reader_file(file)
     return a == b
 end
 
+local function find_bookshelf_widget()
+    local stack = UIManager._window_stack
+    if not stack then return nil end
+    for _i, entry in ipairs(stack) do
+        local widget = entry.widget
+        if widget and widget.name == "bookshelf" then
+            return widget
+        end
+    end
+    return nil
+end
+
+local function bookshelf_selected_files()
+    local widget = find_bookshelf_widget()
+    if not widget or not widget._selection then return nil end
+    if not UIManager:isWidgetShown(widget) then return nil end
+    if not widget._selection:isActive() then return nil end
+    return widget._selection:paths()
+end
+
+local function bookshelf_exit_selection()
+    local widget = find_bookshelf_widget()
+    if not widget or not widget._selection then return end
+    if widget._selection:isActive() then
+        widget._selection:exitMode()
+        if widget._rebuild then widget:_rebuild() end
+        UIManager:setDirty(widget, "ui")
+    end
+end
+
 -- ============================================================
 -- Selected files (mirrors book_sync.lua's read of fm.selected_files)
 -- ============================================================
 
 local function collect_selected_files()
+    local result = {}
     local lfs = require("libs/libkoreader-lfs")
+
+    -- Bookshelf selection mode takes priority: if the Bookshelf widget
+    -- is on top and in selection mode, that's what the user means.
+    local bs_files = bookshelf_selected_files()
+    if bs_files and #bs_files > 0 then
+        for _i, fp in ipairs(bs_files) do
+            if lfs.attributes(fp, "mode") == "file" then
+                result[#result + 1] = fp
+            end
+        end
+        table.sort(result)
+        return result
+    end
+
+    -- FileManager selection mode.
     local FM = require("apps/filemanager/filemanager")
     local fm = FM and FM.instance
-    local result = {}
     if fm and type(fm.selected_files) == "table" then
         for file, selected in pairs(fm.selected_files) do
             if selected and lfs.attributes(file, "mode") == "file" then
@@ -89,7 +134,7 @@ local function collect_selected_files()
             end
         end
     end
-    -- pairs order is not deterministic; sort for a stable picker list.
+
     table.sort(result)
     return result
 end
@@ -227,10 +272,20 @@ function M.edit_current(on_done)
         end
     end
 
-    -- Exit selection mode before opening the editor (mirrors
-    -- edit_selected). collect_selected_files() has already copied the
-    -- paths into `files`, so clearing fm.selected_files here is safe.
+    -- Exit selection mode before opening the editor: Bookshelf's own
+    -- selection if it's the active one, otherwise FileManager's. Mirrors
+    -- the two paths collect_selected_files() can have read from.
     if #files > 0 then
+        -- Bookshelf selection mode.
+        local bs_widget = find_bookshelf_widget()
+        if bs_widget and bs_widget._selection
+                and bs_widget._selection:isActive() then
+            bs_widget._selection:exitMode()
+            if bs_widget._rebuild then bs_widget:_rebuild() end
+            UIManager:setDirty(bs_widget, "ui")
+        end
+
+        -- FileManager selection mode.
         local FM = require("apps/filemanager/filemanager")
         local fm = FM and FM.instance
         if fm and fm.selected_files then
