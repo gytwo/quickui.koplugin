@@ -1,9 +1,6 @@
-[![Release](https://github.com/gytwo/gitee-sync/actions/workflows/release.yml/badge.svg)](https://github.com/gytwo/gitee-sync/actions/workflows/release.yml)
-[![Sync from Gitee to GitHub](https://github.com/gytwo/gitee-sync/actions/workflows/gitee-sync.yml/badge.svg)](https://github.com/gytwo/gitee-sync/actions/workflows/gitee-sync.yml)
-
 # QuickUI - KOReader Enhancement Plugin
 
-> **QuickUI: Quick Actions, Cover Visuals, Cloze Mode, Header & Footer — more efficient KOReader.**
+> **QuickUI: Quick Actions · Cover Visuals · Cloze Mode · Header & Footer · Metadata Editor — more efficient KOReader.**
 
 > **Author**: gytwo | **License**: AGPL-3.0 | **Compatible**: KOReader ≥ v2026.03
 
@@ -11,19 +8,21 @@
 
 ## 📖 Overview
 
-QuickUI is a comprehensive KOReader enhancement plugin that integrates **four core features** to make your reading experience smoother and more efficient:
+QuickUI is a comprehensive KOReader enhancement plugin that integrates **five core features** to make your reading experience smoother and more efficient:
 
 | Feature | Description |
 | :--- | :--- |
-| ⚡ **Quick Actions** | Customizable action center: panel, bottom bar, custom actions, icon picker, UI font switcher, and more |
+| ⚡ **Quick Actions** | Customizable action center: panel, bottom bar, vertical bar, custom actions, icon picker, UI font switcher, and more |
 | 🎨 **Cover Visual Enhancements** | Placeholder covers, badges, rounded corners, unified aspect ratio, folder previews |
-| 🎭 **Cloze Mode** | Annotation masking for review and self-testing (highlights, underlines, strikeouts) |
+| 🔍 **Cloze Mode** | Annotation masking for review and self-testing (highlights, underlines, strikeouts) |
 | 📐 **Header & Footer** | Display time, page numbers, progress, chapter info, battery status at top/bottom of reading screen |
+| 📖 **Metadata Editor** | Edit book metadata (title, authors, series, etc.) manually or via online sources |
 
 > 💡 **Inspiration**:
 - [shortcutstoolbar.koplugin](https://github.com/xusoo/shortcutstoolbar.koplugin)
 - [simpleui.koplugin](https://github.com/doctorhetfield-cmd/simpleui.koplugin)
-- [zen_ui.koplugin](https://github.com/AnthonyGress/zen_ui.koplugin)
+- [zenos.koplugin](https://github.com/xZenLabs/zen-os)
+- [metadata.koplugin](https://github.com/ZHA30/metadata.koplugin) (metadata editor reference)
 - [kopatches repo](https://github.com/gytwo/kopatches)
 - [KOReader.patches](https://github.com/joshuacant/KOReader.patches)
 
@@ -116,6 +115,11 @@ A customizable action panel integrated into the top menu bar:
 | `QuickUI_CoverSettings` | Cover Settings | Filemanager | Cover visual settings |
 | `QuickUI_ClozeSettings` | Cloze Settings | Reader | Cloze mode settings |
 | `QuickUI_HFSettings` | Header/Footer Settings | Reader | Header/Footer settings |
+| `qa_vb_toggle` | Toggle Vertical Bar | Common | Show/hide the vertical bar |
+| `qa_vb_settings` | Vertical Bar Settings | Common | Open vertical bar settings |
+| `qa_add_vb_button` | Add Vertical Bar Button | Common | Add a button to the vertical bar |
+| `reader_sliders` | Reader Sliders | Reader | Open the full typesetting-slider popup |
+| `QuickUI_EditMetadata` | Edit Metadata | Filemanager | Edit the selected book's metadata |
 
 <table>
   <tr>
@@ -124,7 +128,7 @@ A customizable action panel integrated into the top menu bar:
   </tr>
 </table>
 
-#### 📌 1.2 Quick Actions Bottom Bar
+#### 📌 1.2 Bottom Bar
 
 A customizable navigation bar at the bottom of the screen:
 
@@ -150,17 +154,90 @@ A customizable navigation bar at the bottom of the screen:
   </tr>
 </table>
 
-#### 📌 1.3 Custom Actions
+#### 📌 1.3 Vertical Bar
+
+A launcher docked to the screen edge, shown as a vertical strip.
+
+**How to enable**:
+
+| Method | Action |
+| :--- | :--- |
+| **QuickUI Settings** | Tools → QuickUI → Quick Actions Settings → Vertical Bar → check "Enable Vertical Bar" |
+| **Dispatcher action** | Bind `QuickUI_VerticalBarToggle` to a gesture / shortcut; each activation toggles show/hide |
+| **Quick panel button** | Add `qa_vb_toggle` ("Toggle Vertical Bar") to the panel or bottom bar |
+| **Action pool** | Add `qa_vb_settings` (open settings) or `qa_add_vb_button` (add button) to the panel |
+
+**Interaction**:
+
+- **Drag**: swipe horizontally to move the bar to the other screen edge
+- **Tap button**: run the action
+- **Long-press button**: edit that button
+- **Vertical swipe**: page through buttons (if "Swipe to page" is on)
+- **Tap outside**: dismiss
+
+**Settings**:
+
+| Setting | Options |
+| :--- | :--- |
+| **Enable/Disable** | Global toggle |
+| **Side** | Left / Right |
+| **Background** | White / Light gray / Transparent |
+| **Animation** | Off / Fast / Medium / Slow |
+| **Swipe to page** | Vertical swipe to page through buttons |
+| **Button management** | Add / Remove / Reorder |
+| **Show labels** | Toggle |
+| **Bar size** | 60% ~ 150% (step 10%) |
+| **Icon size** | 50% ~ 200% (step 10%) |
+| **Label size** | 50% ~ 200% (step 10%) |
+| **Long-press action** | Edit button / Open settings |
+
+#### 📌 1.4 Reader Sliders
+
+Typesetting sliders for the reader.
+
+**How to enable**:
+
+| Method | Action |
+| :--- | :--- |
+| **Dispatcher action** | Bind `QuickUI_ReaderSliders` to a gesture / shortcut; opens the full popup |
+| **Action pool** | Add `reader_sliders` to the panel or vertical bar; tapping opens the popup |
+| **Embed in panel / vertical bar** | Enable individual slider toggles in the panel / vertical bar settings for inline sliders |
+
+**Interaction**:
+
+- **Drag slider**: adjust value
+- **Tap −/+ buttons**: step adjustment
+- **Tap value**: open SpinWidget for fine-tuning, can set as default
+- **Long-press label**: reset to default
+- **Long-press slider**: open the full slider list popup
+
+**Sliders**:
+
+| Slider | Description | Applies to |
+| :--- | :--- | :--- |
+| **Font size** | Body text size (12-90) | Reflowable (EPUB / FB2 / TXT) |
+| **Line spacing** | Line spacing percentage (50-200%) | Reflowable |
+| **Contrast** | Font gamma (10-56) | Reflowable / PDF |
+| **Left/right margins** | Horizontal page margins (0-140) | Reflowable |
+| **Top margin** | Top page margin (0-140) | Reflowable |
+| **Bottom margin** | Bottom page margin (0-140) | Reflowable |
+| **PDF contrast** | PDF rendering contrast (0.8-50) | PDF / DJVU |
+| **PDF zoom** | Zoom factor, overlap, rows/columns | PDF / DJVU |
+| **First-line indent** | Paragraph first-line indent mode | Reflowable |
+| **Paragraph spacing** | Spacing between paragraphs | Reflowable |
+| **CJK tailoring** | CJK typesetting optimization | Reflowable |
+
+#### 📌 1.5 Custom Actions
 
 Supports five types of custom actions:
 
 | Type | Description | Default View |
 | :--- | :--- | :--- |
-| 📁 **Folder** | Jump to a specific folder | Filemanager (changeable)  |
-| 📚 **Collection** | Open a specific collection | Filemanager (changeable)  |
-| 🔌 **Plugin/Patch** | Launch any plugin or menu patch | Common (changeable)  |
-| ⚙️ **System Action** | Call Dispatcher system actions | Auto-detected (changeable)  |
-| 📋 **Recorded Menu Action** | Record any menu item as a quick action | Auto-detected,locked (unchangeable) |
+| 📁 **Folder** | Jump to a specific folder | Filemanager (changeable) |
+| 📚 **Collection** | Open a specific collection | Filemanager (changeable) |
+| 🔌 **Plugin/Patch** | Launch any plugin or menu patch | Common (changeable) |
+| ⚙️ **System Action** | Call Dispatcher system actions | Auto-detected (changeable) |
+| 📋 **Recorded Menu Action** | Record any menu item as a quick action | Auto-detected, locked (unchangeable) |
 
 <table>
   <tr>
@@ -169,7 +246,7 @@ Supports five types of custom actions:
   </tr>
 </table>
 
-#### 📌 1.4 Icon Picker
+#### 📌 1.6 Icon Picker
 
 | Feature | Description |
 | :--- | :--- |
@@ -187,7 +264,7 @@ Supports five types of custom actions:
   </tr>
 </table>
 
-#### 📌 1.5 UI Font Switcher
+#### 📌 1.7 UI Font Switcher
 
 | Font Type | Default Font | Description |
 | :--- | :--- | :--- |
@@ -201,7 +278,7 @@ Supports five types of custom actions:
 
 <img src="pictures/Qui-settings-QA-uifontswitch.png" alt="Qui-settings-QA-uifontswitch" width="400" />
 
-#### 📌 1.6 Interface Filter
+#### 📌 1.8 Interface Filter
 
 | Feature | Description |
 | :--- | :--- |
@@ -232,7 +309,7 @@ Supports five types of custom actions:
 
 ---
 
-### 3. 🎭 Cloze Mode
+### 3. 🔍 Cloze Mode
 
 | Feature | Description |
 | :--- | :--- |
@@ -262,13 +339,94 @@ Supports five types of custom actions:
 
 ---
 
+### 5. 📖 Metadata Editor
+
+Edit book metadata (title, authors, series, genres, language, publisher, description), either manually or by searching online sources.
+
+#### Editable fields
+
+| Field | Notes |
+| :--- | :--- |
+| **Title** | Book title |
+| **Authors** | Multiple authors, one per line |
+| **Series** | Series name + position |
+| **Genres** | Multiple genres, one per line |
+| **Language** | ISO code, e.g. `zh`, `en`, `ja` |
+| **Publisher** | Publisher name (EPUB only) |
+| **Description** | Book description, multi-paragraph |
+
+#### How to edit
+
+**Manually**: tap any field row and edit in the popup input. Edited fields are marked with `●`.
+
+**Online search**: tap "Find metadata online", edit the query, pick a source (Douban, Google Books, Hardcover, Open Library), search. Preview each result, then tap "Apply". **Manually edited fields are never overwritten.**
+
+- Douban and Open Library work without configuration
+- Google Books needs an API key, Hardcover needs an API token — tapping one without a key prompts for input, then searches automatically
+- Unconfigured sources are labelled `(API key required)`
+
+#### How changes are applied
+
+**EPUB**: the embedded OPF metadata is edited and the file is repacked. Before replacement, a backup is created:
+
+| File | Purpose |
+| :--- | :--- |
+| `book.epub.quickui-metadata.bak` | Original EPUB before the edit |
+| `book.epub.quickui-metadata.bak.json` | Sidecar snapshot |
+
+As long as both files exist, the editor shows "Restore original metadata" — a one-step undo. **Delete both files if you no longer need to undo** (the book itself is unaffected; the next edit will create a fresh backup).
+
+**Non-EPUB (PDF, MOBI, AZW3, FB2, TXT, etc.)**: the original file is not modified. Custom metadata is written to the book's `.sdr/` folder:
+```
+book.sdr/
+└── custom_metadata.lua
+```
+
+This metadata is KOReader-only and does not travel with the file to other readers. Delete the custom metadata to revert.
+
+#### How to open
+
+**Option 1: Long-press a book**
+- In FileManager, History, Collections, or FileSearcher, **long-press a book** → "Edit metadata"
+- The entry is greyed out if the book is currently open in the reader
+
+**Option 2: QuickUI Settings**
+- Tools → QuickUI → **Metadata Settings** → "Edit current book's metadata"
+- If one book is checked, opens it directly; if multiple are checked, shows a picker; if none, prompts to select a book first
+
+**Option 3: Dispatcher action**
+- Action name: `QuickUI_EditMetadata`
+- Bind it to a gesture in **Gestures**, or to a shortcut in **Dispatcher**
+- It edits the currently selected book in the file manager
+
+**Option 4: Quick panel / vertical bar**
+- Add `QuickUI_EditMetadata` ("Edit Metadata") from the action pool
+- Tapping it edits the currently selected book
+
+> ⚠️ **A book currently open in the reader cannot have its metadata edited.** Close it first.
+
+#### Credits
+
+The metadata read/write logic in this module is adapted from-[zenos.koplugin](https://github.com/xZenLabs/zen-os)(MIT).
+
+The online source scrapers reference [metadata.koplugin](https://github.com/ZHA30/metadata.koplugin).
+
+Vendored libraries:
+
+- **SLAXML / SLAXDOM** (v0.8, MIT, Copyright © 2013-2018 Gavin Kistner) — XML parsing
+- **ca-bundle.crt** (certifi 2026.6.17, MPL-2.0) — HTTPS certificate validation
+
+See [`LICENSES.md`](LICENSES.md) for details.
+
+---
+
 ## 💡 Lightweight Alternative: Standalone Patches
 
 If QuickUI feels too feature-rich or you only need one specific function, here are two flexible alternatives:
 
 ### Option 1: Disable Modules in QuickUI
 
-You can independently enable/disable the four feature modules in QuickUI's settings menu:
+You can independently enable/disable each feature module in QuickUI's settings menu:
 
 | Feature | Settings Entry | Description |
 | :--- | :--- | :--- |
@@ -276,6 +434,7 @@ You can independently enable/disable the four feature modules in QuickUI's setti
 | **Cover Visual Enhancements** | `Tools → QuickUI` | Uncheck **"Enable Cover"** |
 | **Cloze Mode** | `Tools → QuickUI` | Uncheck **"Enable Cloze Mode"** |
 | **Header & Footer** | `Tools → QuickUI` | Uncheck **"Enable Header & Footer"** |
+| **Metadata Editor** | `Tools → QuickUI` | Uncheck **"Enable Metadata Editor"** |
 
 > Disabling a module requires a **KOReader restart** to take effect.
 
@@ -283,11 +442,9 @@ You can independently enable/disable the four feature modules in QuickUI's setti
 
 If you prefer a lighter, single-function experience, you can use these standalone patches. They contain only one feature each, with leaner code and no plugin management overhead.
 
-These patches are by the same author as QuickUI and share the same functionality:
-
 | Module | Patch File | Description | Source |
 | :--- | :--- | :--- | :--- |
-| **Quick Actions** | `2-quickactions.lua` | Customizable quick action panel (same as QuickUI's panel) | [kopatches repo](https://github.com/gytwo/kopatches) |
+| **Quick Actions** | `2-quickactions.lua` | Customizable quick action panel | [kopatches repo](https://github.com/gytwo/kopatches) |
 | **Cover Visual Enhancements** | `2-fm-cover.lua` | Comprehensive cover and folder cover visual overhaul | [kopatches repo](https://github.com/gytwo/kopatches) |
 | **Cloze Mode** | `2-reader-clozemode.lua` | Annotation masking for review and self-testing | [kopatches repo](https://github.com/gytwo/kopatches) |
 
@@ -297,17 +454,7 @@ These patches are by the same author as QuickUI and share the same functionality
 2. Place it in KOReader's `patches` folder (typically `koreader/patches/`).
 3. Restart KOReader.
 
-> To uninstall: simply delete the `.lua` file. Optionally delete any auto-generated config files.
-
-#### How to Choose?
-
-| Scenario | Recommendation |
-| :--- | :--- |
-| Want **integrated management** of all features, like All-in-One | Use **QuickUI plugin** and disable modules as needed |
-| Only interested in **one specific feature**, prefer minimalism | Use the corresponding **standalone patch** |
-| Want to try out a feature | Try the standalone patch first, then migrate to QuickUI if desired |
-
-> 💡 **Tip**: QuickUI and standalone patches should **not be installed together**, as they may conflict. Choose one based on your needs.
+> To uninstall: simply delete the `.lua` file.
 
 ---
 
@@ -328,6 +475,11 @@ These patches are by the same author as QuickUI and share the same functionality
 | Toggle Bottom Bar | `QuickUI_BottombarToggle` | General |
 | Bottom Bar Settings | `QuickUI_BottombarSettings` | General |
 | Add Bottom Bar Tab | `QuickUI_AddBottomBarTab` | General |
+| Toggle Vertical Bar | `QuickUI_VerticalBarToggle` | General |
+| Vertical Bar Settings | `QuickUI_VerticalBarSettings` | General |
+| Add Vertical Bar Button | `QuickUI_AddVerticalBarButton` | General |
+| Reader Sliders | `QuickUI_ReaderSliders` | Reader |
+| Edit Metadata | `QuickUI_EditMetadata` | Filemanager |
 
 ---
 
@@ -339,51 +491,48 @@ quickui.koplugin/
 ├── main.lua
 ├── README.md
 ├── README.zh_CN.md
+├── LICENSES.md
 │
 ├── locales/
-│   └── zh_CN.po
+│ └── zh_CN.po
 │
 ├── qui_actions/
-│   ├── qa_actions.lua
-│   ├── qa_bottombar.lua
-│   ├── qa_icon_picker.lua
-│   ├── qa_init.lua
-│   ├── qa_menu_recorder.lua
-│   ├── qa_panel.lua
-│   ├── qa_plugin_scan.lua
-│   ├── qa_settings.lua
-│   └── qa_uifont.lua
+│ ├── qa_actions.lua # Action registry (built-in + custom) and execution
+│ ├── qa_bar_settings.lua # Panel / bottom bar / vertical bar editors and settings
+│ ├── qa_bottombar.lua # Bottom navigation bar builder
+│ ├── qa_icon_picker.lua # Icon picker (Nerd Font + SVG/PNG)
+│ ├── qa_init.lua # Quick Actions module entry
+│ ├── qa_menu_recorder.lua # Menu action recorder
+│ ├── qa_panel.lua # Quick panel builder
+│ ├── qa_plugin_scan.lua # Plugin scanner
+│ ├── qa_reader_sliders.lua # Reader typesetting sliders (font/line spacing/margins/PDF zoom)
+│ ├── qa_settings.lua # Quick Actions settings menu
+│ ├── qa_uifont.lua # UI font switcher
+│ └── qa_vertical_bar.lua # Vertical bar builder
 │
-├── qui_cover.lua
-├── qui_clozemode.lua
-├── qui_header_footer.lua
-├── qui_i18n.lua
-├── qui_updates.lua
-└── qui_utils.lua
+├── qui_metadata/
+│ ├── qm_init.lua # Metadata module entry
+│ ├── qm_editor.lua # Field editor UI
+│ ├── qm_service.lua # Metadata read/write orchestration (EPUB / sidecar)
+│ ├── qm_epub.lua # EPUB OPF parsing, repacking, transaction recovery
+│ ├── qm_http.lua # Unified HTTP / HTTPS layer
+│ ├── qm_isbn.lua # ISBN validation
+│ ├── qm_google_books.lua # Google Books source
+│ ├── qm_hardcover.lua # Hardcover source
+│ ├── qm_open_library.lua # Open Library source
+│ ├── qm_douban.lua # Douban source (HTML scraping)
+│ ├── qm_provider_picker.lua # Provider picker / search / result preview
+│ ├── qm_slaxml.lua # SLAXML v0.8 (XML parsing)
+│ ├── qm_slaxdom.lua # SLAXML DOM wrapper
+│ └── ca-bundle.crt # certifi root certificate bundle
+│
+├── qui_cover.lua # Cover visual enhancements
+├── qui_clozemode.lua # Cloze mode
+├── qui_header_footer.lua # Header & footer
+├── qui_i18n.lua # i18n loader
+├── qui_updates.lua # Update checker
+└── qui_utils.lua # Common utilities
 ```
-| File | Purpose |
-| :--- | :--- |
-| `_meta.lua` | Plugin metadata (name, version, author) |
-| `changelog.lua` | Version history and update notes |
-| `main.lua` | Main entry point, registers Dispatcher actions, builds main menu |
-| `README.md` | English documentation |
-| `README.zh_CN.md` | Chinese documentation |
-| `locales/zh_CN.po` | Simplified Chinese translation |
-| `qui_actions/qa_actions.lua` | Action registry (built-in + custom) and execution logic |
-| `qui_actions/qa_bottombar.lua` | Bottom navigation bar builder |
-| `qui_actions/qa_icon_picker.lua` | Icon picker (Nerd Font + SVG/PNG) |
-| `qui_actions/qa_init.lua` | Quick Actions module entry point |
-| `qui_actions/qa_menu_recorder.lua` | Menu action recorder (for custom actions) |
-| `qui_actions/qa_panel.lua` | Quick panel builder |
-| `qui_actions/qa_plugin_scan.lua` | Plugin scanner |
-| `qui_actions/qa_settings.lua` | Quick Actions settings menu |
-| `qui_actions/qa_uifont.lua` | UI font switcher |
-| `qui_cover.lua` | Cover Visual Enhancements module |
-| `qui_clozemode.lua` | Cloze Mode module |
-| `qui_header_footer.lua` | Header & Footer module |
-| `qui_i18n.lua` | Internationalization loader (loads .po files) |
-| `qui_updates.lua` | Update checker (GitHub / Gitee) |
-| `qui_utils.lua` | Common utilities (config, serialization, fonts, colors) |
 
 ---
 
@@ -397,10 +546,12 @@ Default settings are defined in `DEFAULT_SETTINGS` in `qui_utils.lua`:
 | :--- | :--- | :--- |
 | Panel | `qa_panel_*` | Panel enable, button layout, shape, size, labels, sliders |
 | Bottom Bar | `qa_bb_*` | Bottom bar enable, mode, style, size, colors, labels |
+| Vertical Bar | `qa_vb_*` | Vertical bar enable, side, style, size, labels |
 | Quick Actions Common | `qa_common_*` | Custom actions, interface filter, icon overrides, UI font overrides |
 | Cover | `cover_*` | Cover style, badges, aspect ratio, rounded corners, folder mode |
 | Cloze | `cl_*` | Cloze enable, toggle mode, maskable styles |
 | Header/Footer | `hf_*` | Header/Footer enable, content, font, padding, time format |
+| Metadata | `metadata_*` | Metadata module toggle, Google Books API key, Hardcover token |
 
 ### Preset Management
 
@@ -408,11 +559,12 @@ Each module supports **Save Preset**, **Apply Preset**, and **Reset to Default**
 
 | Preset Scope | Modules Included |
 | :--- | :--- |
-| All | Panel + Bottom Bar + Quick Actions Common + Cover + Cloze + Header/Footer |
-| QA | Panel + Bottom Bar + Quick Actions Common |
+| All | Panel + Bottom Bar + Vertical Bar + Quick Actions Common + Cover + Cloze + Header/Footer + Metadata |
+| QA | Panel + Bottom Bar + Vertical Bar + Quick Actions Common |
 | Cover | Cover settings only |
 | Cloze | Cloze settings only |
 | Header/Footer | Header/Footer settings only |
+| Metadata | Metadata settings only |
 
 ---
 

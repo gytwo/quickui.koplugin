@@ -19,7 +19,7 @@ local Utils = {}
 local DEFAULT_SETTINGS = {
     -- Panel Settings
     qa_panel_enabled = true,
-    qa_panel_slots = {"wifi", "night", "rotate", "screenshot", "filebrowserplus","restart", "search", "quickui_settings", "qa_add_panel_button", "qa_new"},
+     qa_panel_slots = {"wifi", "night", "rotate", "screenshot","filebrowserplus", "restart", "search", "quickui_settings", "edit_metadata",  "qa_add_panel_button", "qa_new"},
     qa_panel_shape = "round",
     qa_panel_bg = "flat",
     qa_panel_labels = true,
@@ -76,7 +76,7 @@ local DEFAULT_SETTINGS = {
     -- Vertical Bar Settings
     qa_vb_enabled = true,
     qa_vb_side = "right",
-    qa_vb_slots = {"qa_settings","system_icon_override", "ui_font_switch", "QuickUI_CoverSettings", "bookshelf_toggle", "Sui-toggle", "continue", "annotations_viewer","artgallery_show",  "fontlist", "reader_sliders", "QuickUI_HFSettings", "toggle_cloze_mode", "fingerink_bar", "toggle_side_toc", "reading_insights", "rssreader_open", "zlibrary_search", "fanqie_shelf_or_toc", "fanqie_search","weread_bookshelf", "weread_search", "weread_fetch_underlines",  "weread_quick_menu", "Sui-settings", "Sui-author", "Sui-series", "Sui-tags",  "koassistant_quick_actions", "koassistant_ai_settings", "storefront_open", "qa_add_vb_button"},
+    qa_vb_slots = {"qa_settings","system_icon_override", "ui_font_switch", "QuickUI_CoverSettings", "edit_metadata", "bookshelf_toggle", "Sui-toggle", "continue", "annotations_viewer","artgallery_show",  "fontlist", "reader_sliders", "QuickUI_HFSettings", "toggle_cloze_mode", "fingerink_bar", "toggle_side_toc", "reading_insights", "rssreader_open", "zlibrary_search", "fanqie_shelf_or_toc", "fanqie_search","weread_bookshelf", "weread_search", "weread_fetch_underlines",  "weread_quick_menu", "Sui-settings", "Sui-author", "Sui-series", "Sui-tags",  "koassistant_quick_actions", "koassistant_ai_settings", "storefront_open", "qa_add_vb_button"},
     qa_vb_labels = true,
     qa_vb_size_pct = 100,
     qa_vb_icon_scale_pct = 100,
@@ -144,6 +144,11 @@ local DEFAULT_SETTINGS = {
     hf_right_offset = 0,
     hf_time_format = "24h",
     hf_progress_decimals = 2,
+
+    -- Metadata
+    metadata_enabled = true,
+    metadata_google_books_key = "",
+    metadata_hardcover_token = "",
 }
 
 -- ============================================================
@@ -361,6 +366,11 @@ function Utils.getDefaultKeys(module_key)
             "hf_left_offset", "hf_right_offset",
             "hf_time_format", "hf_progress_decimals",
         },
+        metadata = {
+            "metadata_enabled",
+            "metadata_google_books_key",
+            "metadata_hardcover_token",
+        },
     }
     return keys[module_key] or {}
 end
@@ -537,7 +547,7 @@ function Utils.buildDefaultMenuItems(module_keys, refresh_callback)
         suffix = " (" .. module_keys[1] .. ")"
     else
         local qa_modules = {qa_common=true, qa_panel=true, qa_bb=true, qa_vb=true}
-        local all_modules = {qa_common=true, qa_panel=true, qa_bb=true, qa_vb=true, cover=true, cloze=true, hf=true}
+        local all_modules = {qa_common=true, qa_panel=true, qa_bb=true, qa_vb=true, cover=true, cloze=true, hf=true, metadata=true}
 
         local is_qa = true
         local is_all = true
@@ -550,7 +560,7 @@ function Utils.buildDefaultMenuItems(module_keys, refresh_callback)
             end
         end
 
-        if is_all and n == 7 then
+        if is_all and n == 8 then
             suffix = " (All)"
         elseif is_qa and n == 4 then
             suffix = " (QA)"

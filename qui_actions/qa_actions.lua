@@ -2164,6 +2164,29 @@ function QA.registerAllActions()
             end
         end)
     end
+    
+    -- ============================================================
+    -- Metadata actions (metadata_enabled)
+    -- ============================================================
+    if config and config.metadata_enabled then
+        QA.registerAction(
+            "edit_metadata",
+            _("Edit Metadata"),
+            "nerd:EDBA",
+            false,
+            "filemanager",
+            function(ctx)
+                closeTouchMenu(ctx)
+                local metadata = require("qui_metadata.qm_init")
+                metadata.edit_current(function()
+                    local fm = require("apps/filemanager/filemanager").instance
+                    if fm and fm.file_chooser then
+                        fm.file_chooser:updateItems()
+                    end
+                end)
+            end
+        )
+    end
 end
 
 -- ============================================================
