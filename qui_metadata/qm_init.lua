@@ -227,6 +227,25 @@ function M.edit_current(on_done)
         end
     end
 
+    -- Exit selection mode before opening the editor (mirrors
+    -- edit_selected). collect_selected_files() has already copied the
+    -- paths into `files`, so clearing fm.selected_files here is safe.
+    if #files > 0 then
+        local FM = require("apps/filemanager/filemanager")
+        local fm = FM and FM.instance
+        if fm and fm.selected_files then
+            if fm.file_chooser and fm.file_chooser.item_table then
+                for _i, item in ipairs(fm.file_chooser.item_table) do
+                    if item.is_file then
+                        item.dim = nil
+                    end
+                end
+                fm.file_chooser:updateItems(1, true)
+            end
+            fm:onToggleSelectMode(true)
+        end
+    end
+
     if #available == 1 then
         return M.edit(available[1], on_done)
     end
