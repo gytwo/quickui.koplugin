@@ -350,12 +350,14 @@ Edit book metadata (title, authors, series, genres, language, publisher, descrip
 
 | Field | Notes |
 | :--- | :--- |
+| **cover** | custom cover |
 | **Title** | Book title |
 | **Authors** | Multiple authors, one per line |
 | **Series** | Series name + position |
 | **Genres** | Multiple genres, one per line |
 | **Language** | ISO code, e.g. `zh`, `en`, `ja` |
-| **Publisher** | Publisher name (EPUB only) |
+| **Publisher** | Publisher name |
+| **Publishetime** | Publisher time |
 | **Description** | Book description, multi-paragraph |
 
 #### How to edit
