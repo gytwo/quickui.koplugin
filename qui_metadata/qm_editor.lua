@@ -24,10 +24,11 @@ local M = {}
 local EMPTY = _("Not set")
 
 local FIELD_ORDER = {
-    "title", "authors", "series", "genres", "language", "publisher", "pubdate", "description",
+    "cover", "title", "authors", "series", "genres", "language", "publisher", "pubdate", "description",
 }
 
 local FIELD_SPECS = {
+    cover       = { label = _("Cover") },
     title       = { label = _("Title") },
     authors     = { label = _("Authors"), list = true },
     series      = { label = _("Series") },
@@ -427,30 +428,46 @@ function Editor:show_menu()
 
     for _i, key in ipairs(FIELD_ORDER) do
         if key ~= "publisher" or self.is_epub then
-            local spec = FIELD_SPECS[key]
-            local value
-            if key == "series" then
-                value = series_text(self.draft)
-            elseif spec.list then
-                value = join_list(self.draft[key])
+            if key == "cover" then
+                -- Cover is not a text field: show whether one is set,
+                -- and route the tap to the cover editor.
+                local DocSettings = require("docsettings")
+                local cover = DocSettings:findCustomCoverFile(self.file)
+                local display = "  " .. FIELD_SPECS.cover.label .. ": "
+                    .. (cover and _("Set") or EMPTY)
+                table.insert(buttons, {{
+                    text = display,
+                    callback = function()
+                        self_ref:close()
+                        require("qui_metadata.qm_cover_editor").show(self_ref)
+                    end,
+                }})
             else
-                value = self.draft[key]
+                local spec = FIELD_SPECS[key]
+                local value
+                if key == "series" then
+                    value = series_text(self.draft)
+                elseif spec.list then
+                    value = join_list(self.draft[key])
+                else
+                    value = self.draft[key]
+                end
+                local dirty = field_changed(self.draft, self.original, key)
+                local prefix = dirty and "● " or "  "
+                local display = prefix .. spec.label .. ": " .. preview(value)
+                local _key = key
+                table.insert(buttons, {{
+                    text = display,
+                    callback = function()
+                        self_ref:close()
+                        if _key == "series" then
+                            self_ref:edit_series()
+                        else
+                            self_ref:edit_text_field(_key)
+                        end
+                    end,
+                }})
             end
-            local dirty = field_changed(self.draft, self.original, key)
-            local prefix = dirty and "\u{F044} " or "  "
-            local display = prefix .. spec.label .. ": " .. preview(value)
-            local _key = key
-            table.insert(buttons, {{
-                text = display,
-                callback = function()
-                    self_ref:close()
-                    if _key == "series" then
-                        self_ref:edit_series()
-                    else
-                        self_ref:edit_text_field(_key)
-                    end
-                end,
-            }})
         end
     end
 
