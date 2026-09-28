@@ -1812,6 +1812,63 @@ function Cover._patchMosaic()
         orig_update(self, ...)
 
         if (self.entry.is_file or self.entry.file) and filepath and not self.is_directory then
+            -- ★ 优先：自定义封面（.sdr/cover.jpg）
+            local DocSettings = require("docsettings")
+            local custom_cover = DocSettings:findCustomCoverFile(filepath)
+            if custom_cover then
+                local border = 1
+                local max_w = self.width - 2 * border
+                local title_visible = isTitleVisible()
+                local max_h
+                if title_visible then
+                    max_h = self.height - 2 * border - (self._quickui_strip_h or 0)
+                else
+                    max_h = self.height - 2 * border
+                end
+                local portrait_w, portrait_h = Cover.calcDims(max_w, max_h)
+                local ok_ri, RenderImage = pcall(require, "ui/renderimage")
+                if ok_ri then
+                    local ok_bb, cover_bb = pcall(RenderImage.renderImageFile, custom_cover, false)
+                    if ok_bb and cover_bb then
+                        local scaled = cover_bb:scale(portrait_w, portrait_h)
+                        local cover_frame = FrameContainer:new{
+                            padding = 0, bordersize = border,
+                            width = portrait_w + 2 * border,
+                            height = portrait_h + 2 * border,
+                            background = Blitbuffer.COLOR_LIGHT_GRAY,
+                            CenterContainer:new{
+                                dimen = { w = portrait_w, h = portrait_h },
+                                ImageWidget:new{
+                                    image = scaled,
+                                    image_disposable = true,
+                                    width = portrait_w,
+                                    height = portrait_h,
+                                },
+                            },
+                            overlap_align = "center",
+                        }
+                        local cover_widget = CenterContainer:new{
+                            dimen = Geom:new{ w = self.width, h = self.height },
+                            cover_frame,
+                        }
+                        if self._underline_container and self._underline_container[1] then
+                            self._underline_container[1] = cover_widget
+                            self._cover_frame = cover_frame
+                        end
+                        local BookList = require("ui/widget/booklist")
+                        local status = BookList.getBookStatus(filepath)
+                        if status then
+                            self.status = status
+                            local bi = BookList.getBookInfo(filepath)
+                            if bi then
+                                self.percent_finished = bi.percent_finished
+                            end
+                        end
+                        return
+                    end
+                end
+            end
+
             local ok, BookInfoManager = pcall(require, "bookinfomanager")
             if ok then
                 local success, bookinfo = pcall(function()
@@ -2448,50 +2505,85 @@ function Cover._patchList()
         end
 
         local cover_frame
-        if has_cover and not bookinfo.ignore_cover then
-            local scaled_bb = bookinfo.cover_bb:scale(target_w, target_h)
-            local wimage = ImageWidget:new{
-                image = scaled_bb,
-                image_disposable = true,
-                width = target_w,
-                height = target_h,
-            }
-            wimage:_render()
 
-            cover_frame = FrameContainer:new{
-                width = target_w + 2 * border,
-                height = target_h + 2 * border,
-                margin = 0,
-                padding = 0,
-                bordersize = border,
-                dim = self.entry and self.entry.dim, 
-                CenterContainer:new{
-                    dimen = { w = target_w, h = target_h },
-                    wimage,
-                },
-            }
-        else
-            local cover_bb = Cover.genCover(filepath, target_w, target_h)
-            local wimage = ImageWidget:new{
-                image = cover_bb,
-                width = target_w,
-                height = target_h,
-                _free_image = true,
-            }
-            wimage:_render()
+        -- ★ 优先：自定义封面
+        local DocSettings = require("docsettings")
+        local custom_cover = DocSettings:findCustomCoverFile(filepath)
+        if custom_cover then
+            local ok_ri, RenderImage = pcall(require, "ui/renderimage")
+            if ok_ri then
+                local ok_bb, cover_bb = pcall(RenderImage.renderImageFile, custom_cover, false)
+                if ok_bb and cover_bb then
+                    local scaled = cover_bb:scale(target_w, target_h)
+                    local wimage = ImageWidget:new{
+                        image = scaled,
+                        image_disposable = true,
+                        width = target_w,
+                        height = target_h,
+                    }
+                    wimage:_render()
+                    cover_frame = FrameContainer:new{
+                        width = target_w + 2 * border,
+                        height = target_h + 2 * border,
+                        margin = 0,
+                        padding = 0,
+                        bordersize = border,
+                        dim = self.entry and self.entry.dim,
+                        CenterContainer:new{
+                            dimen = { w = target_w, h = target_h },
+                            wimage,
+                        },
+                    }
+                end
+            end
+        end
 
-            cover_frame = FrameContainer:new{
-                width = target_w + 2 * border,
-                height = target_h + 2 * border,
-                margin = 0,
-                padding = 0,
-                bordersize = border,
-                dim = self.entry and self.entry.dim, 
-                CenterContainer:new{
-                    dimen = { w = target_w, h = target_h },
-                    wimage,
-                },
-            }
+        if not cover_frame then
+            if has_cover and not bookinfo.ignore_cover then
+                local scaled_bb = bookinfo.cover_bb:scale(target_w, target_h)
+                local wimage = ImageWidget:new{
+                    image = scaled_bb,
+                    image_disposable = true,
+                    width = target_w,
+                    height = target_h,
+                }
+                wimage:_render()
+
+                cover_frame = FrameContainer:new{
+                    width = target_w + 2 * border,
+                    height = target_h + 2 * border,
+                    margin = 0,
+                    padding = 0,
+                    bordersize = border,
+                    dim = self.entry and self.entry.dim, 
+                    CenterContainer:new{
+                        dimen = { w = target_w, h = target_h },
+                        wimage,
+                    },
+                }
+            else
+                local cover_bb = Cover.genCover(filepath, target_w, target_h)
+                local wimage = ImageWidget:new{
+                    image = cover_bb,
+                    width = target_w,
+                    height = target_h,
+                    _free_image = true,
+                }
+                wimage:_render()
+
+                cover_frame = FrameContainer:new{
+                    width = target_w + 2 * border,
+                    height = target_h + 2 * border,
+                    margin = 0,
+                    padding = 0,
+                    bordersize = border,
+                    dim = self.entry and self.entry.dim, 
+                    CenterContainer:new{
+                        dimen = { w = target_w, h = target_h },
+                        wimage,
+                    },
+                }
+            end
         end
 
         self._cover_frame = cover_frame
