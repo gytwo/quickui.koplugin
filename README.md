@@ -159,7 +159,14 @@ A customizable navigation bar at the bottom of the screen:
 
 #### 📌 1.3 Vertical Bar
 
-A launcher docked to the screen edge, shown as a vertical strip.
+> A launcher docked to the screen edge, shown as a vertical strip.
+
+<table>
+  <tr>
+    <td><img src="pictures/Qui-settings-QA-bottom.png" alt="Qui-settings-QA-bottom" width="400" /></td>
+    <td><img src="pictures/Qui-settings-QA-bottom-addtab.png" alt="Qui-settings-QA-bottom-addtab" width="400" /></td>
+  </tr>
+</table>
 
 **How to enable**:
 
@@ -196,7 +203,7 @@ A launcher docked to the screen edge, shown as a vertical strip.
 
 #### 📌 1.4 Reader Sliders
 
-Typesetting sliders for the reader.
+> Typesetting sliders for the reader.
 
 **How to enable**:
 
