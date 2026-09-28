@@ -2116,3 +2116,21 @@ msgstr "编辑哪本书？（已选 %d 本）"
 
 msgid "No book selected.\n\nLong-press a book and choose \"Edit metadata\", or enable selection mode and check exactly one book first."
 msgstr "未选中书籍。\n\n请长按一本书并选择「编辑元数据」，或先进入选择模式勾选一本书。"
+
+msgid "Published"
+msgstr "出版时间"
+
+msgid "Tags"
+msgstr "标签"
+
+msgid "Rating"
+msgstr "评分"
+
+msgid "Description"
+msgstr "简介"
+
+msgid "WeRead"
+msgstr "微信阅读"
+
+msgid "Enter one value per line."
+msgstr "每行一个值"
