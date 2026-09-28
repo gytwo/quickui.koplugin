@@ -505,6 +505,7 @@ function M.draft(work, edition)
         genres = copy_list(work.genres),
         language = trim(edition.language),
         publisher = trim(edition.publisher),
+        pubdate = work.release_year and tostring(work.release_year) or "",
         description = trim(work.description),
         isbn = trim(edition.isbn_13) ~= "" and trim(edition.isbn_13) or trim(edition.isbn_10),
     }
