@@ -37,6 +37,7 @@ local TEXT_FIELDS = {
     title = "title",
     language = "language",
     publisher = "publisher",
+    pubdate = "date",
     description = "description",
 }
 
@@ -914,6 +915,12 @@ local function metadata_from_dom(metadata)
         genres = genres,
         language = first_dc(metadata, "language") and node_text(first_dc(metadata, "language")) or nil,
         publisher = first_dc(metadata, "publisher") and node_text(first_dc(metadata, "publisher")) or nil,
+        pubdate = (function()
+            local raw = first_dc(metadata, "date") and node_text(first_dc(metadata, "date"))
+            if not raw then return nil end
+            -- 把 ISO 8601 截成 YYYY-MM-DD
+            return raw:match("^(%d%d%d%d%-%d%d%-%d%d)") or raw
+        end)(),
         description = first_dc(metadata, "description") and node_text(first_dc(metadata, "description")) or nil,
         isbn = read_isbn(metadata),
     }
@@ -993,7 +1000,12 @@ local function edit_opf(opf_xml, values, present)
             if values[key] == "" then
                 remove_dc(metadata, local_name)
             else
-                set_dc_text(metadata, local_name, prefix, values[key])
+                local value = values[key]
+                if key == "pubdate" then
+                    -- 规范成 YYYY-MM-DD，避免写入时被转成带时区的 ISO 格式
+                    value = value:match("^(%d%d%d%d%-%d%d%-%d%d)") or value
+                end
+                set_dc_text(metadata, local_name, prefix, value)
             end
         end
     end

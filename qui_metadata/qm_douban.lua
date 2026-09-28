@@ -557,6 +557,7 @@ function M.draft(work, edition)
         genres       = detail.keywords or {},
         language     = detail.language or "",
         publisher    = detail.publisher or "",
+        pubdate = detail.pubdate or "",
         description  = detail.description or "",
         isbn         = (detail.identifiers and detail.identifiers.isbn) or "",
     }
@@ -575,6 +576,15 @@ function M.fetch_work_detail(work)
     end
     work._detail = meta
     return work
+end
+
+function M.cover_url(work)
+    local d = work._douban
+    if not d then return nil end
+    if type(d.cover_urls) == "table" and d.cover_urls[1] then
+        return d.cover_urls[1].url
+    end
+    return d.cover_url
 end
 
 return M

@@ -24,16 +24,18 @@ local M = {}
 local EMPTY = _("Not set")
 
 local FIELD_ORDER = {
-    "title", "authors", "series", "genres", "language", "publisher", "description",
+    "cover", "title", "authors", "series", "genres", "language", "publisher", "pubdate", "description",
 }
 
 local FIELD_SPECS = {
+    cover       = { label = _("Cover") },
     title       = { label = _("Title") },
     authors     = { label = _("Authors"), list = true },
     series      = { label = _("Series") },
     genres      = { label = _("Genres"), list = true },
     language    = { label = _("Language") },
     publisher   = { label = _("Publisher") },
+    pubdate     = { label = _("Published") },
     description = { label = _("Description"), long = true },
 }
 
@@ -86,6 +88,7 @@ local function normalize_draft(value)
         genres       = normalize_list(value.genres or value.keywords),
         language     = trim(value.language),
         publisher    = trim(value.publisher),
+        pubdate      = trim(value.pubdate or value.publishTime),
         description  = trim(value.description),
         isbn         = trim(value.isbn),
     }
@@ -353,8 +356,10 @@ end
 function Editor:request_close(close_all)
     local self_ref = self
 
+    -- 先关掉当前编辑器对话框，避免叠加
+    self:close()
+
     if not is_metadata_dirty(self.draft, self.original, self.is_epub) then
-        self:close()
         if self.on_done then self.on_done(close_all == true) end
         return
     end
@@ -362,9 +367,11 @@ function Editor:request_close(close_all)
     UIManager:show(MultiConfirmBox:new{
         text = _("You have unsaved metadata changes."),
         cancel_text = _("Keep editing"),
+        cancel_callback = function()
+            UIManager:nextTick(function() self_ref:show_menu() end)
+        end,
         choice1_text = _("Discard"),
         choice1_callback = function()
-            self_ref:close()
             if self_ref.on_done then self_ref.on_done(close_all == true) end
         end,
         choice2_text = _("Save"),
@@ -421,30 +428,46 @@ function Editor:show_menu()
 
     for _i, key in ipairs(FIELD_ORDER) do
         if key ~= "publisher" or self.is_epub then
-            local spec = FIELD_SPECS[key]
-            local value
-            if key == "series" then
-                value = series_text(self.draft)
-            elseif spec.list then
-                value = join_list(self.draft[key])
+            if key == "cover" then
+                -- Cover is not a text field: show whether one is set,
+                -- and route the tap to the cover editor.
+                local DocSettings = require("docsettings")
+                local cover = DocSettings:findCustomCoverFile(self.file)
+                local display = "  " .. FIELD_SPECS.cover.label .. ": "
+                    .. (cover and _("Set") or EMPTY)
+                table.insert(buttons, {{
+                    text = display,
+                    callback = function()
+                        self_ref:close()
+                        require("qui_metadata.qm_cover_editor").show(self_ref)
+                    end,
+                }})
             else
-                value = self.draft[key]
+                local spec = FIELD_SPECS[key]
+                local value
+                if key == "series" then
+                    value = series_text(self.draft)
+                elseif spec.list then
+                    value = join_list(self.draft[key])
+                else
+                    value = self.draft[key]
+                end
+                local dirty = field_changed(self.draft, self.original, key)
+                local prefix = dirty and "● " or "  "
+                local display = prefix .. spec.label .. ": " .. preview(value)
+                local _key = key
+                table.insert(buttons, {{
+                    text = display,
+                    callback = function()
+                        self_ref:close()
+                        if _key == "series" then
+                            self_ref:edit_series()
+                        else
+                            self_ref:edit_text_field(_key)
+                        end
+                    end,
+                }})
             end
-            local dirty = field_changed(self.draft, self.original, key)
-            local prefix = dirty and "● " or "  "
-            local display = prefix .. spec.label .. ": " .. preview(value)
-            local _key = key
-            table.insert(buttons, {{
-                text = display,
-                callback = function()
-                    self_ref:close()
-                    if _key == "series" then
-                        self_ref:edit_series()
-                    else
-                        self_ref:edit_text_field(_key)
-                    end
-                end,
-            }})
         end
     end
 

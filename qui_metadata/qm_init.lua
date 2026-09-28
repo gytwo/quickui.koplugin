@@ -421,6 +421,18 @@ function M.getMenuItems()
         sub_item_table = {
             {
                 text_func = function()
+                    local v = getString("metadata_weread_key")
+                    local status = v ~= "" and _("configured") or _("not set")
+                    return _("WeRead") .. ": " .. status
+                end,
+                keep_menu_open = false,
+                callback = function()
+                    edit_key_dialog(_("WeRead API key"),
+                        "metadata_weread_key")
+                end,
+            },
+            {
+                text_func = function()
                     local v = getString("metadata_google_books_key")
                     local status = v ~= "" and _("configured") or _("not set")
                     return _("Google Books") .. ": " .. status

@@ -19,7 +19,7 @@ QuickUI is a comprehensive KOReader enhancement plugin that integrates **five co
 | 🎨 **Cover Visual Enhancements** | Placeholder covers, badges, rounded corners, unified aspect ratio, folder previews |
 | 🔍 **Cloze Mode** | Annotation masking for review and self-testing (highlights, underlines, strikeouts) |
 | 📐 **Header & Footer** | Display time, page numbers, progress, chapter info, battery status at top/bottom of reading screen |
-| 📖 **Metadata Editor** | Edit book metadata (title, authors, series, etc.) manually or via online sources |
+| 📖 **Metadata Editor** | Edit book metadata (cover、title, authors, series, etc.) manually or via online sources |
 
 > 💡 **Inspiration**:
 - [shortcutstoolbar.koplugin](https://github.com/xusoo/shortcutstoolbar.koplugin)
@@ -159,7 +159,15 @@ A customizable navigation bar at the bottom of the screen:
 
 #### 📌 1.3 Vertical Bar
 
-A launcher docked to the screen edge, shown as a vertical strip.
+> A launcher docked to the screen edge, shown as a vertical strip.
+
+<table>
+  <tr>
+    <td><img src="pictures/Qui_vb_simpleui.png" alt="Qui_vb_simpleui" width="400" /></td>
+    <td><img src="pictures/Qui_vb_bookshelf.png" alt="Qui_vb_bookshelf" width="400" /></td>
+    <td><img src="pictures/Qui_vb_reader.png" alt="Qui_vb_reader" width="400" /></td>
+  </tr>
+</table>
 
 **How to enable**:
 
@@ -196,7 +204,14 @@ A launcher docked to the screen edge, shown as a vertical strip.
 
 #### 📌 1.4 Reader Sliders
 
-Typesetting sliders for the reader.
+> Typesetting sliders for the reader.
+
+<table>
+  <tr>
+    <td><img src="pictures/Qui_reader_slider_panel.png" alt="Qui_reader_slider_panel.png" width="400" /></td>
+    <td><img src="pictures/Qui_reader_slider.png" alt="Qui_reader_slider" width="400" /></td>
+  </tr>
+</table>
 
 **How to enable**:
 
@@ -344,33 +359,42 @@ Supports five types of custom actions:
 
 ### 5. 📖 Metadata Editor
 
-Edit book metadata (title, authors, series, genres, language, publisher, description), either manually or by searching online sources.
+Edit book metadata (cover, title, authors, series, genres, language, publisher, description), either manually or by searching online sources.
 
 #### Editable fields
 
 | Field | Notes |
 | :--- | :--- |
+| **cover** | custom cover |
 | **Title** | Book title |
 | **Authors** | Multiple authors, one per line |
 | **Series** | Series name + position |
 | **Genres** | Multiple genres, one per line |
 | **Language** | ISO code, e.g. `zh`, `en`, `ja` |
-| **Publisher** | Publisher name (EPUB only) |
+| **Publisher** | Publisher name |
+| **Publishetime** | Publisher time |
 | **Description** | Book description, multi-paragraph |
 
 #### How to edit
 
-**Manually**: tap any field row and edit in the popup input. Edited fields are marked with `●`.
+**Manually**: tap any field row and edit in the popup input. Edited fields are marked with `pencil`.
 
-**Online search**: tap "Find metadata online", edit the query, pick a source (Douban, Google Books, Hardcover, Open Library), search. Preview each result, then tap "Apply". **Manually edited fields are never overwritten.**
+**Online search**: tap "Find metadata online", edit the query, pick a source (Douban, WeRead, Google Books, Hardcover, Open Library), search. Preview each result, then tap "Apply". **Manually edited fields are never overwritten.**
 
 - Douban and Open Library work without configuration
-- Google Books needs an API key, Hardcover needs an API token — tapping one without a key prompts for input, then searches automatically
+- WeRead、Google Books、Hardcover needs an API token — tapping one without a key prompts for input, then searches automatically
 - Unconfigured sources are labelled `(API key required)`
 
 #### How changes are applied
 
-**EPUB**: the embedded OPF metadata is edited and the file is repacked. Before replacement, a backup is created:
+>Except for the cover, all other metadata fields are handled differently depending on the file format.
+>Custom metadata is written to the book's `.sdr/` folder:
+```
+book.sdr/
+└── cover.jpg
+```
+
+**EPUB**: the embedded OPF metadata (excluding the cover) is edited and the file is repacked. Before replacement, a backup is created:
 
 | File | Purpose |
 | :--- | :--- |

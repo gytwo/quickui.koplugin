@@ -505,9 +505,18 @@ function M.draft(work, edition)
         genres = copy_list(work.genres),
         language = trim(edition.language),
         publisher = trim(edition.publisher),
+        pubdate = work.release_year and tostring(work.release_year) or "",
         description = trim(work.description),
         isbn = trim(edition.isbn_13) ~= "" and trim(edition.isbn_13) or trim(edition.isbn_10),
     }
+end
+
+function M.cover_url(work)
+    if work.image_url and work.image_url ~= "" then
+        return work.image_url
+    end
+    local e = work._edition
+    return e and e.image_url or nil
 end
 
 return M

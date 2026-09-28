@@ -37,6 +37,12 @@ local PROVIDERS = {
         require_key = false,
     },
     {
+        id = "weread",
+        name = _("WeRead"),
+        key_config = "metadata_weread_key",
+        require_key = true,
+    },
+    {
         id = "google_books",
         name = _("Google Books"),
         key_config = "metadata_google_books_key",
@@ -286,7 +292,9 @@ local function result_label(work, edition)
     local parts = {}
     if authors ~= "" then parts[#parts + 1] = authors end
     if year then parts[#parts + 1] = tostring(year) end
-    if #parts > 0 then return title .. " — " .. table.concat(parts, " · ") end
+    if #parts > 0 then
+        return title .. " - " .. table.concat(parts, ", ")
+    end
     return title
 end
 
@@ -388,23 +396,34 @@ local function format_meta_text(meta)
     end
 
     add(_("Title"), meta.title)
-    add(_("Authors"), meta.authors)
+    -- 作者：豆瓣用 authors(list)，微信用 author(单串)
+    add(_("Authors"), meta.authors or meta.author)
     add(_("Series"), meta.series)
     add(_("Publisher"), meta.publisher)
-    add(_("Published"), meta.pubdate)
+    -- 出版日期：豆瓣用 pubdate，微信用 publishTime
+    add(_("Published"), meta.pubdate or meta.publishTime)
+    -- 评分：豆瓣十分制，微信百分制
     if meta.rating then
         add(_("Rating"), string.format("%.1f / 10", meta.rating))
+    elseif meta.newRating and meta.newRating > 0 then
+        add(_("Rating"), string.format("%.1f / 10", meta.newRating / 10))
     end
-    add(_("Tags"), meta.keywords)
+    -- 标签：豆瓣用 keywords(list)，微信用 category(单串)
+    add(_("Tags"), meta.keywords or meta.category)
+    -- ISBN：豆瓣嵌套在 identifiers.isbn，微信在顶层
     if meta.identifiers and meta.identifiers.isbn then
         add("ISBN", meta.identifiers.isbn)
+    elseif meta.isbn and meta.isbn ~= "" then
+        add("ISBN", meta.isbn)
     end
 
-    if meta.description and #meta.description > 0 then
+    -- 简介：豆瓣用 description，微信用 intro
+    local desc = meta.description or meta.intro
+    if desc and #desc > 0 then
         table.insert(lines, "")
         table.insert(lines, "─── " .. _("Description") .. " ───")
         table.insert(lines, "")
-        table.insert(lines, meta.description)
+        table.insert(lines, desc)
     end
 
     return table.concat(lines, "\n")
@@ -417,7 +436,8 @@ local function fetch_detail_for(session, index)
     local Mod = provider_module(session.provider)
     local work = session.works[index]
     if type(Mod.fetch_work_detail) == "function" then
-        local enriched, _ = Mod.fetch_work_detail(work)
+        local key = provider_key(session.provider)  
+        local enriched, _ = Mod.fetch_work_detail(work, key)
         if enriched then work = enriched end
     end
     session.cache[index] = work

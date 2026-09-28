@@ -125,4 +125,10 @@ return {
     "Metadata: new \"Metadata Settings\" submenu under QuickUI, with an \"Enable Metadata Editor\" toggle",
     "Metadata: configurable via the standard preset system (save / apply / reset)",
 },
+ ["1.2.1"] = {
+    "Metadata: add WeRead as an online metadata source",
+    "Metadata: add editable 'Published' (publish date) field",
+    "Metadata: improve Chinese translations",
+    "Metadata: add custom cover editor (pick from device, search online, or remove custom cover)",
+},
 }

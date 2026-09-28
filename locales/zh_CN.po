@@ -2116,3 +2116,72 @@ msgstr "编辑哪本书？（已选 %d 本）"
 
 msgid "No book selected.\n\nLong-press a book and choose \"Edit metadata\", or enable selection mode and check exactly one book first."
 msgstr "未选中书籍。\n\n请长按一本书并选择「编辑元数据」，或先进入选择模式勾选一本书。"
+
+msgid "Published"
+msgstr "出版时间"
+
+msgid "Tags"
+msgstr "标签"
+
+msgid "Rating"
+msgstr "评分"
+
+msgid "Description"
+msgstr "简介"
+
+msgid "WeRead"
+msgstr "微信阅读"
+
+msgid "Enter one value per line."
+msgstr "每行一个值"
+
+msgid "Edit custom cover"
+msgstr "编辑自定义封面"
+
+msgid "Select from device"
+msgstr "从设备选择"
+
+msgid "Search online"
+msgstr "在线搜索"
+
+msgid "Remove custom cover"
+msgstr "移除自定义封面"
+
+msgid "No custom cover to remove."
+msgstr "没有可移除的自定义封面。"
+
+msgid "Failed to remove cover."
+msgstr "移除封面失败。"
+
+msgid "Custom cover removed"
+msgstr "已移除自定义封面"
+
+msgid "Select a source"
+msgstr "选择来源"
+
+msgid "Select a cover"
+msgstr "选择封面"
+
+msgid "Downloading covers..."
+msgstr "正在下载封面..."
+
+msgid "This result has no cover."
+msgstr "该结果没有封面。"
+
+msgid "Download failed"
+msgstr "下载失败"
+
+msgid "Invalid cover URL"
+msgstr "封面链接无效"
+
+msgid "Failed to set cover."
+msgstr "设置封面失败。"
+
+msgid "Cover updated"
+msgstr "封面已更新"
+
+msgid "Cover"
+msgstr "封面"
+
+msgid "Set"
+msgstr "已设置"
