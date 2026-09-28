@@ -1,3 +1,6 @@
+[![Release](https://github.com/gytwo/gitee-sync/actions/workflows/release.yml/badge.svg)](https://github.com/gytwo/gitee-sync/actions/workflows/release.yml)
+[![Sync from Gitee to GitHub](https://github.com/gytwo/gitee-sync/actions/workflows/gitee-sync.yml/badge.svg)](https://github.com/gytwo/gitee-sync/actions/workflows/gitee-sync.yml)
+
 # QuickUI - KOReader 增强插件
 
 > **QuickUI: 快捷操作 · 封面美化 · 遮盖模式 · 页眉页脚 · 元数据编辑 — 更高效的 KOReader。**
