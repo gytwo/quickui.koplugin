@@ -24,7 +24,7 @@ local M = {}
 local EMPTY = _("Not set")
 
 local FIELD_ORDER = {
-    "title", "authors", "series", "genres", "language", "publisher", "description",
+    "title", "authors", "series", "genres", "language", "publisher", "pubdate", "description",
 }
 
 local FIELD_SPECS = {
@@ -34,6 +34,7 @@ local FIELD_SPECS = {
     genres      = { label = _("Genres"), list = true },
     language    = { label = _("Language") },
     publisher   = { label = _("Publisher") },
+    pubdate     = { label = _("Published") },
     description = { label = _("Description"), long = true },
 }
 
@@ -86,6 +87,7 @@ local function normalize_draft(value)
         genres       = normalize_list(value.genres or value.keywords),
         language     = trim(value.language),
         publisher    = trim(value.publisher),
+        pubdate      = trim(value.pubdate or value.publishTime),
         description  = trim(value.description),
         isbn         = trim(value.isbn),
     }
@@ -353,8 +355,10 @@ end
 function Editor:request_close(close_all)
     local self_ref = self
 
+    -- 先关掉当前编辑器对话框，避免叠加
+    self:close()
+
     if not is_metadata_dirty(self.draft, self.original, self.is_epub) then
-        self:close()
         if self.on_done then self.on_done(close_all == true) end
         return
     end
@@ -362,9 +366,11 @@ function Editor:request_close(close_all)
     UIManager:show(MultiConfirmBox:new{
         text = _("You have unsaved metadata changes."),
         cancel_text = _("Keep editing"),
+        cancel_callback = function()
+            UIManager:nextTick(function() self_ref:show_menu() end)
+        end,
         choice1_text = _("Discard"),
         choice1_callback = function()
-            self_ref:close()
             if self_ref.on_done then self_ref.on_done(close_all == true) end
         end,
         choice2_text = _("Save"),
@@ -431,7 +437,7 @@ function Editor:show_menu()
                 value = self.draft[key]
             end
             local dirty = field_changed(self.draft, self.original, key)
-            local prefix = dirty and "● " or "  "
+            local prefix = dirty and "\u{F044} " or "  "
             local display = prefix .. spec.label .. ": " .. preview(value)
             local _key = key
             table.insert(buttons, {{
