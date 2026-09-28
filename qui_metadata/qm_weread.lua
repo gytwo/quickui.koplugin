@@ -282,4 +282,13 @@ function M.downloadCover(url, destination, transport)
     }, transport)
 end
 
+function M.cover_url(work)
+    local url = work.cover_url
+    if type(url) ~= "string" or url == "" then return nil end
+    -- t6/s_ 换成 t9 拿高清图
+    url = url:gsub("/t6_", "/t9_")
+    url = url:gsub("/s_", "/t9_")
+    return url
+end
+
 return M
