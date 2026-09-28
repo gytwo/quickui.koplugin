@@ -1,3 +1,6 @@
+[![Release](https://github.com/gytwo/gitee-sync/actions/workflows/release.yml/badge.svg)](https://github.com/gytwo/gitee-sync/actions/workflows/release.yml)
+[![Sync from Gitee to GitHub](https://github.com/gytwo/gitee-sync/actions/workflows/gitee-sync.yml/badge.svg)](https://github.com/gytwo/gitee-sync/actions/workflows/gitee-sync.yml)
+
 # QuickUI - KOReader 增强插件
 
 > **QuickUI: 快捷操作 · 封面美化 · 遮盖模式 · 页眉页脚 · 元数据编辑 — 更高效的 KOReader。**
@@ -16,7 +19,7 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**五大核心功能
 | 🎨 **封面美化** | 占位图、徽章、圆角、统一比例、文件夹预览等封面视觉优化 |
 | 🔍 **遮盖模式** | 标注遮罩模式，用于复习和自测（高亮、下划线、删除线） |
 | 📐 **页眉页脚** | 阅读页面顶部/底部显示时间、页码、进度、章节、电量等信息 |
-| 📖 **元数据编辑** | 编辑书籍元数据（标题、作者、系列等），支持手动修改与在线搜索 |
+| 📖 **元数据编辑** | 编辑书籍元数据（封面、标题、作者、系列等），支持手动修改与在线搜索 |
 
 > 💡 **灵感来源**：
 - [shortcutstoolbar.koplugin](https://github.com/xusoo/shortcutstoolbar.koplugin)
@@ -341,12 +344,13 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**五大核心功能
 
 ### 5. 📖 元数据编辑
 
-编辑书籍的元数据（标题、作者、系列、分类、语言、出版社、简介），支持手动修改和在线搜索两种方式。
+编辑书籍的元数据（封面、标题、作者、系列、分类、语言、出版社、出版时间、简介），支持手动修改和在线搜索两种方式。
 
 #### 可编辑字段
 
 | 字段 | 说明 |
 | :--- | :--- |
+| **封面** | 自定义封面（sdr文件夹内cover.jpg) |
 | **标题** | 书名 |
 | **作者** | 多个作者，一行一个 |
 | **系列** | 系列名称 + 系列位置 |
@@ -367,7 +371,9 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**五大核心功能
 
 #### 应用方式
 
-**EPUB**：直接修改 EPUB 内嵌的 OPF 元数据，重新打包替换原文件。修改前会生成备份：
+> 除封面外，其余元数据字段区分不同文件格式。
+
+**EPUB**：直接修改 EPUB 内嵌的 OPF 元数据（不含封面），重新打包替换原文件。修改前会生成备份：
 
 | 文件 | 用途 |
 | :--- | :--- |
