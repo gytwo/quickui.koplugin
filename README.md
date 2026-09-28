@@ -163,8 +163,9 @@ A customizable navigation bar at the bottom of the screen:
 
 <table>
   <tr>
-    <td><img src="pictures/Qui-settings-QA-bottom.png" alt="Qui-settings-QA-bottom" width="400" /></td>
-    <td><img src="pictures/Qui-settings-QA-bottom-addtab.png" alt="Qui-settings-QA-bottom-addtab" width="400" /></td>
+    <td><img src="pictures/Qui_vb_simpleui.png" alt="Qui_vb_simpleui" width="400" /></td>
+    <td><img src="pictures/Qui_vb_bookshelf.png" alt="Qui_vb_bookshelf" width="400" /></td>
+    <td><img src="pictures/Qui_vb_reader.png" alt="Qui_vb_reader" width="400" /></td>
   </tr>
 </table>
 
