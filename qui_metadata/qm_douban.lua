@@ -557,6 +557,7 @@ function M.draft(work, edition)
         genres       = detail.keywords or {},
         language     = detail.language or "",
         publisher    = detail.publisher or "",
+        pubdate = detail.pubdate or "",
         description  = detail.description or "",
         isbn         = (detail.identifiers and detail.identifiers.isbn) or "",
     }
