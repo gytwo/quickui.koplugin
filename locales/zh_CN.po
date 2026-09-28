@@ -2135,8 +2135,8 @@ msgstr "微信阅读"
 msgid "Enter one value per line."
 msgstr "每行一个值"
 
-msgid "Edit cover"
-msgstr "编辑封面"
+msgid "Edit custom cover"
+msgstr "编辑自定义封面"
 
 msgid "Select from device"
 msgstr "从设备选择"
@@ -2162,7 +2162,7 @@ msgstr "选择来源"
 msgid "Select a cover"
 msgstr "选择封面"
 
-msgid "Downloading cover..."
+msgid "Downloading covers..."
 msgstr "正在下载封面..."
 
 msgid "This result has no cover."
