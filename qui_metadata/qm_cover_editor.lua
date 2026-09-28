@@ -108,7 +108,7 @@ end
 function M.show(editor)
     local dialog
     dialog = ButtonDialog:new{
-        title = _("Edit cover"),
+        title = _("Edit custom cover"),
         title_align = "center",
         buttons = {
             {{
@@ -178,7 +178,7 @@ function M.remove_cover(editor)
         text = _("Custom cover removed"),
         timeout = 2,
     })
-    UIManager:nextTick(function() editor:show_menu() end)
+    editor:close()
 end
 
 -- ============================================================
@@ -504,9 +504,16 @@ function M.show_cover_grid(editor, covers)
             TapSelect = { GestureRange:new{ ges = "tap", range = ic.dimen } },
         }
         ic.onTapSelect = function()
-            UIManager:close(dialog)
-            UIManager:setDirty("all", "full")
-            M.apply_cover(editor, c.path)
+            -- 视觉反馈：边框变黑
+            cell.color = Blitbuffer.COLOR_BLACK
+            UIManager:setDirty(dialog, function() return "ui", cell.dimen end)
+            UIManager:forceRePaint()
+
+            UIManager:scheduleIn(0.15, function()
+                UIManager:close(dialog)
+                UIManager:setDirty("all", "full")
+                M.apply_cover(editor, c.path)
+            end)
             return true
         end
         return ic
