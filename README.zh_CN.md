@@ -157,9 +157,16 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**五大核心功能
   </tr>
 </table>
 
-#### 📌 1.3 侧边竖栏
+#### 📌 1.3 侧边栏
 
-贴边显示的竖排快捷启动栏。
+> 贴边显示的竖排快捷启动栏。
+<table>
+  <tr>
+    <td><img src="pictures/Qui_vb_simpleui.png" alt="Qui_vb_simpleui" width="400" /></td>
+    <td><img src="pictures/Qui_vb_bookshelf.png" alt="Qui_vb_bookshelf" width="400" /></td>
+    <td><img src="pictures/Qui_vb_reader.png" alt="Qui_vb_reader" width="400" /></td>
+  </tr>
+</table>
 
 **启用方式**：
 
@@ -194,9 +201,16 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**五大核心功能
 | **标签大小** | 50% ~ 200%（步进 10%） |
 | **长按操作** | 编辑按钮 / 打开设置 |
 
-#### 📌 1.4 阅读排版滑块
+#### 📌 1.4 阅读滑块
 
-阅读器内的排版调整滑块。
+> 阅读器内的排版调整滑块。
+
+<table>
+  <tr>
+    <td><img src="pictures/Qui_reader_slider_panel.png" alt="Qui_reader_slider_panel.png" width="400" /></td>
+    <td><img src="pictures/Qui_reader_slider.png" alt="Qui_reader_slider" width="400" /></td>
+  </tr>
+</table>
 
 **启用方式**：
 
@@ -232,7 +246,7 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**五大核心功能
 
 #### 📌 1.5 自定义操作
 
-支持五种类型的自定义快捷操作：
+> 支持五种类型的自定义快捷操作：
 
 | 类型 | 说明 | 默认界面 |
 | :--- | :--- | :--- |
@@ -364,7 +378,7 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**五大核心功能
 
 **手动修改**：点任意字段行，在弹出的输入框里直接编辑。改过的字段前面会显示 `●` 标记。
 
-**在线搜索**：点「Find metadata online」，在弹出的搜索框里修改关键词，选择数据源（豆瓣、Google Books、Hardcover、Open Library）后搜索。搜索结果可逐条预览，满意后点「应用」。**手动改过的字段不会被在线数据覆盖**。
+**在线搜索**：点「Find metadata online」，在弹出的搜索框里修改关键词，选择数据源（豆瓣、微信阅读、Google Books、Hardcover、Open Library）后搜索。搜索结果可逐条预览，满意后点「应用」。**手动改过的字段不会被在线数据覆盖**。
 
 - 豆瓣、Open Library 无需配置，直接可用
 - Google Books 需 API key，Hardcover 需 API token，未配置时点击会弹出输入框，配完自动搜索
