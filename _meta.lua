@@ -11,6 +11,8 @@ This plugin brings together four powerful enhancements:
 
 4. Header & Footer - Display time, page numbers, progress, chapter info, battery status, and more at the top or bottom of your reading screen. Fully customizable.
 
+5. Metadata-Edit metadata.
+
 Inspired by SimpleUI, ZenUI, and ShortcutsToolbar.
 
 Author: gytwo
@@ -22,6 +24,6 @@ return {
     fullname = _("QuickUI"),
     plugin_id = "quickui_plugin",
     description = _([[QuickUI: Quick Actions, Cover Visuals, Cloze Mode, Header & Footer — more efficient KOReader]]),
-    version = "1.2.0",
+    version = "1.2.1",
     author = "gytwo",
 }
