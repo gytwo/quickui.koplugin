@@ -511,4 +511,12 @@ function M.draft(work, edition)
     }
 end
 
+function M.cover_url(work)
+    if work.image_url and work.image_url ~= "" then
+        return work.image_url
+    end
+    local e = work._edition
+    return e and e.image_url or nil
+end
+
 return M
