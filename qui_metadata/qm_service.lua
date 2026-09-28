@@ -2,7 +2,7 @@ local M = {}
 
 local METADATA_KEYS = {
     "title", "authors", "series", "series_index",
-    "language", "keywords", "publisher", "description",
+    "language", "keywords", "publisher", "pubdate", "description",
 }
 
 local SIDECAR_NAME = "custom_metadata.lua"
@@ -63,7 +63,10 @@ function M.normalize(props)
     local description = props.description
     local ok_util, util = pcall(require, "util")
     if description and ok_util and type(util.htmlToPlainTextIfHtml) == "function" then
-        description = util.htmlToPlainTextIfHtml(description)
+        -- 只在确实含 HTML 标签时才转，纯文本（含 \n）原样保留
+        if type(description) == "string" and description:find("<%a[^>]*>") then
+            description = util.htmlToPlainTextIfHtml(description)
+        end
     end
     return {
         title = trim(props.title),
@@ -73,6 +76,7 @@ function M.normalize(props)
         genres = list(props.genres or props.keywords),
         language = trim(props.language),
         publisher = trim(props.publisher),
+        pubdate = trim(props.pubdate or props.publishTime),
         description = trim(description),
         isbn = trim(props.isbn),
     }
@@ -87,6 +91,7 @@ local function serialized(draft)
         language = draft.language,
         keywords = table.concat(draft.genres, "\n"),
         publisher = draft.publisher,
+        pubdate = draft.pubdate,
         description = draft.description,
     }
 end
@@ -94,7 +99,7 @@ end
 local function changed_embedded_fields(embedded, desired, custom)
     local current = M.normalize(embedded)
     local changed = {}
-    for _i, key in ipairs({ "title", "language", "publisher" }) do
+    for _i, key in ipairs({ "title", "language", "publisher", "pubdate" }) do
         if desired[key] ~= current[key] then changed[key] = desired[key] end
     end
     local raw_custom = custom and custom.description
