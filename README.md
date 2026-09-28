@@ -19,7 +19,7 @@ QuickUI is a comprehensive KOReader enhancement plugin that integrates **five co
 | 🎨 **Cover Visual Enhancements** | Placeholder covers, badges, rounded corners, unified aspect ratio, folder previews |
 | 🔍 **Cloze Mode** | Annotation masking for review and self-testing (highlights, underlines, strikeouts) |
 | 📐 **Header & Footer** | Display time, page numbers, progress, chapter info, battery status at top/bottom of reading screen |
-| 📖 **Metadata Editor** | Edit book metadata (title, authors, series, etc.) manually or via online sources |
+| 📖 **Metadata Editor** | Edit book metadata (cover、title, authors, series, etc.) manually or via online sources |
 
 > 💡 **Inspiration**:
 - [shortcutstoolbar.koplugin](https://github.com/xusoo/shortcutstoolbar.koplugin)
@@ -370,7 +370,14 @@ Edit book metadata (title, authors, series, genres, language, publisher, descrip
 
 #### How changes are applied
 
-**EPUB**: the embedded OPF metadata is edited and the file is repacked. Before replacement, a backup is created:
+>Except for the cover, all other metadata fields are handled differently depending on the file format.
+>Custom metadata is written to the book's `.sdr/` folder:
+```
+book.sdr/
+└── cover.jpg
+```
+
+**EPUB**: the embedded OPF metadata (excluding the cover) is edited and the file is repacked. Before replacement, a backup is created:
 
 | File | Purpose |
 | :--- | :--- |
