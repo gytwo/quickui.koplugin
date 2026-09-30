@@ -1869,6 +1869,9 @@ msgstr "番茄-目录"
 msgid "FanQie-Shelf/Toc"
 msgstr "番茄-书架/目录"
 
+msgid "FanQie-FetchLocalReview"
+msgstr "番茄-拉取段评"
+
 msgid "FingerInk-toolbar"
 msgstr "指尖绘画"
 
