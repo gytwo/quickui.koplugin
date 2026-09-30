@@ -1803,6 +1803,15 @@ function QA.registerAllActions()
         end,
         pluginAvailable("fanqie")
     )
+    QA.registerAction(
+        "fanqie_fetchlocalreview", _("FanQie-FetchLocalReview"),
+        "nerd:EA69", false, "reader",
+        function(ctx)
+            closeTouchMenu(ctx)
+            UIManager:broadcastEvent(Event:new("FanQieFetchLocalReview"))
+        end,
+        pluginAvailable("fanqie")
+    )
 
     -- ============================================================
     -- FingerInk
