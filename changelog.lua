@@ -131,4 +131,7 @@ return {
     "Metadata: improve Chinese translations",
     "Metadata: add custom cover editor (pick from device, search online, or remove custom cover)",
 },
+ ["1.2.2"] = {
+    "Quick Actions: Add built-in action(FanQie-fetchlocalreview)",
+},
 }
