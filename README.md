@@ -121,8 +121,11 @@ A customizable action panel integrated into the top menu bar:
 | `qa_vb_toggle` | Toggle Vertical Bar | Common | Show/hide the vertical bar |
 | `qa_vb_settings` | Vertical Bar Settings | Common | Open vertical bar settings |
 | `qa_add_vb_button` | Add Vertical Bar Button | Common | Add a button to the vertical bar |
-| `reader_sliders` | Reader Sliders | Reader | Open the full typesetting-slider popup |
+| `reader_sliders` | Reader Sliders | Reader | Open the full typesetting-slider popup (includes Sliders, collapsible Style Tweaks, Profiles, and Document settings sections) |
 | `QuickUI_EditMetadata` | Edit Metadata | Filemanager | Edit the selected book's metadata |
+| `toggle_reading_order` | Toggle Reading Order | Reader | Toggle LTR/RTL page turn direction |
+| `page_scrubber` | Page Scrubber | Reader | Open the Simple Grid view of the Page Scrubber plugin |
+| `save_doc_defaults` | Save Document Settings as Default | Reader | Save current document settings as global defaults |
 
 <table>
   <tr>
@@ -244,6 +247,34 @@ A customizable navigation bar at the bottom of the screen:
 | **First-line indent** | Paragraph first-line indent mode | Reflowable |
 | **Paragraph spacing** | Spacing between paragraphs | Reflowable |
 | **CJK tailoring** | CJK typesetting optimization | Reflowable |
+
+**Style Tweaks** (collapsible):
+
+| Item | Description |
+| :--- | :--- |
+| **Enable style tweaks** | Master switch for all style tweaks |
+| **CJK tailoring** | Tailor widths and text-indent for CJK |
+| **First-line indent** | Paragraph first-line indentation mode |
+| **Paragraph spacing** | Spacing between paragraphs |
+
+The section is collapsed by default. Tap the `▶ / ▼` header to expand or collapse.
+
+**Profiles**:
+
+| Action | Result |
+| :--- | :--- |
+| **Tap `+`** | Create a new profile from the current book's settings |
+| **Tap a profile** | Apply that profile |
+| **Long-press a profile** | Delete it (with confirmation) |
+
+Profiles are KOReader's native profiles — the same ones found in **Menu → Profiles**. Anything you create here is also visible there, and vice versa.
+
+**Document settings**:
+
+| Button | Result |
+| :--- | :--- |
+| **Reset to default** | Reset the current document's settings to their default values. Reading position, highlights, and bookmarks are kept. The document will be reloaded. |
+| **Save as default** | Save the current document's settings as global defaults for all future documents. |
 
 #### 📌 1.5 Custom Actions
 
