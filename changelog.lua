@@ -132,6 +132,9 @@ return {
     "Metadata: add custom cover editor (pick from device, search online, or remove custom cover)",
 },
  ["1.2.2"] = {
-    "Quick Actions: Add built-in action(FanQie-fetchlocalreview)",
+    "Quick Actions: Add built-in action(FanQie-fetchlocalreview、ToggleReadingOrder、Page Scrubber)",
+    "Reader Sliders: Add Profiles section — apply, create, and delete KOReader profiles directly from the sliders popup",
+    "Reader Sliders: Add Document settings section — Reset document settings to default, and Save document settings as default",
+    "Reader Sliders: Style Tweaks section is now collapsible",
 },
 }
