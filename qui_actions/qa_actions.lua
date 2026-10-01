@@ -1261,6 +1261,30 @@ function QA.registerAllActions()
         end
     end)
 
+    -- toggle_reading_order
+    QA.registerAction("toggle_reading_order", _("ToggleReadingOrder"), "nerd:F47F", true, "reader", function(ctx)
+        closeTouchMenu(ctx)
+        local RUI = require("apps/reader/readerui")
+        local reader = RUI and RUI.instance
+        if not reader or not reader.view then
+            UIManager:show(InfoMessage:new{
+                text = _("Please open a book first"),
+                timeout = 2,
+            })
+            return
+        end
+        local view = reader.view
+        view.inverse_reading_order = not view.inverse_reading_order
+        view:setupTouchZones()
+        UIManager:scheduleIn(0, function()
+            local is_rtl = view.inverse_reading_order ~= BD.mirroredUILayout()
+            UIManager:show(Notification:new{
+                text = is_rtl and _("RTL page turning.") or _("LTR page turning."),
+                timeout = 1,
+            })
+        end)
+    end)
+    
     -- Quit
     QA.registerAction("quit", _("Quit"), "nerd:F08B", false, "common", function(ctx)
         -- Do NOT close touch_menu: the whole app is going down anyway.
@@ -1578,6 +1602,18 @@ function QA.registerAllActions()
         end
     end, pluginAvailable("annotationsviewer"))
 
+    -- ============================================================
+    -- Page Scrubber: Simple Grid
+    -- ============================================================
+    QA.registerAction(
+        "page_scrubber", _("Page Scrubber"),
+        "nerd:E88E", true, "reader",
+        function(ctx)
+            UIManager:broadcastEvent(Event:new("PageScrubberSimpleGrid"))
+        end,
+        pluginAvailable("page_scrubber")
+    )
+    
     -- ============================================================
     -- SimpleUI library browse actions (Authors / Series / Tags)
     -- ============================================================
