@@ -125,7 +125,6 @@ A customizable action panel integrated into the top menu bar:
 | `QuickUI_EditMetadata` | Edit Metadata | Filemanager | Edit the selected book's metadata |
 | `toggle_reading_order` | Toggle Reading Order | Reader | Toggle LTR/RTL page turn direction |
 | `page_scrubber` | Page Scrubber | Reader | Open the Simple Grid view of the Page Scrubber plugin |
-| `save_doc_defaults` | Save Document Settings as Default | Reader | Save current document settings as global defaults |
 
 <table>
   <tr>
