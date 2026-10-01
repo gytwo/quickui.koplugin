@@ -1261,6 +1261,30 @@ function QA.registerAllActions()
         end
     end)
 
+    -- toggle_reading_order
+    QA.registerAction("toggle_reading_order", _("ToggleReadingOrder"), "nerd:F47F", true, "reader", function(ctx)
+        closeTouchMenu(ctx)
+        local RUI = require("apps/reader/readerui")
+        local reader = RUI and RUI.instance
+        if not reader or not reader.view then
+            UIManager:show(InfoMessage:new{
+                text = _("Please open a book first"),
+                timeout = 2,
+            })
+            return
+        end
+        local view = reader.view
+        view.inverse_reading_order = not view.inverse_reading_order
+        view:setupTouchZones()
+        UIManager:scheduleIn(0, function()
+            local is_rtl = view.inverse_reading_order ~= BD.mirroredUILayout()
+            UIManager:show(Notification:new{
+                text = is_rtl and _("RTL page turning.") or _("LTR page turning."),
+                timeout = 1,
+            })
+        end)
+    end)
+    
     -- Quit
     QA.registerAction("quit", _("Quit"), "nerd:F08B", false, "common", function(ctx)
         -- Do NOT close touch_menu: the whole app is going down anyway.
@@ -1579,6 +1603,18 @@ function QA.registerAllActions()
     end, pluginAvailable("annotationsviewer"))
 
     -- ============================================================
+    -- Page Scrubber: Simple Grid
+    -- ============================================================
+    QA.registerAction(
+        "page_scrubber", _("Page Scrubber"),
+        "nerd:E88E", true, "reader",
+        function(ctx)
+            UIManager:broadcastEvent(Event:new("PageScrubberSimpleGrid"))
+        end,
+        pluginAvailable("page_scrubber")
+    )
+    
+    -- ============================================================
     -- SimpleUI library browse actions (Authors / Series / Tags)
     -- ============================================================
     do
@@ -1803,6 +1839,15 @@ function QA.registerAllActions()
         end,
         pluginAvailable("fanqie")
     )
+    QA.registerAction(
+        "fanqie_fetchlocalreview", _("FanQie-FetchLocalReview"),
+        "nerd:EA69", false, "reader",
+        function(ctx)
+            closeTouchMenu(ctx)
+            UIManager:broadcastEvent(Event:new("FanQieFetchLocalReview"))
+        end,
+        pluginAvailable("fanqie")
+    )
 
     -- ============================================================
     -- FingerInk
@@ -1851,86 +1896,6 @@ function QA.registerAllActions()
         end,
         pluginAvailable("koassistant")
     )
-
-    -- ============================================================
-    -- SimpleUI library browse actions (Authors / Series / Tags)
-    -- Thin wrappers over SimpleUI's features/library/sui_library_browse.
-    -- No-op gracefully when SimpleUI isn't installed or the feature is off.
-    -- ============================================================
-    do
-        local function _simpleUI_BM()
-            local m = package.loaded["features/library/sui_library_browse"]
-            if type(m) ~= "table" then return nil end
-            if type(m.isEnabled)        ~= "function"
-               or type(m.navigateTo)    ~= "function"
-               or type(m.navigateToRoot) ~= "function" then
-                return nil
-            end
-            return m
-        end
-
-        local function _simpleUI_liveFM()
-            local FM = package.loaded["apps/filemanager/filemanager"]
-            return FM and FM.instance
-        end
-
-        local function _browseAction(ctx, mode)
-            local su = ctx.show_unavailable or function(msg)
-                UIManager:show(InfoMessage:new{ text = msg, timeout = 2 })
-            end
-
-            local BM = _simpleUI_BM()
-            if not BM or not BM.isEnabled() then
-                su(_("Please check that SimpleUI is installed and 'Browse by Author / Series / Tags' is enabled."))
-                return
-            end
-
-            -- Resolve the FM reference BEFORE closing anything. The FM stays
-            -- valid across the SimpleUI screen teardown — SimpleUI's own
-            -- sui_bottombar.navigate() relies on exactly the same invariant.
-            local fm = _simpleUI_liveFM() or ctx.fm
-            local fc = fm and fm.file_chooser
-            if not fc then return end
-
-            -- Close any SimpleUI screen (Homescreen / Custom Screen) on top
-            -- so the FM becomes the visible screen — same as
-            -- sui_bottombar.navigate's `if hs_open then ... UIManager:close(hs_inst) ... end`.
-            local ok_se, ScreenEngine = pcall(require, "engines/sui_screen_engine")
-            if ok_se and ScreenEngine and ScreenEngine.liveScreenIds then
-                for _i, id in ipairs(ScreenEngine.liveScreenIds()) do
-                    local inst = ScreenEngine.getInstance(id)
-                    if inst then
-                        inst._navbar_closing_intentionally = true
-                        pcall(function() UIManager:close(inst) end)
-                        inst._navbar_closing_intentionally = nil
-                    end
-                end
-            end
-
-            -- Navigate synchronously — the FM's file_chooser is already live.
-            if ctx.already_active then
-                BM.navigateToRoot(fc, fm, mode)
-            else
-                BM.navigateTo(fm, mode)
-            end
-        end
-
-        QA.registerAction(
-            "Sui-author", _("Sui-author"),
-            "nerd:ED2F", false, "filemanager",
-            function(ctx) _browseAction(ctx, "author") end
-        )
-        QA.registerAction(
-            "Sui-series", _("Sui-series"),
-            "nerd:ED18", false, "filemanager",
-            function(ctx) _browseAction(ctx, "series") end
-        )
-        QA.registerAction(
-            "Sui-tags", _("Sui-tags"),
-            "nerd:F02C", false, "filemanager",
-            function(ctx) _browseAction(ctx, "tags") end
-        )
-    end
 
     -- ============================================================
     -- QuickUI Settings actions (qa_common_enabled)

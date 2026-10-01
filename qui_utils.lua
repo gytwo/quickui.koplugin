@@ -19,13 +19,23 @@ local Utils = {}
 local DEFAULT_SETTINGS = {
     -- Panel Settings
     qa_panel_enabled = true,
-     qa_panel_slots = {"wifi", "night", "rotate", "screenshot","filebrowserplus", "restart", "search", "quickui_settings", "edit_metadata",  "qa_add_panel_button", "qa_new"},
-    qa_panel_shape = "round",
+    qa_panel_slots = {
+        "wifi", "night", "rotate", "screenshot", "filebrowserplus",
+        "restart", "search", "quickui_settings", "qa_add_panel_button", "qa_new", "httpinspector",
+        "bookshelf_toggle", "Sui-toggle", "storefront_open",
+        "zlibrary_search", "fanqie_shelf_or_toc", "fanqie_search",
+        "weread_bookshelf", "weread_search", "reading_insights",
+        "continue", "cloudlibrary_autosync", "system_icon_override",
+        "ui_font_switch", "edit_metadata",
+        "QuickUI_ClozeSettings", "QuickUI_HFSettings",
+        "QuickUI_CoverSettings"
+    },
+    qa_panel_shape = "square_round",
     qa_panel_bg = "flat",
     qa_panel_labels = true,
     qa_panel_label_scale_pct = 90,
     qa_panel_settings_on_hold = true,
-    qa_panel_button_size_pct = 100,
+    qa_panel_button_size_pct = 90,
     qa_panel_button_hold_edit = true,
     qa_panel_rows_per_page    = 3,
     qa_panel_pager_enabled    = true,
@@ -56,7 +66,7 @@ local DEFAULT_SETTINGS = {
     qa_bb_inactive_color = "",
     qa_bb_accent_color = "",
     qa_bb_labels = false,
-    qa_bb_tabs = {"home", "annotations_viewer", "continue", "reading_insights", "qa_add_bb_tab","search","cloudlibrary_batch_download_books", "zlibrary_search"},
+    qa_bb_tabs = {"home","bookshelf_toggle", "continue","qa_add_bb_tab", "reading_insights", "zlibrary_search", "fanqie_search", "fanqie_shelf_or_toc", "reader_sliders", "page_scrubber"},
     qa_bb_reader_enabled = true,
     qa_bb_hide_in_pdf = true,
 
@@ -76,7 +86,21 @@ local DEFAULT_SETTINGS = {
     -- Vertical Bar Settings
     qa_vb_enabled = true,
     qa_vb_side = "right",
-    qa_vb_slots = {"qa_settings","system_icon_override", "ui_font_switch", "QuickUI_CoverSettings", "edit_metadata", "bookshelf_toggle", "Sui-toggle", "continue", "annotations_viewer","artgallery_show",  "fontlist", "reader_sliders", "QuickUI_HFSettings", "toggle_cloze_mode", "fingerink_bar", "toggle_side_toc", "reading_insights", "rssreader_open", "zlibrary_search", "fanqie_shelf_or_toc", "fanqie_search","weread_bookshelf", "weread_search", "weread_fetch_underlines",  "weread_quick_menu", "Sui-settings", "Sui-author", "Sui-series", "Sui-tags",  "koassistant_quick_actions", "koassistant_ai_settings", "storefront_open", "qa_add_vb_button"},
+    qa_vb_slots = {
+        "qa_settings", "bookshelf_toggle", "Sui-toggle",
+        "continue", "annotations_viewer", "fontlist", "artgallery_show",
+        "page_scrubber", "reader_sliders", "fingerink_bar",
+        "weread_fetch_underlines", "fanqie_fetchlocalreview",
+        "toggle_reading_order", "reading_insights", "rssreader_open",
+        "zlibrary_search", "fanqie_shelf_or_toc", "fanqie_search",
+        "weread_bookshelf", "weread_search", 
+        "filebrowserplus", "httpinspector", "cloudlibrary_autosync",
+        "storefront_open", "Sui-author", "Sui-tags", "Sui-series",
+        "Sui-settings","system_icon_override",
+        "ui_font_switch", "edit_metadata",
+        "QuickUI_ClozeSettings", "QuickUI_HFSettings",
+        "QuickUI_CoverSettings"
+    },
     qa_vb_labels = true,
     qa_vb_size_pct = 100,
     qa_vb_icon_scale_pct = 100,

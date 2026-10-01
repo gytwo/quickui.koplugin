@@ -3,7 +3,10 @@ QuickUI - Reader Sliders
 
 Single source of truth for reader typography sliders.
 ]]
-
+local ConfirmBox      = require("ui/widget/confirmbox")
+local Dispatcher      = require("dispatcher")
+local Event           = require("ui/event")
+local ffiUtil         = require("ffi/util")
 local Blitbuffer      = require("ffi/blitbuffer")
 local Button          = require("ui/widget/button")
 local ButtonDialog    = require("ui/widget/buttondialog")
@@ -258,13 +261,13 @@ function M.getSliders(reader)
                     { id = "paragraph_following_no_indent", label = _("No indentation on following paragraphs") },
                 },
                 get_active = function()
-                    for _, id in ipairs(INDENT_IDS) do
+                    for _idx, id in ipairs(INDENT_IDS) do
                         if RT:isTweakEnabled(id) then return id end
                     end
                     return nil
                 end,
                 on_pick = function(chosen_id)
-                    for _, id in ipairs(INDENT_IDS) do
+                    for _idx, id in ipairs(INDENT_IDS) do
                         if RT:isTweakEnabled(id) then
                             RT:onToggleStyleTweak(id, nil, true)
                         end
@@ -293,13 +296,13 @@ function M.getSliders(reader)
                     { id = "paragraph_no_whitespace",   label = _("No spacing between paragraphs") },
                 },
                 get_active = function()
-                    for _, id in ipairs(SPACING_IDS) do
+                    for _idx, id in ipairs(SPACING_IDS) do
                         if RT:isTweakEnabled(id) then return id end
                     end
                     return nil
                 end,
                 on_pick = function(chosen_id)
-                    for _, id in ipairs(SPACING_IDS) do
+                    for _idx, id in ipairs(SPACING_IDS) do
                         if RT:isTweakEnabled(id) then
                             RT:onToggleStyleTweak(id, nil, true)
                         end
@@ -670,7 +673,7 @@ function M.buildChoiceRow(opts, row_width, label_size, show_parent, on_change)
 
     local function getCurrentLabel()
         local active_id = opts.get_active and opts.get_active() or nil
-        for _, c in ipairs(opts.choices) do
+        for _idx, c in ipairs(opts.choices) do
             if c.id == active_id then return c.label end
         end
         return opts.default_label or "—"
@@ -690,7 +693,7 @@ function M.buildChoiceRow(opts, row_width, label_size, show_parent, on_change)
         callback = function()
             local dlg
             local btns = {}
-            for _, c in ipairs(opts.choices) do
+            for _idx, c in ipairs(opts.choices) do
                 local choice = c
                 table.insert(btns, {{
                     text = choice.label,
@@ -828,11 +831,36 @@ function M.show()
 
     local temp_parent = {}
 
+    M._collapsed = M._collapsed or { styletweaks = true }
+
+    local function makeCollapseHeader(title, key)
+        local collapsed = M._collapsed[key]
+        local arrow = collapsed and "▶   " or "▼ "
+        local btn = Button:new{
+            text = arrow .. title,
+            width = inner_w,
+            height = Screen:scaleBySize(30),
+            padding = 0,
+            bordersize = 0,
+            text_font_size = label_size,
+            text_font_bold = true,
+            align = "left",
+            show_parent = temp_parent,
+            callback = function()
+                M._collapsed[key] = not M._collapsed[key]
+                UIManager:close(_dialog)
+                _dialog = nil
+                M.show()
+            end,
+        }
+        return btn
+    end
+    
     -- Split into regular sliders (no `type`) and style-tweak rows
     -- (`type == "choice"` / `"toggle"`) so the master switch can sit
     -- between them: sliders → master → tweaks.
     local regular, tweak_rows = {}, {}
-    for _, opts in ipairs(sliders) do
+    for _idx, opts in ipairs(sliders) do
         if opts.type then
             tweak_rows[#tweak_rows + 1] = opts
         else
@@ -841,56 +869,243 @@ function M.show()
     end
 
     -- 1. Regular sliders
-    for _, opts in ipairs(regular) do
+    for _idx, opts in ipairs(regular) do
         local row = M.buildSliderRow(opts, inner_w, label_size, temp_parent, nil)
         vg[#vg + 1] = row
         vg[#vg + 1] = VerticalSpan:new{ width = Screen:scaleBySize(8) }
     end
 
-    -- 2. Style-Tweaks master switch (between regular sliders and tweaks)
-    local RT = reader.styletweak
-    if RT then
-        local function master_label()
-            local mark = (RT.enabled ~= false) and "✓ " or "  "
-            return mark .. _("Enable style tweaks")
-        end
-        local master_btn
-        master_btn = Button:new{
-            text           = master_label(),
-            width          = inner_w,
-            height         = Screen:scaleBySize(30),
-            padding        = 0,
-            bordersize     = 0,
-            text_font_size = label_size,
-            text_font_bold = true,
-            align     = "left", 
-            show_parent    = temp_parent,
-            callback = function()
-                RT.enabled = not (RT.enabled ~= false)
-                RT:updateCssText(true)
-                UIManager:close(_dialog)
-                _dialog = nil
-                M.show()
-            end,
-        }
-        vg[#vg + 1] = VerticalSpan:new{ width = Screen:scaleBySize(12) }
-        vg[#vg + 1] = master_btn
-    end
+    -- 2 + 3. Style-Tweaks section (collapsible)
+    if reader.styletweak then
+        vg[#vg + 1] = VerticalSpan:new{ width = Screen:scaleBySize(16) }
+        vg[#vg + 1] = makeCollapseHeader(_("Style Tweaks"), "styletweaks")
 
-    -- 3. Style-tweak rows (only present in the list when RT.enabled)
-    for _, opts in ipairs(tweak_rows) do
-        local row
-        if opts.type == "choice" then
-            row = M.buildChoiceRow(opts, inner_w, label_size, temp_parent, nil)
-        elseif opts.type == "toggle" then
-            row = M.buildToggleRow(opts, inner_w, label_size, temp_parent, nil)
-        end
-        if row then
+        if not M._collapsed.styletweaks then
             vg[#vg + 1] = VerticalSpan:new{ width = Screen:scaleBySize(8) }
-            vg[#vg + 1] = row
+
+            local RT = reader.styletweak
+            local function master_label()
+                local mark = (RT.enabled ~= false) and "✓ " or "  "
+                return mark .. _("Enable style tweaks")
+            end
+            local master_btn
+            master_btn = Button:new{
+                text           = master_label(),
+                width          = inner_w,
+                height         = Screen:scaleBySize(30),
+                padding        = 0,
+                bordersize     = 0,
+                text_font_size = label_size,
+                text_font_bold = true,
+                align          = "left",
+                show_parent    = temp_parent,
+                callback = function()
+                    RT.enabled = not (RT.enabled ~= false)
+                    RT:updateCssText(true)
+                    UIManager:close(_dialog)
+                    _dialog = nil
+                    M.show()
+                end,
+            }
+            vg[#vg + 1] = master_btn
+
+            for _idx, opts in ipairs(tweak_rows) do
+                local row
+                if opts.type == "choice" then
+                    row = M.buildChoiceRow(opts, inner_w, label_size, temp_parent, nil)
+                elseif opts.type == "toggle" then
+                    row = M.buildToggleRow(opts, inner_w, label_size, temp_parent, nil)
+                end
+                if row then
+                    vg[#vg + 1] = VerticalSpan:new{ width = Screen:scaleBySize(8) }
+                    vg[#vg + 1] = row
+                end
+            end
         end
     end
 
+    -- 4. Profiles section
+    do
+        local profiles = reader.profiles
+        if profiles and profiles.data then
+            vg[#vg + 1] = VerticalSpan:new{ width = Screen:scaleBySize(16) }
+
+            -- Collect profile names first (orderedPairs is read-only here)
+            local profile_names = {}
+            for name in ffiUtil.orderedPairs(profiles.data) do
+                profile_names[#profile_names + 1] = name
+            end
+
+            -- Grid geometry: 5 cells per row
+            local COLS = 5
+            local GAP = Screen:scaleBySize(6)
+            local cell_w = math.floor((inner_w - (COLS - 1) * GAP) / COLS)
+            local cell_h = Screen:scaleBySize(36)
+
+            -- Build a list of entries: first is "new", rest are profiles
+            local entries = {}
+            entries[#entries + 1] = { kind = "new" }
+            for _idx, name in ipairs(profile_names) do
+                entries[#entries + 1] = { kind = "profile", name = name }
+            end
+
+            -- Render entries as a grid
+            local row_hg = nil
+            for i, entry in ipairs(entries) do
+                -- start a new row every COLS entries
+                if (i - 1) % COLS == 0 then
+                    if row_hg then
+                        vg[#vg + 1] = row_hg
+                        vg[#vg + 1] = VerticalSpan:new{ width = GAP }
+                    end
+                    row_hg = HorizontalGroup:new{ align = "center" }
+                else
+                    row_hg[#row_hg + 1] = HorizontalSpan:new{ width = GAP }
+                end
+
+                local btn
+                if entry.kind == "new" then
+                    btn = Button:new{
+                        text = "＋ " .. _("Profile"),
+                        width = cell_w,
+                        height = cell_h,
+                        bordersize = 0,
+                        text_font_size = label_size,
+                        text_font_bold = false,
+                        show_parent = temp_parent,
+                        callback = function()
+                            profiles:editProfileName(function(name)
+                                profiles.data[name] = profiles:getProfileFromCurrentBookSettings(name)
+                                profiles.updated = true
+                                UIManager:close(_dialog)
+                                _dialog = nil
+                                M.show()
+                            end)
+                        end,
+                    }
+                else
+                    local _name = entry.name
+                    btn = Button:new{
+                        text = _name,
+                        width = cell_w,
+                        height = cell_h,
+                        bordersize = 0,
+                        text_font_size = label_size,
+                        text_font_bold = false,
+                        show_parent = temp_parent,
+                        callback = function()
+                            UIManager:close(_dialog)
+                            _dialog = nil
+                            profiles:onProfileExecute(_name, { qm_show = false })
+                        end,
+                        hold_callback = function()
+                            UIManager:show(ConfirmBox:new{
+                                text = string.format(_("Delete profile \"%s\"?"), _name),
+                                ok_text = _("Delete"),
+                                cancel_text = _("Cancel"),
+                                ok_callback = function()
+                                    local profile = profiles.data[_name]
+                                    if profile then
+                                        profiles:updateAutoExec(_name)
+                                        if profile.settings and profile.settings.registered then
+                                            Dispatcher:removeAction(profiles.prefix .. _name)
+                                            UIManager:broadcastEvent(Event:new("DispatcherActionNameChanged",
+                                                { old_name = profiles.prefix .. _name, new_name = nil }))
+                                        end
+                                        profiles.data[_name] = nil
+                                        profiles.updated = true
+                                        UIManager:close(_dialog)
+                                        _dialog = nil
+                                        M.show()
+                                    end
+                                end,
+                            })
+                        end,
+                    }
+                end
+
+                row_hg[#row_hg + 1] = btn
+            end
+
+            -- flush the last row
+            if row_hg then
+                vg[#vg + 1] = row_hg
+            end
+        end
+    end
+   
+    -- 5. Document settings: Reset + Save as default
+    do
+        local RUI = require("apps/reader/readerui")
+        local reader = RUI and RUI.instance
+        if reader and reader.menu then
+            vg[#vg + 1] = VerticalSpan:new{ width = Screen:scaleBySize(16) }
+
+            local GAP = Screen:scaleBySize(6)
+            local btn_w = math.floor((inner_w - GAP) / 2)
+            local btn_h = Screen:scaleBySize(36)
+
+            -- Reset document settings to default
+            local reset_btn = Button:new{
+                text = _("Reset document settings to default"),
+                width = btn_w,
+                height = btn_h,
+                bordersize = 0,
+                text_font_size = label_size,
+                show_parent = temp_parent,
+                callback = function()
+                    UIManager:show(ConfirmBox:new{
+                        text = _("Reset current document settings to their default values?\n\nReading position, highlights and bookmarks will be kept.\nThe document will be reloaded."),
+                        ok_text = _("Reset"),
+                        cancel_text = _("Cancel"),
+                        ok_callback = function()
+                            local current_file = reader.document and reader.document.file
+                            UIManager:close(_dialog)
+                            _dialog = nil
+                            if not current_file then return end
+                            reader:onClose()
+                            require("apps/filemanager/filemanagerutil").resetDocumentSettings(current_file)
+                            require("apps/reader/readerui"):showReader(current_file)
+                        end,
+                    })
+                end,
+            }
+
+            -- Save document settings as default
+            local save_btn = Button:new{
+                text = _("Save document settings as default"),
+                width = btn_w,
+                height = btn_h,
+                bordersize = 0,
+                text_font_size = label_size,
+                show_parent = temp_parent,
+                callback = function()
+                    UIManager:show(ConfirmBox:new{
+                        text = _("Save current document settings as default values?"),
+                        ok_text = _("Save"),
+                        cancel_text = _("Cancel"),
+                        ok_callback = function()
+                            if reader and reader.menu then
+                                reader.menu:saveDocumentSettingsAsDefault()
+                                UIManager:show(Notification:new{
+                                    text = _("Default settings updated"),
+                                    timeout = 2,
+                                })
+                            end
+                        end,
+                    })
+                end,
+            }
+
+            vg[#vg + 1] = HorizontalGroup:new{
+                align = "center",
+                reset_btn,
+                HorizontalSpan:new{ width = GAP },
+                save_btn,
+            }
+        end
+    end
+    
     local frame = FrameContainer:new{
         width = panel_w,
         padding = padding,
