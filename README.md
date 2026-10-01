@@ -83,48 +83,70 @@ A customizable action panel integrated into the top menu bar:
 
 **Complete Built-in Action List:**
 
-| Action ID | Name | View | Description |
-| :--- | :--- | :--- | :--- |
-| `home` | Home | Common | Return to Filemanager |
-| `wifi` | Wi-Fi | Common | Toggle Wi-Fi |
-| `night` | Night Mode | Common | Toggle night mode |
-| `rotate` | Rotate | Common | Rotate screen |
-| `screenshot` | Screenshot (4s delay) | Common | Take screenshot with delay |
-| `continue` | Continue Reading | Common | Open most recently read book |
-| `search` | Search | Common | Full-text search / file search |
-| `quit` | Quit | Common | Quit KOReader |
-| `restart` | Restart | Common | Restart KOReader |
-| `power` | Power | Common | Power menu (sleep/restart/quit) |
-| `httpinspector` | HTTP Server | Common | Start/stop HTTP inspector server |
-| `fontlist` | Font List | Reader | Quick switch reading font |
-| `reading_insights` | Reading Insights | Common | Show reading statistics popup |
-| `filebrowserplus` | FileBrowserPlus | Common | Launch FileBrowserPlus plugin |
-| `zlibrary_search` | ZLibrary Search | Common | Launch ZLibrary search |
-| `cloudlibrary_autosync` | CloudLibrary-AutoSync | Common | Toggle auto-sync |
-| `cloudlibrary_batch_download_books` | CloudLibrary-Batch Download | Common | Batch download books |
-| `cloudlibrary_settings` | CloudLibrary-Settings | Common | CloudLibrary settings |
-| `annotations_viewer` | Annotations Viewer | Common | View all/current book annotations |
-| `quickui_settings` | QuickUI Settings | Common | Open QuickUI global settings |
-| `qa_settings` | QA Settings | Common | Open Quick Actions settings |
-| `qa_new` | New Quick Action | Common | Create a new custom action |
-| `qa_panel_settings` | Panel Settings | Common | Quick panel settings |
-| `qa_add_panel_button` | Add Panel Button | Common | Add button to panel |
-| `qa_bb_settings` | Bottom Bar Settings | Common | Bottom bar settings |
-| `qa_add_bb_tab` | Add Bottom Bar Tab | Common | Add tab to bottom bar |
-| `ui_font_switch` | UI Font Switcher | Common | Switch system UI font |
-| `system_icon_override` | System Icon Override | Common | Open system icon replacement picker |
-| `interface_filter` | Interface Filter | Common | Open interface filter settings |
-| `toggle_cloze_mode` | Toggle Cloze Mode | Reader | Toggle Cloze mode |
-| `QuickUI_CoverSettings` | Cover Settings | Filemanager | Cover visual settings |
-| `QuickUI_ClozeSettings` | Cloze Settings | Reader | Cloze mode settings |
-| `QuickUI_HFSettings` | Header/Footer Settings | Reader | Header/Footer settings |
-| `qa_vb_toggle` | Toggle Vertical Bar | Common | Show/hide the vertical bar |
-| `qa_vb_settings` | Vertical Bar Settings | Common | Open vertical bar settings |
-| `qa_add_vb_button` | Add Vertical Bar Button | Common | Add a button to the vertical bar |
-| `reader_sliders` | Reader Sliders | Reader | Open the full typesetting-slider popup (includes Sliders, collapsible Style Tweaks, Profiles, and Document settings sections) |
-| `QuickUI_EditMetadata` | Edit Metadata | Filemanager | Edit the selected book's metadata |
-| `toggle_reading_order` | Toggle Reading Order | Reader | Toggle LTR/RTL page turn direction |
-| `page_scrubber` | Page Scrubber | Reader | Open the Simple Grid view of the Page Scrubber plugin |
+| Action ID | Name | View | Dependency | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `home` | Home | Common | — | Return to Filemanager |
+| `wifi` | Wi-Fi | Common | — | Toggle Wi-Fi |
+| `night` | Night Mode | Common | — | Toggle night mode |
+| `rotate` | Rotate | Common | — | Rotate screen |
+| `screenshot` | Screenshot (4s delay) | Common | — | Take screenshot with delay |
+| `continue` | Continue Reading | Common | — | Open most recently read book |
+| `search` | Search | Common | — | Full-text search / file search |
+| `quit` | Quit | Common | — | Quit KOReader |
+| `restart` | Restart | Common | — | Restart KOReader |
+| `power` | Power | Common | — | Power menu (sleep/restart/quit) |
+| `httpinspector` | HTTP Server | Common | `httpinspector` (built-in) | Start/stop HTTP inspector server |
+| `fontlist` | Font List | Reader | — | Quick switch reading font |
+| `reading_insights` | Reading Insights | Common | — | Show reading statistics popup |
+| `filebrowserplus` | FileBrowserPlus | Common | `filebrowserplus` | Launch FileBrowserPlus plugin |
+| `zlibrary_search` | ZLibrary Search | Common | `zlibrary` | Launch ZLibrary search |
+| `cloudlibrary_autosync` | CloudLibrary-AutoSync | Common | `cloudlibrary` | Toggle auto-sync |
+| `cloudlibrary_batch_download_books` | CloudLibrary-Batch Download | Common | `cloudlibrary` | Batch download books |
+| `cloudlibrary_settings` | CloudLibrary-Settings | Common | `cloudlibrary` | CloudLibrary settings |
+| `annotations_viewer` | Annotations Viewer | Common | `annotationsviewer` | View all/current book annotations |
+| `quickui_settings` | QuickUI Settings | Common | — | Open QuickUI global settings |
+| `qa_settings` | QA Settings | Common | — | Open Quick Actions settings |
+| `qa_new` | New Quick Action | Common | — | Create a new custom action |
+| `qa_panel_settings` | Panel Settings | Common | — | Quick panel settings |
+| `qa_add_panel_button` | Add Panel Button | Common | — | Add button to panel |
+| `qa_bb_settings` | Bottom Bar Settings | Common | — | Bottom bar settings |
+| `qa_add_bb_tab` | Add Bottom Bar Tab | Common | — | Add tab to bottom bar |
+| `ui_font_switch` | UI Font Switcher | Common | — | Switch system UI font |
+| `system_icon_override` | System Icon Override | Common | — | Open system icon replacement picker |
+| `interface_filter` | Interface Filter | Common | — | Open interface filter settings |
+| `toggle_cloze_mode` | Toggle Cloze Mode | Reader | — | Toggle Cloze mode |
+| `QuickUI_CoverSettings` | Cover Settings | Filemanager | — | Cover visual settings |
+| `QuickUI_ClozeSettings` | Cloze Settings | Reader | — | Cloze mode settings |
+| `QuickUI_HFSettings` | Header/Footer Settings | Reader | — | Header/Footer settings |
+| `qa_vb_toggle` | Toggle Vertical Bar | Common | — | Show/hide the vertical bar |
+| `qa_vb_settings` | Vertical Bar Settings | Common | — | Open vertical bar settings |
+| `qa_add_vb_button` | Add Vertical Bar Button | Common | — | Add a button to the vertical bar |
+| `reader_sliders` | Reader Sliders | Reader | — | Open the full typesetting-slider popup (includes Sliders, collapsible Style Tweaks, Profiles, and Document settings sections) |
+| `QuickUI_EditMetadata` | Edit Metadata | Filemanager | — | Edit the selected book's metadata |
+| `toggle_reading_order` | Toggle Reading Order | Reader | — | Toggle LTR/RTL page turn direction |
+| `page_scrubber` | Page Scrubber | Reader | `page_scrubber` | Open the Simple Grid view of the Page Scrubber plugin |
+| `Sui-author` | Sui-author | Filemanager | `simpleui` | Browse by author (SimpleUI library browse) |
+| `Sui-series` | Sui-series | Filemanager | `simpleui` | Browse by series (SimpleUI library browse) |
+| `Sui-tags` | Sui-tags | Filemanager | `simpleui` | Browse by tags (SimpleUI library browse) |
+| `Sui-toggle` | Sui-Homescreen | Common | `simpleui` | Toggle SimpleUI homescreen |
+| `Sui-settings` | Sui-Settings | Common | `simpleui` | Open SimpleUI settings |
+| `bookshelf_toggle` | Bookshelf | Common | `bookshelf` | Toggle Bookshelf |
+| `storefront_open` | Storefront | Common | `storefront` | Open Storefront |
+| `weread_bookshelf` | WeRead-Bookshelf | Common | `weread` | Open WeRead bookshelf |
+| `weread_search` | WeRead-Search | Common | `weread` | Open WeRead search |
+| `weread_quick_menu` | WeRead-QuickMenu | Reader | `weread` | Open WeRead quick menu |
+| `weread_fetch_underlines` | Weread AL-Fetch Underlines | Reader | `wereadannotationlite` | Fetch WeRead underlines |
+| `rssreader_open` | Rssreader | Common | `rssreader` | Open RSS reader |
+| `artgallery_show` | ArtGallery | Reader | `artgallery` | Open ArtGallery |
+| `fanqie_bookshelf` | FanQie-Bookshelf | Common | `fanqie` | Open FanQie bookshelf |
+| `fanqie_search` | FanQie-SearchBooks | Common | `fanqie` | Search books on FanQie |
+| `fanqie_toc` | FanQie-Toc | Reader | `fanqie` | Open FanQie TOC |
+| `fanqie_shelf_or_toc` | FanQie-Shelf/Toc | Common | `fanqie` | Open FanQie shelf or TOC |
+| `fanqie_fetchlocalreview` | FanQie-FetchLocalReview | Reader | `fanqie` | Fetch local reviews from FanQie |
+| `fingerink_bar` | FingerInk-toolbar | Reader | `fingerink` | Open FingerInk toolbar |
+| `toggle_side_toc` | SideToc | Reader | `sidetoc` | Toggle side TOC |
+| `koassistant_quick_actions` | KOA-quickactions | Reader | `koassistant` | Open KOAssistant quick actions |
+| `koassistant_ai_settings` | KOA-quicksettings | Common | `koassistant` | Open KOAssistant AI settings |
 
 <table>
   <tr>
