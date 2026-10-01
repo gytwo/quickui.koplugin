@@ -2188,3 +2188,9 @@ msgstr "封面"
 
 msgid "Set"
 msgstr "已设置"
+
+msgid "ToggleReadingOrder"
+msgstr "切换翻页方向"
+
+msgid "Page Scrubber"
+msgstr "页面浏览器"
