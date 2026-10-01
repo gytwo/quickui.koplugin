@@ -142,7 +142,7 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**五大核心功能
 | `fanqie_search` | 番茄小说-搜书 | 通用 | `fanqie` | 搜索番茄小说 |
 | `fanqie_toc` | 番茄小说-目录 | 阅读器 | `fanqie` | 打开番茄小说目录 |
 | `fanqie_shelf_or_toc` | 番茄小说-书架/目录 | 通用 | `fanqie` | 打开番茄小说书架或目录 |
-| `fanqie_fetchlocalreview` | 番茄小说-拉取本地评论 | 阅读器 | `fanqie` | 拉取番茄小说本地评论 |
+| `fanqie_fetchlocalreview` | 番茄小说-拉取段评 | 阅读器 | `fanqie` | 为本地书籍拉取段评 |
 | `fingerink_bar` | FingerInk-工具栏 | 阅读器 | `fingerink` | 打开 FingerInk 工具栏 |
 | `toggle_side_toc` | 侧边目录 | 阅读器 | `sidetoc` | 切换侧边目录 |
 | `koassistant_quick_actions` | KOA-快捷操作 | 阅读器 | `koassistant` | 打开 KOA 快捷操作 |
