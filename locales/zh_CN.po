@@ -1884,6 +1884,9 @@ msgstr "KOA-快捷动作"
 msgid "KOA-quicksettings"
 msgstr "KOA-快速设置"
 
+msgid "Style Tweaks"
+msgstr "样式微调"
+
 msgid "Enable style tweaks"
 msgstr "启用样式微调"
 
@@ -2194,3 +2197,9 @@ msgstr "切换翻页方向"
 
 msgid "Page Scrubber"
 msgstr "页面浏览器"
+
+msgid "Profile"
+msgstr "配置"
+
+msgid "Delete profile \"%s\"?"
+msgstr "删除配置 \"%s\"？"
