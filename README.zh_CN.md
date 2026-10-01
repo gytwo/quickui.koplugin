@@ -83,48 +83,70 @@ QuickUI 是一个综合性 KOReader 增强插件，集成了**五大核心功能
 
 **内置操作完整列表：**
 
-| 操作 ID | 名称 | 界面 | 说明 |
-| :--- | :--- | :--- | :--- |
-| `home` | 主页 | 通用 | 返回文件管理器 |
-| `wifi` | Wi-Fi | 通用 | 切换 Wi-Fi |
-| `night` | 夜间模式 | 通用 | 切换夜间模式 |
-| `rotate` | 旋转屏幕 | 通用 | 旋转屏幕 |
-| `screenshot` | 截图（延迟4秒） | 通用 | 延迟截图 |
-| `continue` | 继续阅读 | 通用 | 打开最近阅读的书籍 |
-| `search` | 搜索 | 通用 | 全文搜索/文件搜索 |
-| `quit` | 退出 | 通用 | 退出 KOReader |
-| `restart` | 重启 | 通用 | 重启 KOReader |
-| `power` | 电源 | 通用 | 电源菜单（休眠/重启/退出） |
-| `httpinspector` | HTTP 服务器 | 通用 | 启动/停止 HTTP 调试服务器 |
-| `fontlist` | 字体列表 | 阅读器 | 快速切换阅读字体 |
-| `reading_insights` | 阅读统计 | 通用 | 显示阅读统计弹窗 |
-| `filebrowserplus` | FileBrowserPlus | 通用 | 启动 FileBrowserPlus 插件 |
-| `zlibrary_search` | ZLibrary 搜索 | 通用 | 启动 ZLibrary 搜索 |
-| `cloudlibrary_autosync` | 云端书库-自动同步 | 通用 | 切换自动同步 |
-| `cloudlibrary_batch_download_books` | 云端书库-批量下载 | 通用 | 批量下载书籍 |
-| `cloudlibrary_settings` | 云端书库-设置 | 通用 | 云端书库设置 |
-| `annotations_viewer` | 标注浏览器 | 通用 | 查看所有/当前书籍标注 |
-| `quickui_settings` | QuickUI 设置 | 通用 | 打开 QuickUI 全局设置 |
-| `qa_settings` | 快捷操作设置 | 通用 | 打开快捷操作设置 |
-| `qa_new` | 新建快捷操作 | 通用 | 创建新的自定义操作 |
-| `qa_panel_settings` | 面板设置 | 通用 | 快捷面板设置 |
-| `qa_add_panel_button` | 添加面板按钮 | 通用 | 向面板添加按钮 |
-| `qa_bb_settings` | 底部栏设置 | 通用 | 底部栏设置 |
-| `qa_add_bb_tab` | 添加底部栏按钮 | 通用 | 向底部栏添加按钮 |
-| `ui_font_switch` | UI 字体切换 | 通用 | 切换系统 UI 字体 |
-| `system_icon_override` | 系统图标替换 | 通用 | 打开系统图标替换选择器 |
-| `interface_filter` | 界面过滤 | 通用 | 打开界面过滤设置 |
-| `toggle_cloze_mode` | 切换遮盖模式 | 阅读器 | 切换遮盖模式 |
-| `QuickUI_CoverSettings` | 封面设置 | 文件管理器 | 封面视觉设置 |
-| `QuickUI_ClozeSettings` | 遮盖设置 | 阅读器 | 遮盖模式设置 |
-| `QuickUI_HFSettings` | 页眉页脚设置 | 阅读器 | 页眉页脚设置 |
-| `qa_vb_toggle` | 切换垂直栏 | 通用 | 显示/隐藏侧边竖栏 |
-| `qa_vb_settings` | 垂直栏设置 | 通用 | 打开侧边竖栏设置 |
-| `qa_add_vb_button` | 添加垂直栏按钮 | 通用 | 向侧边竖栏添加按钮 |
-| `reader_sliders` | 阅读滑块 | 阅读器 | 打开完整排版滑块弹窗（包含滑块、可折叠样式微调、配置、文档设置四个区） |
-| `QuickUI_EditMetadata` | 编辑元数据 | 文件管理器 | 编辑选中书籍的元数据 |
-| `page_scrubber` | 页面浏览器 | 阅读器 | 打开 Page Scrubber 插件的简单网格视图 |
-| `toggle_reading_order` | 切换翻页方向 | 阅读器 | 切换从左向右 / 从右向左翻页 |
+| 操作 ID | 名称 | 界面 | 依赖插件 | 说明 |
+| :--- | :--- | :--- | :--- | :--- |
+| `home` | 主页 | 通用 | — | 返回文件管理器 |
+| `wifi` | Wi-Fi | 通用 | — | 切换 Wi-Fi |
+| `night` | 夜间模式 | 通用 | — | 切换夜间模式 |
+| `rotate` | 旋转屏幕 | 通用 | — | 旋转屏幕 |
+| `screenshot` | 截图（延迟4秒） | 通用 | — | 延迟截图 |
+| `continue` | 继续阅读 | 通用 | — | 打开最近阅读的书籍 |
+| `search` | 搜索 | 通用 | — | 全文搜索/文件搜索 |
+| `quit` | 退出 | 通用 | — | 退出 KOReader |
+| `restart` | 重启 | 通用 | — | 重启 KOReader |
+| `power` | 电源 | 通用 | — | 电源菜单（休眠/重启/退出） |
+| `httpinspector` | HTTP 服务器 | 通用 | `httpinspector`（内置） | 启动/停止 HTTP 调试服务器 |
+| `fontlist` | 字体列表 | 阅读器 | — | 快速切换阅读字体 |
+| `reading_insights` | 阅读统计 | 通用 | — | 显示阅读统计弹窗 |
+| `filebrowserplus` | FileBrowserPlus | 通用 | `filebrowserplus` | 启动 FileBrowserPlus 插件 |
+| `zlibrary_search` | ZLibrary 搜索 | 通用 | `zlibrary` | 启动 ZLibrary 搜索 |
+| `cloudlibrary_autosync` | 云端书库-自动同步 | 通用 | `cloudlibrary` | 切换自动同步 |
+| `cloudlibrary_batch_download_books` | 云端书库-批量下载 | 通用 | `cloudlibrary` | 批量下载书籍 |
+| `cloudlibrary_settings` | 云端书库-设置 | 通用 | `cloudlibrary` | 云端书库设置 |
+| `annotations_viewer` | 标注浏览器 | 通用 | `annotationsviewer` | 查看所有/当前书籍标注 |
+| `quickui_settings` | QuickUI 设置 | 通用 | — | 打开 QuickUI 全局设置 |
+| `qa_settings` | 快捷操作设置 | 通用 | — | 打开快捷操作设置 |
+| `qa_new` | 新建快捷操作 | 通用 | — | 创建新的自定义操作 |
+| `qa_panel_settings` | 面板设置 | 通用 | — | 快捷面板设置 |
+| `qa_add_panel_button` | 添加面板按钮 | 通用 | — | 向面板添加按钮 |
+| `qa_bb_settings` | 底部栏设置 | 通用 | — | 底部栏设置 |
+| `qa_add_bb_tab` | 添加底部栏按钮 | 通用 | — | 向底部栏添加按钮 |
+| `ui_font_switch` | UI 字体切换 | 通用 | — | 切换系统 UI 字体 |
+| `system_icon_override` | 系统图标替换 | 通用 | — | 打开系统图标替换选择器 |
+| `interface_filter` | 界面过滤 | 通用 | — | 打开界面过滤设置 |
+| `toggle_cloze_mode` | 切换遮盖模式 | 阅读器 | — | 切换遮盖模式 |
+| `QuickUI_CoverSettings` | 封面设置 | 文件管理器 | — | 封面视觉设置 |
+| `QuickUI_ClozeSettings` | 遮盖设置 | 阅读器 | — | 遮盖模式设置 |
+| `QuickUI_HFSettings` | 页眉页脚设置 | 阅读器 | — | 页眉页脚设置 |
+| `qa_vb_toggle` | 切换垂直栏 | 通用 | — | 显示/隐藏侧边竖栏 |
+| `qa_vb_settings` | 垂直栏设置 | 通用 | — | 打开侧边竖栏设置 |
+| `qa_add_vb_button` | 添加垂直栏按钮 | 通用 | — | 向侧边竖栏添加按钮 |
+| `reader_sliders` | 阅读滑块 | 阅读器 | — | 打开完整排版滑块弹窗（含滑块、可折叠样式微调、配置、文档设置） |
+| `QuickUI_EditMetadata` | 编辑元数据 | 文件管理器 | — | 编辑选中书籍的元数据 |
+| `toggle_reading_order` | 切换翻页方向 | 阅读器 | — | 切换从左向右 / 从右向左翻页 |
+| `page_scrubber` | 页面浏览器 | 阅读器 | `page_scrubber` | 打开 Page Scrubber 插件的简单网格视图 |
+| `Sui-author` | Sui-author | 文件管理器 | `simpleui` | 按作者浏览（SimpleUI 书库浏览） |
+| `Sui-series` | Sui-series | 文件管理器 | `simpleui` | 按系列浏览（SimpleUI 书库浏览） |
+| `Sui-tags` | Sui-tags | 文件管理器 | `simpleui` | 按标签浏览（SimpleUI 书库浏览） |
+| `Sui-toggle` | Sui-Homescreen | 通用 | `simpleui` | 切换 SimpleUI 首页 |
+| `Sui-settings` | Sui-Settings | 通用 | `simpleui` | 打开 SimpleUI 设置 |
+| `bookshelf_toggle` | 书架 | 通用 | `bookshelf` | 切换书架 |
+| `storefront_open` | 应用商店 | 通用 | `storefront` | 打开应用商店 |
+| `weread_bookshelf` | 微信读书-书架 | 通用 | `weread` | 打开微信读书书架 |
+| `weread_search` | 微信读书-搜索 | 通用 | `weread` | 打开微信读书搜索 |
+| `weread_quick_menu` | 微信读书-快捷菜单 | 阅读器 | `weread` | 打开微信读书快捷菜单 |
+| `weread_fetch_underlines` | 微信读书-拉取划线 | 阅读器 | `wereadannotationlite` | 拉取微信读书划线 |
+| `rssreader_open` | RSS 阅读器 | 通用 | `rssreader` | 打开 RSS 阅读器 |
+| `artgallery_show` | 看图插件 | 阅读器 | `artgallery` | 打开看图插件 |
+| `fanqie_bookshelf` | 番茄小说-书架 | 通用 | `fanqie` | 打开番茄小说书架 |
+| `fanqie_search` | 番茄小说-搜书 | 通用 | `fanqie` | 搜索番茄小说 |
+| `fanqie_toc` | 番茄小说-目录 | 阅读器 | `fanqie` | 打开番茄小说目录 |
+| `fanqie_shelf_or_toc` | 番茄小说-书架/目录 | 通用 | `fanqie` | 打开番茄小说书架或目录 |
+| `fanqie_fetchlocalreview` | 番茄小说-拉取本地评论 | 阅读器 | `fanqie` | 拉取番茄小说本地评论 |
+| `fingerink_bar` | FingerInk-工具栏 | 阅读器 | `fingerink` | 打开 FingerInk 工具栏 |
+| `toggle_side_toc` | 侧边目录 | 阅读器 | `sidetoc` | 切换侧边目录 |
+| `koassistant_quick_actions` | KOA-快捷操作 | 阅读器 | `koassistant` | 打开 KOA 快捷操作 |
+| `koassistant_ai_settings` | KOA-设置 | 通用 | `koassistant` | 打开 KOA AI 设置 |
 
 <table>
   <tr>
