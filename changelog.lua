@@ -137,4 +137,8 @@ return {
     "Reader Sliders: Add Document settings section — Reset document settings to default, and Save document settings as default",
     "Reader Sliders: Style Tweaks section is now collapsible",
 },
+["1.2.3"] = {
+    "WeRead: auto-update skill_version from upgrade_info and keep returning results instead of failing",
+    "Cover Editor: inline API key prompt — enter and save the key on the spot, then search immediately",
+},
 }
