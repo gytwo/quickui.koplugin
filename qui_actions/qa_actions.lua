@@ -1769,9 +1769,9 @@ function QA.registerAllActions()
         "nerd:E884", false, "reader",
         function(ctx)
             closeTouchMenu(ctx)
-            UIManager:broadcastEvent(Event:new("WereadFetchUnderlines"))
+            UIManager:broadcastEvent(Event:new("WeReadFetchChapterThoughts"))
         end,
-        pluginAvailable("wereadannotationlite")
+        pluginAvailable("weread")
     )
 
     -- ============================================================
