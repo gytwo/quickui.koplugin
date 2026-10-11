@@ -220,12 +220,48 @@ function M.search_online(editor)
                 UIManager:close(editor.dialog)
                 if not has_key then
                     UIManager:nextTick(function()
-                        UIManager:show(InfoMessage:new{
-                            text = string.format(
-                                _("%s requires an API key.\n\nSet it in QuickUI Settings → Metadata Settings → Provider API Keys."),
-                                _p.name),
-                            timeout = 5,
-                        })
+                        local InputDialog = require("ui/widget/inputdialog")
+                        local Utils = require("qui_utils")
+                        local config = _G.__QUICKUI_CONFIG or {}
+                        local current = config[_p.key_config] or ""
+                        local key_dialog
+                        key_dialog = InputDialog:new{
+                            title = _p.name .. " " .. _("API key"),
+                            input = type(current) == "string" and current or "",
+                            input_hint = _("Paste the key/token here"),
+                            buttons = {{
+                                {
+                                    text = "◂ " .. _("Back"),
+                                    id = "close",
+                                    callback = function()
+                                        UIManager:close(key_dialog)
+                                        UIManager:nextTick(function() M.search_online(editor) end)
+                                    end,
+                                },
+                                {
+                                    text = _("Save & Search"),
+                                    is_enter_default = true,
+                                    callback = function()
+                                        local text = key_dialog:getInputText() or ""
+                                        if text == "" then
+                                            UIManager:show(InfoMessage:new{
+                                                text = _("Please enter the API key first."),
+                                                timeout = 2,
+                                            })
+                                            return
+                                        end
+                                        config[_p.key_config] = text
+                                        Utils.saveConfig()
+                                        UIManager:close(key_dialog)
+                                        UIManager:nextTick(function()
+                                            M.do_search(editor, _p)
+                                        end)
+                                    end,
+                                },
+                            }},
+                        }
+                        UIManager:show(key_dialog)
+                        key_dialog:onShowKeyboard()
                     end)
                 else
                     UIManager:nextTick(function() M.do_search(editor, _p) end)
