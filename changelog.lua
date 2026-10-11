@@ -138,7 +138,7 @@ return {
     "Reader Sliders: Style Tweaks section is now collapsible",
 },
 ["1.2.3"] = {
-    "WeRead: auto-update skill_version from upgrade_info and keep returning results instead of failing",
-    "Cover Editor: inline API key prompt — enter and save the key on the spot, then search immediately",
+    "Metadata: WeRead provider auto-updates skill_version from upgrade_info, no longer discards search results on upgrade notice",
+    "Metadata: Cover Editor asks for the API key inline and continues the cover search instead of redirecting to Settings",
 },
 }
