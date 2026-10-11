@@ -21,7 +21,7 @@ local M = {}
 
 local GATEWAY_HOST = "i.weread.qq.com"
 local GATEWAY_URL = "https://i.weread.qq.com/api/agent/gateway"
-local SKILL_VERSION = "1.0.4"   -- 官方当前版本，回包出现 upgrade_info 时需更新
+local SKILL_VERSION = "1.0.4"   -- 初始值，会随服务端 upgrade_info 自动更新
 local SEARCH_LIMIT = 10
 local MAX_QUERY_LENGTH = 256
 
@@ -131,11 +131,13 @@ local function gateway_call(api_key, api_name, params, transport)
         return nil, decode_err
     end
 
-    -- 检查 upgrade_info：服务端要求升级 skill_version
+    -- 服务端提示 Skill 版本升级时，动态跟随最新版本，不阻断数据返回
     if data.upgrade_info then
-        local msg = data.upgrade_info.message or "skill_version out of date"
-        logger.warn("[QuickUI weread] upgrade required:", msg)
-        return nil, Http.failure("malformed", nil, nil)  -- 可扩展为专用错误
+        local latest = data.upgrade_info.latest_version
+        if latest and latest ~= "" and latest ~= SKILL_VERSION then
+            SKILL_VERSION = latest
+            logger.info("[QuickUI weread] skill_version updated to", latest)
+        end
     end
 
     local errcode = tonumber(data.errcode or data.errCode)
