@@ -2216,6 +2216,12 @@ msgstr "背景图片"
 msgid "Background transparency"
 msgstr "背景透明度"
 
+msgid "Global transparency"
+msgstr "全局透明度"
+
+msgid "This book transparency"
+msgstr "本书透明度"
+
 msgid "Follow global"
 msgstr "跟随全局"
 
