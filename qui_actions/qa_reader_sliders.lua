@@ -364,11 +364,7 @@ local function rbg_apply_background(doc)
         doc:setBackgroundImage()
     end
     if doc.setBackgroundColor then
-        if G_reader_settings:isTrue("night_mode") then
-            doc:setBackgroundColor(0x000000)
-        else
-            doc:setBackgroundColor(0xFFFFFF)
-        end
+        doc:setBackgroundColor(0xFFFFFF)
     end
 end
 
