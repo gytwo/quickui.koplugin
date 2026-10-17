@@ -1,7 +1,29 @@
 --[[
 QuickUI - Reader Sliders
 
-Single source of truth for reader typography sliders.
+Single source of truth for reader typography sliders, plus the reading
+background feature (master toggle / background image / transparency),
+exposed as a collapsible block right after Style Tweaks.
+
+Reading background:
+  - Painted by crengine via setBackgroundImage(), exactly like custombg.
+  - The source image is scaled to screen size, the requested transparency
+    is baked in by blending toward white per-pixel, and the result is
+    written to cache/ so subsequent renders just reuse the cached file.
+  - Transparency = 0 means "no overlay" (original image);
+    transparency = 100 means "fully white" (image invisible).
+  - Re-applied on open, on every render (via onPreRenderDocument), and on
+    a short timer after open, so reflows that reset the background are
+    corrected immediately.
+
+Reading background storage:
+  quickui.lua (via Utils.get/set):
+    qa_common_reading_bg_enabled        master switch
+    qa_common_reading_bg_transparency   0..100
+    qa_common_reading_bg_image          global default image path
+  doc_settings (per book, sidecar):
+    reading_bg_doc_image                this book's image path
+    reading_bg_doc_none                 this book explicitly wants no background
 ]]
 local ConfirmBox      = require("ui/widget/confirmbox")
 local Dispatcher      = require("dispatcher")
@@ -13,7 +35,6 @@ local ButtonDialog    = require("ui/widget/buttondialog")
 local CenterContainer = require("ui/widget/container/centercontainer")
 local MovableContainer = require("ui/widget/container/movablecontainer")
 local Device          = require("device")
-local Event           = require("ui/event")
 local Font            = require("ui/font")
 local FrameContainer  = require("ui/widget/container/framecontainer")
 local Geom            = require("ui/geometry")
@@ -23,12 +44,15 @@ local HorizontalSpan  = require("ui/widget/horizontalspan")
 local InfoMessage     = require("ui/widget/infomessage")
 local InputContainer  = require("ui/widget/container/inputcontainer")
 local Notification    = require("ui/widget/notification")
+local PathChooser     = require("ui/widget/pathchooser")
 local Screen          = require("device").screen
 local SpinWidget      = require("ui/widget/spinwidget")
 local TextWidget      = require("ui/widget/textwidget")
 local UIManager       = require("ui/uimanager")
 local VerticalGroup   = require("ui/widget/verticalgroup")
 local VerticalSpan    = require("ui/widget/verticalspan")
+local lfs             = require("libs/libkoreader-lfs")
+local logger          = require("logger")
 local _               = require("gettext")
 local Utils = require("qui_utils")
 
@@ -93,6 +117,462 @@ function SlimSlider:paintTo(bb, x, y)
     local tx = x + fill_w - math.floor(thumb_w / 2)
     tx = math.max(x, math.min(x + self.width - thumb_w, tx))
     bb:paintRect(tx, cy - math.floor(thumb_h / 2), thumb_w, thumb_h, Blitbuffer.COLOR_BLACK)
+end
+
+-- ============================================================
+-- Reading Background — custombg port with baked-in transparency
+-- ============================================================
+
+local RBG_KEYS = {
+    enabled      = "qa_common_reading_bg_enabled",
+    transparency = "qa_common_reading_bg_transparency",
+    image        = "qa_common_reading_bg_image",
+    doc_image    = "reading_bg_doc_image",
+    doc_none     = "reading_bg_doc_none",
+}
+
+local RBG_DEFAULT_TRANSPARENCY = 85
+
+local RBG_IMG_EXT = {
+    jpg = true, jpeg = true, png = true, webp = true, bmp = true, gif = true,
+}
+
+local function rbg_warn(msg)
+    logger.warn("QuickUI reading_bg: " .. tostring(msg))
+end
+
+local function rbg_cget(key, default)
+    local v = Utils.get(key, nil)
+    if v == nil then return default end
+    return v
+end
+
+local function rbg_cset(key, value)
+    Utils.set(key, value)
+end
+
+local function rbg_reader()
+    local RUI = require("apps/reader/readerui")
+    return RUI and RUI.instance
+end
+
+local function rbg_doc_settings()
+    local reader = rbg_reader()
+    return reader and reader.doc_settings, reader
+end
+
+local function rbg_file_is_image(path)
+    if type(path) ~= "string" or path == "" then return false end
+    if lfs.attributes(path, "mode") ~= "file" then return false end
+    local ext = path:match("%.([^%.]+)$")
+    return ext and RBG_IMG_EXT[ext:lower()] or false
+end
+
+local function rbg_filename(path)
+    if type(path) ~= "string" or path == "" then return "" end
+    return path:match("([^/]+)$") or path
+end
+
+local function rbg_current_scope()
+    local doc_settings = rbg_doc_settings()
+    if not doc_settings then return "global" end
+    if doc_settings:readSetting(RBG_KEYS.doc_none) == true then return "none" end
+    local p = doc_settings:readSetting(RBG_KEYS.doc_image)
+    if p and p ~= "" then return "doc" end
+    return "global"
+end
+
+local function rbg_current_label()
+    local doc_settings = rbg_doc_settings()
+    if doc_settings then
+        if doc_settings:readSetting(RBG_KEYS.doc_none) == true then
+            return _("No background")
+        end
+        local p = doc_settings:readSetting(RBG_KEYS.doc_image)
+        if p and p ~= "" then
+            return rbg_filename(p)
+        end
+    end
+    local gp = rbg_cget(RBG_KEYS.image, "")
+    if gp ~= "" then
+        return _("Follow global") .. " (" .. rbg_filename(gp) .. ")"
+    end
+    return _("Follow global")
+end
+
+local function rbg_resolve_image()
+    if rbg_cget(RBG_KEYS.enabled, false) ~= true then
+        return nil
+    end
+
+    local doc_settings = rbg_doc_settings()
+    if doc_settings then
+        if doc_settings:readSetting(RBG_KEYS.doc_none) == true then
+            return nil
+        end
+        local path = doc_settings:readSetting(RBG_KEYS.doc_image)
+        if rbg_file_is_image(path) then return path end
+    end
+
+    local path = rbg_cget(RBG_KEYS.image, "")
+    if rbg_file_is_image(path) then return path end
+    return nil
+end
+
+-- ---- cache ----
+
+local function rbg_cache_dir()
+    local dir = Utils.getPluginDir() .. "cache/"
+    pcall(function() lfs.mkdir(dir) end)
+    return dir
+end
+
+local function rbg_hash(s)
+    local h = 5381
+    for i = 1, #s do
+        h = (h * 33 + string.byte(s, i)) % 2147483648
+    end
+    return string.format("%x", h)
+end
+
+-- Safely extract r/g/b from a pixel. Works for both plain Lua tables and
+-- FFI structs returned by Blitbuffer:getPixel on RGB32 buffers.
+local function rbg_read_rgb(px)
+    if px == nil then return 0, 0, 0 end
+    local ok, r, g, b = pcall(function()
+        return px.r, px.g, px.b
+    end)
+    if ok and r ~= nil then
+        return r, g, b
+    end
+    return 0, 0, 0
+end
+
+-- Per-pixel blend toward white: cover = 0 -> original, cover = 1 -> white.
+local function rbg_apply_white_overlay(bb, w, h, cover)
+    if cover <= 0 then return end
+    if cover >= 1 then
+        bb:fill(Blitbuffer.Color8(0xFF))
+        return
+    end
+
+    local solid = Blitbuffer.new(w, h, bb:getType())
+    if not solid then return end
+    solid:fill(Blitbuffer.Color8(0xFF))
+    -- intensity 在这台设备上是「保留目标的强度」，
+    -- 所以传 1 - cover 才能得到「cover 越大越白」。
+    local intensity = math.floor((1 - cover) * 255)
+    bb:addblitFrom(solid, 0, 0, 0, 0, w, h, intensity)
+    solid:free()
+end
+
+-- Per-pixel blend toward black: cover = 0 -> original, cover = 1 -> black.
+local function rbg_apply_black_overlay(bb, w, h, cover)
+    if cover <= 0 then return end
+    if cover >= 1 then
+        bb:fill(Blitbuffer.Color8(0x00))
+        return
+    end
+
+    local solid = Blitbuffer.new(w, h, bb:getType())
+    if not solid then return end
+    solid:fill(Blitbuffer.Color8(0x00))
+    local intensity = math.floor((1 - cover) * 255)
+    bb:addblitFrom(solid, 0, 0, 0, 0, w, h, intensity)
+    solid:free()
+end
+
+-- Scale the source image to screen size, bake the requested transparency
+-- in, write the result to cache/, and return the cached path.
+local function rbg_scaled_path(source, transparency)
+    if not source or source == "" then return nil end
+    transparency = math.max(0, math.min(100, math.floor((transparency or 0) + 0.5)))
+    local sw, sh = Screen:getWidth(), Screen:getHeight()
+    local night = (Screen.night_mode == true)
+        or G_reader_settings:isTrue("night_mode")
+
+    local source_name = rbg_filename(source)
+    source_name = source_name:gsub("%.[^.]+$", "")
+    source_name = source_name:gsub("[^%w%-_]", "_")
+    source_name = source_name:sub(1, 40)
+
+    local cache_name = string.format(
+        "%s_%s_%dx%d_%s_t%d.png",
+        source_name, rbg_hash(source), sw, sh,
+        night and "night" or "day", transparency
+    )
+    local cache_path = rbg_cache_dir() .. cache_name
+    if lfs.attributes(cache_path, "mode") == "file" then
+        return cache_path
+    end
+
+    local ok, result = pcall(function()
+        local RenderImage = require("ui/renderimage")
+        local src_bb = RenderImage:renderImageFile(source, false, nil, nil)
+        if not src_bb then return nil end
+        local final_bb
+        if src_bb:getWidth() == sw and src_bb:getHeight() == sh then
+            final_bb = src_bb:copy()
+        else
+            final_bb = RenderImage:scaleBlitBuffer(src_bb, sw, sh, true)
+        end
+        src_bb:free()
+        if not final_bb then return nil end
+
+        if transparency > 0 then
+            if night then
+                rbg_apply_black_overlay(final_bb, sw, sh, transparency / 100)
+            else
+                rbg_apply_white_overlay(final_bb, sw, sh, transparency / 100)
+            end
+        end
+
+        if final_bb:writeToFile(cache_path, "png", 75) then
+            final_bb:free()
+            return cache_path
+        else
+            final_bb:free()
+            return nil
+        end
+    end)
+
+    if ok and result then
+        return result
+    end
+    rbg_warn("scale failed for " .. tostring(source) .. " err=" .. tostring(result))
+    return source
+end
+
+-- ---- apply: custombg's loadBackgroundByName ----
+
+local function rbg_apply_background(doc)
+    if not doc or type(doc.setBackgroundImage) ~= "function" then
+        return
+    end
+    local source = rbg_resolve_image()
+    if source then
+        local transparency = tonumber(rbg_cget(RBG_KEYS.transparency,
+            RBG_DEFAULT_TRANSPARENCY)) or RBG_DEFAULT_TRANSPARENCY
+        local scaled = rbg_scaled_path(source, transparency)
+        if scaled then
+            doc:setBackgroundImage(scaled)
+        else
+            doc:setBackgroundImage()
+        end
+    else
+        doc:setBackgroundImage()
+    end
+    if doc.setBackgroundColor then
+        if G_reader_settings:isTrue("night_mode") then
+            doc:setBackgroundColor(0x000000)
+        else
+            doc:setBackgroundColor(0xFFFFFF)
+        end
+    end
+end
+
+local function rbg_reapply()
+    local reader = rbg_reader()
+    if not (reader and reader.document) then return end
+    if type(reader.document.setBackgroundImage) ~= "function" then
+        return
+    end
+    rbg_apply_background(reader.document)
+    UIManager:setDirty("all", "full")
+end
+
+-- ---- public actions ----
+
+local function rbg_set_enabled(on)
+    rbg_cset(RBG_KEYS.enabled, on == true)
+    rbg_reapply()
+end
+
+local function rbg_set_transparency(v)
+    v = math.max(0, math.min(100, math.floor((v or 0) + 0.5)))
+    rbg_cset(RBG_KEYS.transparency, v)
+    rbg_reapply()
+    return v
+end
+
+local function rbg_apply_image(path, scope)
+    if not rbg_file_is_image(path) then
+        return
+    end
+    if scope == "doc" then
+        local doc_settings = rbg_doc_settings()
+        if doc_settings then
+            doc_settings:saveSetting(RBG_KEYS.doc_image, path)
+            doc_settings:saveSetting(RBG_KEYS.doc_none, nil)
+        end
+    else
+        rbg_cset(RBG_KEYS.image, path)
+    end
+    rbg_reapply()
+end
+
+local function rbg_set_doc_none()
+    local doc_settings = rbg_doc_settings()
+    if not doc_settings then return end
+    doc_settings:saveSetting(RBG_KEYS.doc_none, true)
+    doc_settings:saveSetting(RBG_KEYS.doc_image, nil)
+    rbg_reapply()
+end
+
+local function rbg_clear_doc_override()
+    local doc_settings = rbg_doc_settings()
+    if not doc_settings then return end
+    doc_settings:saveSetting(RBG_KEYS.doc_none, nil)
+    doc_settings:saveSetting(RBG_KEYS.doc_image, nil)
+    rbg_reapply()
+end
+
+local function rbg_pick_image(on_done)
+    local start = G_reader_settings:readSetting("home_dir") or "/"
+    local current = rbg_cget(RBG_KEYS.image, "")
+    if current ~= "" then
+        local dir = current:match("^(.*)/[^/]+$")
+        if dir then start = dir end
+    end
+
+    local chooser
+    chooser = PathChooser:new{
+        select_directory = false,
+        select_file = true,
+        path = start,
+        title = _("Choose background image"),
+        file_filter = function(filename)
+            local ext = filename:lower():match("%.([^%.]+)$")
+            return ext ~= nil and RBG_IMG_EXT[ext] == true
+        end,
+        onConfirm = function(path)
+            if not rbg_file_is_image(path) then
+                UIManager:show(InfoMessage:new{
+                    text = _("Please choose an image file."),
+                    timeout = 2,
+                })
+                return
+            end
+            local dlg
+            local buttons = {
+                {
+                    {
+                        text = _("All books"),
+                        callback = function()
+                            UIManager:close(dlg)
+                            rbg_apply_image(path, "global")
+                            if on_done then on_done() end
+                        end,
+                    },
+                    {
+                        text = _("This book only"),
+                        callback = function()
+                            UIManager:close(dlg)
+                            rbg_apply_image(path, "doc")
+                            if on_done then on_done() end
+                        end,
+                    },
+                },
+                {
+                    {
+                        text = _("Cancel"),
+                        id = "close",
+                        callback = function() UIManager:close(dlg) end,
+                    },
+                },
+            }
+            dlg = ButtonDialog:new{
+                title = _("Apply this background image to"),
+                title_align = "center",
+                buttons = buttons,
+                width = math.floor(Screen:getWidth() * 0.7),
+            }
+            UIManager:show(dlg)
+        end,
+        onCancel = function() end,
+    }
+    UIManager:show(chooser)
+end
+
+-- ---- hook: custombg's onReadSettings + delayed reapply + before-render check ----
+
+local function rbg_install_hook()
+    local ReaderRolling = require("apps/reader/modules/readerrolling")
+    if ReaderRolling._quickui_rbg_patched then return end
+    ReaderRolling._quickui_rbg_patched = true
+
+    local orig_read = ReaderRolling.onReadSettings
+    ReaderRolling.onReadSettings = function(self, ...)
+        orig_read(self, ...)
+        pcall(function()
+            local ui = self.ui
+            if ui and ui.document then
+                rbg_apply_background(ui.document)
+                UIManager:scheduleIn(1.0, function()
+                    pcall(function()
+                        local doc = ui and ui.document
+                        if doc then
+                            rbg_apply_background(doc)
+                            UIManager:setDirty("all", "full")
+                        end
+                    end)
+                end)
+            end
+        end)
+    end
+
+    local orig_pre = ReaderRolling.onPreRenderDocument
+    ReaderRolling.onPreRenderDocument = function(self, ...)
+        if orig_pre then orig_pre(self, ...) end
+        pcall(function()
+            local doc = self.ui and self.ui.document
+            if not doc then return end
+            local night = (Screen.night_mode == true)
+                or G_reader_settings:isTrue("night_mode")
+            if doc._quickui_rbg_night ~= night then
+                doc._quickui_rbg_night = night
+                rbg_apply_background(doc)
+                UIManager:setDirty("all", "full")
+            else
+                rbg_apply_background(doc)
+            end
+        end)
+    end
+
+    local orig_screen_toggle = Screen.toggleNightMode
+    if type(orig_screen_toggle) == "function" then
+        function Screen:toggleNightMode(...)
+            local ret = orig_screen_toggle(self, ...)
+            UIManager:nextTick(function()
+                pcall(rbg_reapply)
+            end)
+            return ret
+        end
+    end
+
+    local orig_SetNightMode = UIManager.SetNightMode
+    if orig_SetNightMode then
+        function UIManager:SetNightMode(nightmode)
+            orig_SetNightMode(self, nightmode)
+            rbg_reapply()
+        end
+    end
+end
+
+-- ---- footer 透明 ----
+
+local function rbg_install_footer_transparent()
+    local ReaderFooter = require("apps/reader/modules/readerfooter")
+    if ReaderFooter._quickui_transparent_patched then return end
+    ReaderFooter._quickui_transparent_patched = true
+
+    local orig = ReaderFooter.updateFooterContainer
+    ReaderFooter.updateFooterContainer = function(self, ...)
+        orig(self, ...)
+        if self.footer_content then
+            self.footer_content.background = nil
+        end
+    end
 end
 
 -- ============================================================
@@ -226,13 +706,63 @@ function M.getSliders(reader)
             end,
         }
 
+        -- ── Reading Background ────────────────────────────────────────
+        if rbg_cget(RBG_KEYS.enabled, false) == true then
+            out[#out + 1] = {
+                type = "choice",
+                group = "reading_bg",
+                key = RBG_KEYS.image,
+                label = _("Background image"),
+                default_label = _("Follow global"),
+                choices = {
+                    { id = "global", label = _("Follow global") },
+                    { id = "pick",   label = _("Choose image…") },
+                    { id = "none",   label = _("No background") },
+                },
+                get_active = function()
+                    local scope = rbg_current_scope()
+                    if scope == "doc" then return "pick" end
+                    return scope
+                end,
+                get_current_label = rbg_current_label,
+                on_pick = function(id)
+                    if id == "none" then
+                        rbg_set_doc_none()
+                    elseif id == "global" then
+                        rbg_clear_doc_override()
+                    elseif id == "pick" then
+                        rbg_pick_image(function()
+                            if _dialog then
+                                UIManager:close(_dialog)
+                                _dialog = nil
+                            end
+                            M.show()
+                        end)
+                    end
+                end,
+            }
+
+            out[#out + 1] = {
+                key = RBG_KEYS.transparency,
+                group = "reading_bg",
+                label = _("Background transparency"),
+                min = 0, max = 100, step = 1,
+                default = function() return RBG_DEFAULT_TRANSPARENCY end,
+                global_key = RBG_KEYS.transparency,
+                get = function()
+                    return tonumber(rbg_cget(RBG_KEYS.transparency,
+                        RBG_DEFAULT_TRANSPARENCY)) or RBG_DEFAULT_TRANSPARENCY
+                end,
+                set = function(v)
+                    return rbg_set_transparency(v)
+                end,
+            }
+        end
+
         -- ── Style Tweaks (crengine only) ─────────────────────────────
-        -- The three tweak rows are only exposed when the master switch
-        -- (RT.enabled) is on; otherwise they are not built at all.
         if reader.styletweak and reader.styletweak.enabled ~= false then
             local RT = reader.styletweak
 
-            -- CJK Tailoring (toggle)
             out[#out + 1] = {
                 type = "toggle",
                 key = "cjk_tailored",
@@ -241,7 +771,6 @@ function M.getSliders(reader)
                 on_toggle = function() RT:onToggleStyleTweak("cjk_tailored", nil, true) end,
             }
 
-            -- First-line Indent (choice)
             local INDENT_IDS = {
                 "paragraph_no_indent",
                 "paragraph_indent",
@@ -278,7 +807,6 @@ function M.getSliders(reader)
                 end,
             }
 
-            -- Paragraph Spacing (choice)
             local SPACING_IDS = {
                 "paragraph_whitespace",
                 "paragraph_whitespace_half",
@@ -672,6 +1200,10 @@ function M.buildChoiceRow(opts, row_width, label_size, show_parent, on_change)
     local btn_h = math.max(30, _d:getSize().h)
 
     local function getCurrentLabel()
+        if opts.get_current_label then
+            local s = opts.get_current_label()
+            if s and s ~= "" then return s end
+        end
         local active_id = opts.get_active and opts.get_active() or nil
         for _idx, c in ipairs(opts.choices) do
             if c.id == active_id then return c.label end
@@ -688,7 +1220,7 @@ function M.buildChoiceRow(opts, row_width, label_size, show_parent, on_change)
         bordersize     = 0,
         text_font_size = label_size,
         text_font_bold = false,
-        align     = "left",  
+        align     = "left",
         show_parent    = show_parent,
         callback = function()
             local dlg
@@ -729,7 +1261,7 @@ function M.buildChoiceRow(opts, row_width, label_size, show_parent, on_change)
         bordersize     = 0,
         text_font_size = label_size,
         text_font_bold = false,
-        align     = "left", 
+        align     = "left",
         show_parent    = show_parent,
         callback       = function() end,
     }
@@ -745,7 +1277,7 @@ function M.buildChoiceRow(opts, row_width, label_size, show_parent, on_change)
 end
 
 -- ============================================================
--- Toggle row builder (checkbox-style: ✓ prefix on the label)
+-- Toggle row builder
 -- ============================================================
 
 function M.buildToggleRow(opts, row_width, label_size, show_parent, on_change)
@@ -774,7 +1306,7 @@ function M.buildToggleRow(opts, row_width, label_size, show_parent, on_change)
         bordersize     = 0,
         text_font_size = label_size,
         text_font_bold = false,
-        align     = "left", 
+        align     = "left",
         show_parent    = show_parent,
         callback = function()
             if opts.on_toggle then opts.on_toggle() end
@@ -818,7 +1350,6 @@ function M.show()
         _dialog = nil
     end
 
-    local Utils = require("qui_utils")
     local scale_pct = Utils.getNumber("qa_panel_label_scale_pct", 90)
     local label_size = Screen:scaleBySize(
         math.max(6, math.floor(12 * (scale_pct / 100)))
@@ -831,7 +1362,7 @@ function M.show()
 
     local temp_parent = {}
 
-    M._collapsed = M._collapsed or { styletweaks = true }
+    M._collapsed = M._collapsed or { styletweaks = true, reading_bg = true }
 
     local function makeCollapseHeader(title, key)
         local collapsed = M._collapsed[key]
@@ -855,13 +1386,12 @@ function M.show()
         }
         return btn
     end
-    
-    -- Split into regular sliders (no `type`) and style-tweak rows
-    -- (`type == "choice"` / `"toggle"`) so the master switch can sit
-    -- between them: sliders → master → tweaks.
-    local regular, tweak_rows = {}, {}
+
+    local regular, tweak_rows, bg_rows = {}, {}, {}
     for _idx, opts in ipairs(sliders) do
-        if opts.type then
+        if opts.group == "reading_bg" then
+            bg_rows[#bg_rows + 1] = opts
+        elseif opts.type then
             tweak_rows[#tweak_rows + 1] = opts
         else
             regular[#regular + 1] = opts
@@ -924,35 +1454,79 @@ function M.show()
         end
     end
 
-    -- 4. Profiles section
+    -- 4. Reading Background section (collapsible)
+    if reader.document then
+        vg[#vg + 1] = VerticalSpan:new{ width = Screen:scaleBySize(16) }
+        vg[#vg + 1] = makeCollapseHeader(_("Reading Background"), "reading_bg")
+
+        if not M._collapsed.reading_bg then
+            vg[#vg + 1] = VerticalSpan:new{ width = Screen:scaleBySize(8) }
+
+            local enabled = rbg_cget(RBG_KEYS.enabled, false) == true
+            local function master_label()
+                return (enabled and "✓ " or "  ") .. _("Enable reading background")
+            end
+            local master_btn
+            master_btn = Button:new{
+                text           = master_label(),
+                width          = inner_w,
+                height         = Screen:scaleBySize(30),
+                padding        = 0,
+                bordersize     = 0,
+                text_font_size = label_size,
+                text_font_bold = true,
+                align          = "left",
+                show_parent    = temp_parent,
+                callback = function()
+                    rbg_set_enabled(not enabled)
+                    UIManager:close(_dialog)
+                    _dialog = nil
+                    M.show()
+                end,
+            }
+            vg[#vg + 1] = master_btn
+
+            if enabled then
+                for _idx, opts in ipairs(bg_rows) do
+                    local row
+                    if opts.type == "choice" then
+                        row = M.buildChoiceRow(opts, inner_w, label_size, temp_parent, nil)
+                    else
+                        row = M.buildSliderRow(opts, inner_w, label_size, temp_parent, nil)
+                    end
+                    if row then
+                        vg[#vg + 1] = VerticalSpan:new{ width = Screen:scaleBySize(8) }
+                        vg[#vg + 1] = row
+                    end
+                end
+            end
+        end
+    end
+
+    -- 5. Profiles section
     do
         local profiles = reader.profiles
         if profiles and profiles.data then
             vg[#vg + 1] = VerticalSpan:new{ width = Screen:scaleBySize(16) }
 
-            -- Collect profile names first (orderedPairs is read-only here)
             local profile_names = {}
             for name in ffiUtil.orderedPairs(profiles.data) do
                 profile_names[#profile_names + 1] = name
             end
 
-            -- Grid geometry: 5 cells per row
             local COLS = 5
             local GAP = Screen:scaleBySize(6)
             local cell_w = math.floor((inner_w - (COLS - 1) * GAP) / COLS)
             local cell_h = Screen:scaleBySize(36)
 
-            -- Build a list of entries: first is "new", rest are profiles
             local entries = {}
             entries[#entries + 1] = { kind = "new" }
             for _idx, name in ipairs(profile_names) do
                 entries[#entries + 1] = { kind = "profile", name = name }
             end
 
-            -- Render entries as a grid
             local row_hg = nil
             for i, entry in ipairs(entries) do
-                -- start a new row every COLS entries
                 if (i - 1) % COLS == 0 then
                     if row_hg then
                         vg[#vg + 1] = row_hg
@@ -1027,25 +1601,22 @@ function M.show()
                 row_hg[#row_hg + 1] = btn
             end
 
-            -- flush the last row
             if row_hg then
                 vg[#vg + 1] = row_hg
             end
         end
     end
-   
-    -- 5. Document settings: Reset + Save as default
+
+    -- 6. Document settings: Reset + Save as default
     do
-        local RUI = require("apps/reader/readerui")
-        local reader = RUI and RUI.instance
-        if reader and reader.menu then
+        local reader2 = RUI and RUI.instance
+        if reader2 and reader2.menu then
             vg[#vg + 1] = VerticalSpan:new{ width = Screen:scaleBySize(16) }
 
             local GAP = Screen:scaleBySize(6)
             local btn_w = math.floor((inner_w - GAP) / 2)
             local btn_h = Screen:scaleBySize(36)
 
-            -- Reset document settings to default
             local reset_btn = Button:new{
                 text = _("Reset document settings to default"),
                 width = btn_w,
@@ -1059,11 +1630,11 @@ function M.show()
                         ok_text = _("Reset"),
                         cancel_text = _("Cancel"),
                         ok_callback = function()
-                            local current_file = reader.document and reader.document.file
+                            local current_file = reader2.document and reader2.document.file
                             UIManager:close(_dialog)
                             _dialog = nil
                             if not current_file then return end
-                            reader:onClose()
+                            reader2:onClose()
                             require("apps/filemanager/filemanagerutil").resetDocumentSettings(current_file)
                             require("apps/reader/readerui"):showReader(current_file)
                         end,
@@ -1071,7 +1642,6 @@ function M.show()
                 end,
             }
 
-            -- Save document settings as default
             local save_btn = Button:new{
                 text = _("Save document settings as default"),
                 width = btn_w,
@@ -1085,8 +1655,8 @@ function M.show()
                         ok_text = _("Save"),
                         cancel_text = _("Cancel"),
                         ok_callback = function()
-                            if reader and reader.menu then
-                                reader.menu:saveDocumentSettingsAsDefault()
+                            if reader2 and reader2.menu then
+                                reader2.menu:saveDocumentSettingsAsDefault()
                                 UIManager:show(Notification:new{
                                     text = _("Default settings updated"),
                                     timeout = 2,
@@ -1105,7 +1675,7 @@ function M.show()
             }
         end
     end
-    
+
     local frame = FrameContainer:new{
         width = panel_w,
         padding = padding,
@@ -1117,7 +1687,7 @@ function M.show()
     }
 
     local PickerDlg = InputContainer:extend{ is_always_active = true }
-        function PickerDlg:init()
+    function PickerDlg:init()
         self.dimen = Geom:new{
             x = 0, y = 0,
             w = Screen:getWidth(), h = Screen:getHeight(),
@@ -1163,5 +1733,17 @@ function M.show()
     _dialog = PickerDlg:new{}
     UIManager:show(_dialog, "ui")
 end
+
+-- ============================================================
+-- Init: install the background hook once
+-- ============================================================
+
+function M.init()
+    rbg_install_hook()
+    rbg_install_footer_transparent()
+end
+
+pcall(rbg_install_hook)
+pcall(rbg_install_footer_transparent)
 
 return M
