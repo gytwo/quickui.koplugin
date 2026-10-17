@@ -2203,3 +2203,39 @@ msgstr "配置"
 
 msgid "Delete profile \"%s\"?"
 msgstr "删除配置 \"%s\"？"
+
+msgid "Reading Background"
+msgstr "阅读背景"
+
+msgid "Enable reading background"
+msgstr "启用阅读背景"
+
+msgid "Background image"
+msgstr "背景图片"
+
+msgid "Background transparency"
+msgstr "背景透明度"
+
+msgid "Follow global"
+msgstr "跟随全局"
+
+msgid "Choose image…"
+msgstr "选择图片…"
+
+msgid "No background"
+msgstr "无背景"
+
+msgid "Choose background image"
+msgstr "选择背景图片"
+
+msgid "Apply this background image to"
+msgstr "将这张背景图片应用到"
+
+msgid "All books"
+msgstr "所有书籍"
+
+msgid "This book only"
+msgstr "仅当前书籍"
+
+msgid "Please choose an image file."
+msgstr "请选择一个图片文件。"
