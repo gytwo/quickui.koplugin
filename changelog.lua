@@ -141,4 +141,7 @@ return {
     "Metadata: WeRead provider auto-updates skill_version from upgrade_info, no longer discards search results on upgrade notice",
     "Metadata: Cover Editor asks for the API key inline and continues the cover search instead of redirecting to Settings",
 },
+["1.2.4"] = {
+    "Reader Sliders: add reading background settings with customizable transparency",
+},
 }
