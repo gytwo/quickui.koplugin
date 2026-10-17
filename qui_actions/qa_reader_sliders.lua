@@ -1498,7 +1498,7 @@ function M.show()
     end
 
     -- 4. Reading Background section (collapsible)
-    if reader.document then
+    if reader.document.provider == "crengine" then
         vg[#vg + 1] = VerticalSpan:new{ width = Screen:scaleBySize(16) }
         vg[#vg + 1] = makeCollapseHeader(_("Reading Background"), "reading_bg")
 
