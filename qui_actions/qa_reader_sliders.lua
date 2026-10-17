@@ -19,11 +19,12 @@ Reading background:
 Reading background storage:
   quickui.lua (via Utils.get/set):
     qa_common_reading_bg_enabled        master switch
-    qa_common_reading_bg_transparency   0..100
+    qa_common_reading_bg_transparency   global transparency 0..100
     qa_common_reading_bg_image          global default image path
   doc_settings (per book, sidecar):
     reading_bg_doc_image                this book's image path
     reading_bg_doc_none                 this book explicitly wants no background
+    reading_bg_doc_transparency         this book's transparency override
 ]]
 local ConfirmBox      = require("ui/widget/confirmbox")
 local Dispatcher      = require("dispatcher")
@@ -129,6 +130,7 @@ local RBG_KEYS = {
     image        = "qa_common_reading_bg_image",
     doc_image    = "reading_bg_doc_image",
     doc_none     = "reading_bg_doc_none",
+    doc_transparency = "reading_bg_doc_transparency",
 }
 
 local RBG_DEFAULT_TRANSPARENCY = 85
@@ -219,6 +221,16 @@ local function rbg_resolve_image()
     return nil
 end
 
+local function rbg_resolve_transparency()
+    local doc_settings = rbg_doc_settings()
+    if doc_settings then
+        local v = doc_settings:readSetting(RBG_KEYS.doc_transparency)
+        if v ~= nil then return tonumber(v) end
+    end
+    return tonumber(rbg_cget(RBG_KEYS.transparency, RBG_DEFAULT_TRANSPARENCY))
+        or RBG_DEFAULT_TRANSPARENCY
+end
+
 -- ---- cache ----
 
 local function rbg_cache_dir()
@@ -235,8 +247,6 @@ local function rbg_hash(s)
     return string.format("%x", h)
 end
 
--- Safely extract r/g/b from a pixel. Works for both plain Lua tables and
--- FFI structs returned by Blitbuffer:getPixel on RGB32 buffers.
 local function rbg_read_rgb(px)
     if px == nil then return 0, 0, 0 end
     local ok, r, g, b = pcall(function()
@@ -248,7 +258,6 @@ local function rbg_read_rgb(px)
     return 0, 0, 0
 end
 
--- Per-pixel blend toward white: cover = 0 -> original, cover = 1 -> white.
 local function rbg_apply_white_overlay(bb, w, h, cover)
     if cover <= 0 then return end
     if cover >= 1 then
@@ -259,14 +268,11 @@ local function rbg_apply_white_overlay(bb, w, h, cover)
     local solid = Blitbuffer.new(w, h, bb:getType())
     if not solid then return end
     solid:fill(Blitbuffer.Color8(0xFF))
-    -- intensity 在这台设备上是「保留目标的强度」，
-    -- 所以传 1 - cover 才能得到「cover 越大越白」。
     local intensity = math.floor((1 - cover) * 255)
     bb:addblitFrom(solid, 0, 0, 0, 0, w, h, intensity)
     solid:free()
 end
 
--- Per-pixel blend toward black: cover = 0 -> original, cover = 1 -> black.
 local function rbg_apply_black_overlay(bb, w, h, cover)
     if cover <= 0 then return end
     if cover >= 1 then
@@ -282,8 +288,6 @@ local function rbg_apply_black_overlay(bb, w, h, cover)
     solid:free()
 end
 
--- Scale the source image to screen size, bake the requested transparency
--- in, write the result to cache/, and return the cached path.
 local function rbg_scaled_path(source, transparency)
     if not source or source == "" then return nil end
     transparency = math.max(0, math.min(100, math.floor((transparency or 0) + 0.5)))
@@ -343,16 +347,13 @@ local function rbg_scaled_path(source, transparency)
     return source
 end
 
--- ---- apply: custombg's loadBackgroundByName ----
-
 local function rbg_apply_background(doc)
     if not doc or type(doc.setBackgroundImage) ~= "function" then
         return
     end
     local source = rbg_resolve_image()
     if source then
-        local transparency = tonumber(rbg_cget(RBG_KEYS.transparency,
-            RBG_DEFAULT_TRANSPARENCY)) or RBG_DEFAULT_TRANSPARENCY
+        local transparency = rbg_resolve_transparency()
         local scaled = rbg_scaled_path(source, transparency)
         if scaled then
             doc:setBackgroundImage(scaled)
@@ -388,11 +389,29 @@ local function rbg_set_enabled(on)
     rbg_reapply()
 end
 
-local function rbg_set_transparency(v)
+local function rbg_set_global_transparency(v)
     v = math.max(0, math.min(100, math.floor((v or 0) + 0.5)))
     rbg_cset(RBG_KEYS.transparency, v)
     rbg_reapply()
     return v
+end
+
+local function rbg_set_doc_transparency(v)
+    v = math.max(0, math.min(100, math.floor((v or 0) + 0.5)))
+    local doc_settings = rbg_doc_settings()
+    if doc_settings then
+        doc_settings:saveSetting(RBG_KEYS.doc_transparency, v)
+    end
+    rbg_reapply()
+    return v
+end
+
+local function rbg_clear_doc_transparency()
+    local doc_settings = rbg_doc_settings()
+    if doc_settings then
+        doc_settings:saveSetting(RBG_KEYS.doc_transparency, nil)
+    end
+    rbg_reapply()
 end
 
 local function rbg_apply_image(path, scope)
@@ -494,7 +513,7 @@ local function rbg_pick_image(on_done)
     UIManager:show(chooser)
 end
 
--- ---- hook: custombg's onReadSettings + delayed reapply + before-render check ----
+-- ---- hook ----
 
 local function rbg_install_hook()
     local ReaderRolling = require("apps/reader/modules/readerrolling")
@@ -558,8 +577,6 @@ local function rbg_install_hook()
         end
     end
 end
-
--- ---- footer 透明 ----
 
 local function rbg_install_footer_transparent()
     local ReaderFooter = require("apps/reader/modules/readerfooter")
@@ -743,9 +760,9 @@ function M.getSliders(reader)
             }
 
             out[#out + 1] = {
-                key = RBG_KEYS.transparency,
+                key = "global_transparency",
                 group = "reading_bg",
-                label = _("Background transparency"),
+                label = _("Global transparency"),
                 min = 0, max = 100, step = 1,
                 default = function() return RBG_DEFAULT_TRANSPARENCY end,
                 global_key = RBG_KEYS.transparency,
@@ -754,7 +771,33 @@ function M.getSliders(reader)
                         RBG_DEFAULT_TRANSPARENCY)) or RBG_DEFAULT_TRANSPARENCY
                 end,
                 set = function(v)
-                    return rbg_set_transparency(v)
+                    return rbg_set_global_transparency(v)
+                end,
+            }
+
+            out[#out + 1] = {
+                key = "doc_transparency",
+                group = "reading_bg",
+                label = _("This book transparency"),
+                min = 0, max = 100, step = 1,
+                default = function()
+                    local doc_settings = rbg_doc_settings()
+                    if doc_settings then
+                        doc_settings:saveSetting(RBG_KEYS.doc_transparency, nil)
+                    end
+                    rbg_reapply()
+                    return rbg_resolve_transparency()
+                end,
+                get = function()
+                    local doc_settings = rbg_doc_settings()
+                    if doc_settings then
+                        local v = doc_settings:readSetting(RBG_KEYS.doc_transparency)
+                        if v ~= nil then return tonumber(v) end
+                    end
+                    return nil
+                end,
+                set = function(v)
+                    return rbg_set_doc_transparency(v)
                 end,
             }
         end
@@ -1735,7 +1778,7 @@ function M.show()
 end
 
 -- ============================================================
--- Init: install the background hook once
+-- Init
 -- ============================================================
 
 function M.init()
