@@ -144,4 +144,7 @@ return {
 ["1.2.4"] = {
     "Reader Sliders: add reading background settings with customizable transparency",
 },
+["1.2.5"] = {
+    "Panel: add Book Switcher to quickly switch to other books",
+},
 }
