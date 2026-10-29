@@ -1309,6 +1309,120 @@ function Bars.getPanelMenuItems()
         end,
     }
 
+    -- ============================================================
+    -- Book Switcher submenu
+    -- ============================================================
+    do
+        local function bs_cfg(key, default)
+            return Utils.get(key, default)
+        end
+
+        local function bs_set(key, value)
+            Utils.set(key, value)
+        end
+
+        local function bs_refresh_panel()
+            if PLUGIN_STORE.refresh_quick_panel then
+                PLUGIN_STORE.refresh_quick_panel()
+            end
+        end
+
+        local bs_items = {}
+
+        bs_items[#bs_items + 1] = {
+            text = _("Show in Panel"),
+            checked_func = function()
+                return bs_cfg("qa_panel_bs_enabled", false) == true
+            end,
+            callback = function(tm)
+                bs_set("qa_panel_bs_enabled",
+                    not bs_cfg("qa_panel_bs_enabled", false))
+                if tm then tm:updateItems() end
+                bs_refresh_panel()
+            end,
+        }
+
+        bs_items[#bs_items + 1] = {
+            text_func = function()
+                local count = tonumber(bs_cfg("qa_panel_bs_count", 5)) or 5
+                return _("Count per Page") .. ": " .. count
+            end,
+            enabled_func = function()
+                return bs_cfg("qa_panel_bs_enabled", false) == true
+            end,
+            close_on_click = true,
+            callback = function()
+                local val = math.min(8, math.max(1,
+                    math.floor(tonumber(bs_cfg("qa_panel_bs_count", 5)) or 5)))
+                local spin = SpinWidget:new{
+                    title_text = _("Book Switcher: Count per Page"),
+                    value = val,
+                    value_min = 1,
+                    value_max = 8,
+                    value_step = 1,
+                    callback = function(spin_w)
+                        local v = math.min(8, math.max(1,
+                            math.floor(spin_w.value)))
+                        bs_set("qa_panel_bs_count", v)
+                        bs_refresh_panel()
+                    end,
+                }
+                UIManager:show(spin)
+            end,
+        }
+
+        bs_items[#bs_items + 1] = {
+            text = _("Hide Finished Books"),
+            enabled_func = function()
+                return bs_cfg("qa_panel_bs_enabled", false) == true
+            end,
+            checked_func = function()
+                return bs_cfg("qa_panel_bs_hide_finished", true) == true
+            end,
+            callback = function(tm)
+                bs_set("qa_panel_bs_hide_finished",
+                    not bs_cfg("qa_panel_bs_hide_finished", true))
+                if tm then tm:updateItems() end
+                bs_refresh_panel()
+            end,
+        }
+
+        bs_items[#bs_items + 1] = {
+            text = _("Show Only in Reader"),
+            enabled_func = function()
+                return bs_cfg("qa_panel_bs_enabled", false) == true
+            end,
+            checked_func = function()
+                return bs_cfg("qa_panel_bs_reader_only", false) == true
+            end,
+            callback = function(tm)
+                bs_set("qa_panel_bs_reader_only",
+                    not bs_cfg("qa_panel_bs_reader_only", false))
+                if tm then tm:updateItems() end
+                bs_refresh_panel()
+            end,
+        }
+
+        bs_items[#bs_items + 1] = {
+            text = _("Clear Hidden Books"),
+            enabled_func = function()
+                return bs_cfg("qa_panel_bs_enabled", false) == true
+            end,
+            callback = function()
+                bs_set("qa_panel_bs_hidden", {})
+                bs_refresh_panel()
+                UIManager:show(Notification:new{
+                    text = _("Book Switcher: Hidden books cleared"), timeout = 2,
+                })
+            end,
+        }
+
+        items[#items + 1] = {
+            text = _("Book Switcher"),
+            sub_item_table = bs_items,
+        }
+    end
+    
     items[#items + 1] = {
         text = _("Arrange Buttons"),
         close_on_click = true,
