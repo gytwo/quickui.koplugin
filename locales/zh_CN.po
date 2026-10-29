@@ -2245,3 +2245,38 @@ msgstr "仅当前书籍"
 
 msgid "Please choose an image file."
 msgstr "请选择一个图片文件。"
+
+
+# ============================================================
+# Book Switcher (qa_panel_bs_*)
+# ============================================================
+
+msgid "Book Switcher"
+msgstr "书籍切换器"
+
+msgid "Show in Panel"
+msgstr "在面板中显示"
+
+msgid "Count per Page"
+msgstr "每页数量"
+
+msgid "Hide Finished Books"
+msgstr "隐藏已读完书籍"
+
+msgid "Show Only in Reader"
+msgstr "仅在阅读器中显示"
+
+msgid "Clear Hidden Books"
+msgstr "清除已隐藏书籍"
+
+msgid "Book Switcher: Count per Page"
+msgstr "书籍切换器：每页数量"
+
+msgid "Book Switcher: Hidden books cleared"
+msgstr "书籍切换器：已清除隐藏的书籍"
+
+msgid "Book Switcher: No books to switch to"
+msgstr "书籍切换器：没有可切换的书籍"
+
+msgid "Book Switcher: Remove"
+msgstr "书籍切换器：移除"
