@@ -235,7 +235,7 @@ function M.buildPage(opts)
     if #books == 0 then
         vg[#vg + 1] = VerticalSpan:new{ width = Screen:scaleBySize(24) }
         vg[#vg + 1] = TextWidget:new{
-            text = _("No books to switch to"),
+            text = _("Book Switcher: No books to switch to"),
             face = Utils.getFontFace("cfont", Screen:scaleBySize(14)),
             fgcolor = Blitbuffer.gray(0.5),
         }
@@ -306,7 +306,7 @@ function M.buildPage(opts)
             dlg = ButtonDialog:new{
                 buttons = {{
                     {
-                        text = "✕  " .. _("Remove"),
+                        text = "✕  " .. _("Book Switcher: Remove"),
                         align = "left",
                         callback = function()
                             UIManager:close(dlg)
