@@ -1875,6 +1875,15 @@ msgstr "番茄-拉取段评"
 msgid "FingerInk-toolbar"
 msgstr "指尖绘画"
 
+msgid "InkAway-Library"
+msgstr "InkAway-笔记本库"
+
+msgid "InkAway-Annotate"
+msgstr "InkAway-批注本书"
+
+msgid "InkAway-BookNotes"
+msgstr "InkAway-本书笔记"
+
 msgid "SideToc"
 msgstr "侧边目录"
 
