@@ -147,4 +147,7 @@ return {
 ["1.2.5"] = {
     "Panel: add Book Switcher to quickly switch to other books",
 },
+["1.2.6"] = {
+    "Quick Actions: add two built-in actions for ink-away koplugin (find them in action pools)",
+},
 }
