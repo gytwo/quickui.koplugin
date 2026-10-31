@@ -1854,14 +1854,51 @@ function QA.registerAllActions()
     -- ============================================================
     QA.registerAction(
         "fingerink_bar", _("FingerInk-toolbar"),
-        "nerd:E7E2", false, "reader",
+        "nerd:ED4E", false, "reader",
         function(ctx)
             closeTouchMenu(ctx)
             UIManager:broadcastEvent(Event:new("FingerInkBar"))
         end,
         pluginAvailable("fingerink")
     )
+    
+    -- ============================================================
+    -- Ink Away
+    -- ============================================================
 
+    -- Open the notebook library
+    QA.registerAction(
+        "inkaway_library", _("InkAway-Library"),
+        "nerd:EA30", false, "common",
+        function(ctx)
+            closeTouchMenu(ctx)
+            UIManager:broadcastEvent(Event:new("InkAwayLibrary"))
+        end,
+        pluginAvailable("ink-away")
+    )
+
+    -- Annotate the book being read (only in reader)
+    QA.registerAction(
+        "inkaway_annotate", _("InkAway-Annotate"),
+        "nerd:E7E2", false, "reader",
+        function(ctx)
+            closeTouchMenu(ctx)
+            UIManager:broadcastEvent(Event:new("InkAwayAnnotate"))
+        end,
+        pluginAvailable("ink-away")
+    )
+
+    -- Book notes (reader -> book notes; elsewhere -> open canvas)
+    QA.registerAction(
+        "inkaway_booknotes", _("InkAway-BookNotes"),
+        "nerd:EF2C", false, "common",
+        function(ctx)
+            closeTouchMenu(ctx)
+            UIManager:broadcastEvent(Event:new("InkAwayBookNotes"))
+        end,
+        pluginAvailable("ink-away")
+    )
+    
     -- ============================================================
     -- SideToc (侧边目录)
     -- ============================================================
