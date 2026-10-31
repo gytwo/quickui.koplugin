@@ -98,8 +98,8 @@
         qa_vb_side = "right",
         qa_vb_slots = {
             "qa_settings", "bookshelf_toggle", "Sui-toggle",
-            "continue", "annotations_viewer", "fontlist", "artgallery_show",
-            "page_scrubber", "reader_sliders", "fingerink_bar",
+            "continue", "inkaway_booknotes", "fontlist", "artgallery_show",
+            "page_scrubber", "reader_sliders", "inkaway_annotate",
             "weread_fetch_underlines", "fanqie_fetchlocalreview",
             "toggle_reading_order", "reading_insights", "rssreader_open",
             "zlibrary_search", "fanqie_shelf_or_toc", "fanqie_search",
