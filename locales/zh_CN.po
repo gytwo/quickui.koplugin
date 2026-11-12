@@ -2289,3 +2289,9 @@ msgstr "书籍切换器：没有可切换的书籍"
 
 msgid "Book Switcher: Remove"
 msgstr "书籍切换器：移除"
+
+msgid "Page Scrubber: Grid"
+msgstr "页面浏览 - 网格"
+
+msgid "Page Scrubber: Study"
+msgstr "页面浏览 - 学习模式"
