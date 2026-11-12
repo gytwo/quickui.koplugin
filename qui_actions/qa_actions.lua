@@ -1603,15 +1603,82 @@ function QA.registerAllActions()
     end, pluginAvailable("annotationsviewer"))
 
     -- ============================================================
-    -- Page Scrubber: Simple Grid
+    -- Page Scrubber: Grid
     -- ============================================================
     QA.registerAction(
-        "page_scrubber", _("Page Scrubber"),
-        "nerd:E88E", true, "reader",
+        "page_scrubber_grid", _("Page Scrubber: Grid"),
+        "nerd:E88E", false, "reader",
         function(ctx)
-            UIManager:broadcastEvent(Event:new("PageScrubberSimpleGrid"))
+            closeTouchMenu(ctx)
+            UIManager:broadcastEvent(Event:new("PageScrubberGrid"))
         end,
         pluginAvailable("page_scrubber")
+    )
+
+    -- ============================================================
+    -- Page Scrubber: Study
+    -- ============================================================
+    QA.registerAction(
+        "page_scrubber_study", _("Page Scrubber: Study"),
+        "nerd:ED38", false, "reader",
+        function(ctx)
+            closeTouchMenu(ctx)
+            UIManager:broadcastEvent(Event:new("PageScrubberStudy"))
+        end,
+        pluginAvailable("page_scrubber")
+    )
+
+    -- ============================================================
+    -- 月读 (book.koplugin)
+    -- ============================================================
+    QA.registerAction(
+        "book_open_shelf", _("Book - Open Shelf"),
+        "nerd:F46D", false, "filemanager",
+        function(ctx)
+            closeTouchMenu(ctx)
+            UIManager:broadcastEvent(Event:new("BookOpenShelf"))
+        end,
+        pluginAvailable("book")
+    )
+
+    QA.registerAction(
+        "book_close_desktop", _("Book - Close Desktop"),
+        "nerd:E855", false, "filemanager",
+        function(ctx)
+            closeTouchMenu(ctx)
+            UIManager:broadcastEvent(Event:new("BookCloseDesktop"))
+        end,
+        pluginAvailable("book")
+    )
+
+    QA.registerAction(
+        "book_qp_remote", _("Book - Remote Management"),
+        "nerd:E71E", false, "common",
+        function(ctx)
+            closeTouchMenu(ctx)
+            Dispatcher:execute({ book_qp_remote = true })
+        end,
+        pluginAvailable("book")
+    )
+
+    QA.registerAction(
+        "book_qp_wechat_bind", _("Book - Link WeChat Reading"),
+        "nerd:ED10", false, "reader",
+        function(ctx)
+            closeTouchMenu(ctx)
+            Dispatcher:execute({ book_qp_wechat_bind = true })
+        end,
+        pluginAvailable("book")
+    )
+
+    QA.registerAction(
+        "book_qp_reviews_link_switch", _("Book - Fetch WeChat Reviews"),
+        "nerd:E884", false, "reader",
+        function(ctx)
+            closeTouchMenu(ctx)
+            Dispatcher:execute({ book_qp_reviews_link_switch = true })
+        end,
+        pluginAvailable("book")
     )
     
     -- ============================================================
