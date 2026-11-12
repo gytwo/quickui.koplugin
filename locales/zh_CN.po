@@ -2295,3 +2295,18 @@ msgstr "页面浏览 - 网格"
 
 msgid "Page Scrubber: Study"
 msgstr "页面浏览 - 学习模式"
+
+msgid "Book - Open Shelf"
+msgstr "月读 - 打开月读"
+
+msgid "Book - Close Desktop"
+msgstr "月读 - 关闭桌面"
+
+msgid "Book - Remote Management"
+msgstr "月读 - 远程管理"
+
+msgid "Book - Link WeChat Reading"
+msgstr "月读 - 关联微信读书"
+
+msgid "Book - Fetch WeChat Reviews"
+msgstr "月读 - 拉取微信评论"
