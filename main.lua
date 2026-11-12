@@ -164,154 +164,40 @@ function QuickUI:registerDispatcherActions()
     Dispatcher:registerAction("QuickUI_Settings", {
         category = "none",
         event = "QuickUI_Settings",
-        title = _("QuickUI_Settings"),
+        title = _("QuickUI Settings"),
         general = true,
     })
 
-    if config and config.cover_enabled then
-        Dispatcher:registerAction("QuickUI_CoverSettings", {
-            category = "none",
-            event = "QuickUI_CoverSettings",
-            title = _("QuickUI_CoverSettings"),
-            filemanager = true,
-        })
-    end
-
     if config and config.cl_enabled then
-        Dispatcher:registerAction("QuickUI_ClozeEnable", {
-            category = "none",
-            event = "QuickUI_ClozeEnable",
-            title = _("QuickUI_ClozeEnable"),
-            reader = true,
-        })
         Dispatcher:registerAction("QuickUI_ClozeToggleAll", {
             category = "none",
             event = "QuickUI_ClozeToggleAll",
-            title = _("QuickUI_ClozeToggleAll"),
-            reader = true,
-        })
-        Dispatcher:registerAction("QuickUI_ClozeSettings", {
-            category = "none",
-            event = "QuickUI_ClozeSettings",
-            title = _("QuickUI_ClozeSettings"),
+            title = _("QuickUI Cloze Toggle All"),
             reader = true,
         })
     end
 
-    if config and config.hf_enabled then
-        Dispatcher:registerAction("QuickUI_HFSettings", {
-            category = "none",
-            event = "QuickUI_HFSettings",
-            title = _("QuickUI_HFSettings"),
-            reader = true,
-        })
-    end
-
-    if config and config.metadata_enabled then
-        Dispatcher:registerAction("QuickUI_EditMetadata", {
-            category = "none",
-            event = "QuickUI_EditMetadata",
-            title = _("QuickUI_EditMetadata"),
-            filemanager = true,
-        })
-    end
-    
     if config and config.qa_common_enabled then
-        Dispatcher:registerAction("QuickUI_SystemIconOverride", {
-            category = "none",
-            event = "QuickUI_SystemIconOverride",
-            title = _("QuickUI_SystemIconOverride"),
-            general = true,
-        })
         Dispatcher:registerAction("QuickUI_ReaderSliders", {
             category = "none",
             event = "QuickUI_ReaderSliders",
-            title = _("QuickUI_ReaderSliders"),
+            title = _("QuickUI Reader Sliders"),
             reader = true,
         })
-        Dispatcher:registerAction("QuickUI_InterfaceFilter", {
-            category = "none",
-            event = "QuickUI_InterfaceFilter",
-            title = _("QuickUI_InterfaceFilter"),
-            general = true,
-        })
-        Dispatcher:registerAction("QuickUI_Panel", {
-            category = "none",
-            event = "QuickUI_Panel",
-            title = _("QuickUI_Panel"),
-            general = true,
-        })
-        Dispatcher:registerAction("QuickUI_QASettings", {
-            category = "none",
-            event = "QuickUI_QASettings",
-            title = _("QuickUI_QASettings"),
-            general = true,
-        })
-        Dispatcher:registerAction("QuickUI_NewAction", {
-            category = "none",
-            event = "QuickUI_NewAction",
-            title = _("QuickUI_NewAction"),
-            general = true,
-        })
-
-        if config.qa_panel_enabled then
-            Dispatcher:registerAction("QuickUI_PanelSettings", {
-                category = "none",
-                event = "QuickUI_PanelSettings",
-                title = _("QuickUI_PanelSettings"),
-                general = true,
-            })
-            Dispatcher:registerAction("QuickUI_AddPanelButton", {
-                category = "none",
-                event = "QuickUI_AddPanelButton",
-                title = _("QuickUI_AddPanelButton"),
-                general = true,
-            })
-        end
 
         if config.qa_bb_enabled then
-            Dispatcher:registerAction("QuickUI_BottombarToggle", {
-                category = "none",
-                event = "QuickUI_BottombarToggle",
-                title = _("QuickUI_BottombarToggle"),
-                general = true,
-            })
-            Dispatcher:registerAction("QuickUI_BottombarSettings", {
-                category = "none",
-                event = "QuickUI_BottombarSettings",
-                title = _("QuickUI_BottombarSettings"),
-                general = true,
-            })
-            Dispatcher:registerAction("QuickUI_AddBottomBarTab", {
-                category = "none",
-                event = "QuickUI_AddBottomBarTab",
-                title = _("QuickUI_AddBottomBarTab"),
-                general = true,
-            })
             Dispatcher:registerAction("QuickUI_ReaderBottombarToggle", {
                 category = "none",
                 event = "QuickUI_ReaderBottombarToggle",
-                title = _("QuickUI_ReaderBottombarToggle"),
+                title = _("QuickUI Reader Bottom Bar Toggle"),
                 reader = true,
             })
         end
-        
+
         Dispatcher:registerAction("QuickUI_VerticalBarToggle", {
             category = "none",
             event = "QuickUI_VerticalBarToggle",
-            title = _("QuickUI_VerticalBarToggle"),
-            general = true,
-        })
-        Dispatcher:registerAction("QuickUI_VerticalBarSettings", {
-            category = "none",
-            event = "QuickUI_VerticalBarSettings",
-            title = _("QuickUI_VerticalBarSettings"),
-            general = true,
-        })
-        Dispatcher:registerAction("QuickUI_AddVerticalBarButton", {
-            category = "none",
-            event = "QuickUI_AddVerticalBarButton",
-            title = _("QuickUI_AddVerticalBarButton"),
+            title = _("QuickUI Vertical Bar Toggle"),
             general = true,
         })
     end
