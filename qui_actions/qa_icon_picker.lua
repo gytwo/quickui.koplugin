@@ -1509,7 +1509,7 @@ function QA.showIconPicker(on_select, saved_icon, filter, mode, parent_mode)
         bordersize = input_border,
         scroll = false,
         focused = false,
-        parent = {},
+        parent = nil,
         edit_callback = function()
             if not filter_input then return end
             filter_keyword = filter_input:getText() or ""
@@ -1647,6 +1647,9 @@ function QA.showIconPicker(on_select, saved_icon, filter, mode, parent_mode)
             dimen = Geom:new{ w = sw, h = sh },
             inner_frame,
         }
+        if filter_input then
+            filter_input.parent = self
+        end
         if Device:isTouchDevice() then
             self.ges_events.Tap = {
                 require("ui/gesturerange"):new{
@@ -1668,6 +1671,10 @@ function QA.showIconPicker(on_select, saved_icon, filter, mode, parent_mode)
             filter_input:onCloseKeyboard()
             if filter_input.focused then filter_input:unfocus() end
         end
+    end
+
+    function PickerDlg:getFocusableWidgetXY()
+        return nil, nil
     end
 
     function PickerDlg:onTap(arg, ges)
