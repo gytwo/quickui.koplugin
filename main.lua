@@ -164,7 +164,7 @@ function QuickUI:registerDispatcherActions()
     Dispatcher:registerAction("QuickUI_Settings", {
         category = "none",
         event = "QuickUI_Settings",
-        title = _("QuickUI Settings"),
+        title = _("QuickUI_Settings"),
         general = true,
     })
 
@@ -172,7 +172,7 @@ function QuickUI:registerDispatcherActions()
         Dispatcher:registerAction("QuickUI_ClozeToggleAll", {
             category = "none",
             event = "QuickUI_ClozeToggleAll",
-            title = _("QuickUI Cloze Toggle All"),
+            title = _("QuickUI_ClozeToggleAll"),
             reader = true,
         })
     end
@@ -181,7 +181,7 @@ function QuickUI:registerDispatcherActions()
         Dispatcher:registerAction("QuickUI_ReaderSliders", {
             category = "none",
             event = "QuickUI_ReaderSliders",
-            title = _("QuickUI Reader Sliders"),
+            title = _("QuickUI_ReaderSliders"),
             reader = true,
         })
 
@@ -189,7 +189,7 @@ function QuickUI:registerDispatcherActions()
             Dispatcher:registerAction("QuickUI_ReaderBottombarToggle", {
                 category = "none",
                 event = "QuickUI_ReaderBottombarToggle",
-                title = _("QuickUI Reader Bottom Bar Toggle"),
+                title = _("QuickUI_ReaderBottombarToggle"),
                 reader = true,
             })
         end
@@ -197,7 +197,7 @@ function QuickUI:registerDispatcherActions()
         Dispatcher:registerAction("QuickUI_VerticalBarToggle", {
             category = "none",
             event = "QuickUI_VerticalBarToggle",
-            title = _("QuickUI Vertical Bar Toggle"),
+            title = _("QuickUI_VerticalBarToggle"),
             general = true,
         })
     end
