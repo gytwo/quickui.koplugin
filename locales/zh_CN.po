@@ -2291,22 +2291,25 @@ msgid "Book Switcher: Remove"
 msgstr "书籍切换器：移除"
 
 msgid "Page Scrubber: Grid"
-msgstr "页面浏览 - 网格"
+msgstr "Page Scrubber-网格"
 
 msgid "Page Scrubber: Study"
-msgstr "页面浏览 - 学习模式"
+msgstr "Page Scrubber-学习"
 
 msgid "Book - Open Shelf"
-msgstr "月读 - 打开月读"
+msgstr "月读-打开月读"
 
 msgid "Book - Close Desktop"
-msgstr "月读 - 关闭桌面"
+msgstr "月读-关闭桌面"
 
 msgid "Book - Remote Management"
-msgstr "月读 - 远程管理"
+msgstr "月读-远程管理"
 
-msgid "Book - Link WeChat Reading"
-msgstr "月读 - 关联微信读书"
+msgid "Book - Bind Book Source"
+msgstr "月读-关联书源"
 
 msgid "Book - Fetch WeChat Reviews"
-msgstr "月读 - 拉取微信评论"
+msgstr "月读-拉取微信评论"
+
+msgid "Book - Fetch FanQie Reviews"
+msgstr "月读-拉取番茄段评"
