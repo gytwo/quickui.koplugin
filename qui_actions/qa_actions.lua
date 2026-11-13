@@ -1662,18 +1662,18 @@ function QA.registerAllActions()
     )
 
     QA.registerAction(
-        "book_qp_wechat_bind", _("Book - Link WeChat Reading"),
-        "nerd:ED10", false, "reader",
+        "book_qp_review_bind", _("Book - Bind Book Source"),
+        "nerd:E884", false, "reader",
         function(ctx)
             closeTouchMenu(ctx)
-            Dispatcher:execute({ book_qp_wechat_bind = true })
+            Dispatcher:execute({ book_qp_review_bind = true })
         end,
         pluginAvailable("book")
     )
 
     QA.registerAction(
         "book_qp_reviews_link_switch", _("Book - Fetch WeChat Reviews"),
-        "nerd:E884", false, "reader",
+        "nerd:ED10", false, "reader",
         function(ctx)
             closeTouchMenu(ctx)
             Dispatcher:execute({ book_qp_reviews_link_switch = true })
@@ -1681,6 +1681,16 @@ function QA.registerAllActions()
         pluginAvailable("book")
     )
     
+    QA.registerAction(
+        "book_qp_fanqie_reviews_switch", _("Book - Fetch FanQie Reviews"),
+        "nerd:E002", false, "reader",
+        function(ctx)
+            closeTouchMenu(ctx)
+            Dispatcher:execute({ book_qp_fanqie_reviews_switch = true })
+        end,
+        pluginAvailable("book")
+    )
+
     -- ============================================================
     -- SimpleUI library browse actions (Authors / Series / Tags)
     -- ============================================================
