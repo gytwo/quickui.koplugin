@@ -487,9 +487,28 @@ function QA.getIconWidget(icon_path, size)
     if QA.isNerdIcon(icon_path) then
         local nerd_char = QA.nerdIconChar(icon_path)
         if nerd_char then
+            local target = math.max(1, math.floor(size * 1.18))
+
+            -- 先按目标尺寸估一个字号，测量 TextWidget 的真实行高（包含字形墨迹），
+            -- 再按"目标尺寸 / 实测高度"反推字号，保证墨迹塞进容器。
+            local probe_size = math.max(1, math.floor(target))
+            local probe = TextWidget:new{
+                text = nerd_char,
+                face = Font:getFace("symbols", probe_size),
+                fgcolor = Blitbuffer.COLOR_BLACK,
+                padding = 0,
+            }
+            local h = probe:getSize().h
+            probe:free()
+
+            local final_size = probe_size
+            if h > 0 and h > target then
+                final_size = math.max(1, math.floor(probe_size * (target / h)))
+            end
+
             return TextWidget:new{
                 text = nerd_char,
-                face = Font:getFace("symbols", math.floor(size * 0.6)),
+                face = Font:getFace("symbols", final_size),
                 fgcolor = Blitbuffer.COLOR_BLACK,
                 padding = 0,
             }
@@ -882,10 +901,24 @@ function QA.showIconPicker(on_select, saved_icon, filter, mode, parent_mode)
 
                     local icon_widget
                     if icon.type == "nerd" then
-                        local nerd_char = QA.nerdIconChar(icon.value)
+                        local nerd_char = QA.nerdIconChar(icon.value) or "?"
+                        local target = math.max(1, math.floor(glyph_max_h * 1.18))
+                        local probe_size = math.max(1, math.floor(target))
+                        local probe = TextWidget:new{
+                            text = nerd_char,
+                            face = Font:getFace("symbols", probe_size),
+                            fgcolor = Blitbuffer.COLOR_BLACK,
+                            padding = 0,
+                        }
+                        local h = probe:getSize().h
+                        probe:free()
+                        local final_size = probe_size
+                        if h > 0 and h > target then
+                            final_size = math.max(1, math.floor(probe_size * (target / h)))
+                        end
                         icon_widget = TextWidget:new{
-                            text = nerd_char or "?",
-                            face = Font:getFace("symbols", math.floor(glyph_max_h * glyph_factor)),
+                            text = nerd_char,
+                            face = Font:getFace("symbols", final_size),
                             fgcolor = Blitbuffer.COLOR_BLACK,
                             padding = 0,
                         }
