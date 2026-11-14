@@ -115,6 +115,7 @@
             "cloudlibrary_autosync", "cloudlibrary_batch_download_books", "cloudlibrary_settings",
             "system_icon_override", "ui_font_switch", "edit_metadata",
             "QuickUI_ClozeSettings", "QuickUI_HFSettings", "QuickUI_CoverSettings",
+            "menu_search",
         },
         qa_vb_labels = true,
         qa_vb_size_pct = 100,
