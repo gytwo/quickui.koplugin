@@ -1151,19 +1151,20 @@ function QA.patchTouchMenu()
         RMenu.setUpdateItemTable = function(self, ...)
             orig_setup(self, ...)
             injectQATab(self)
-            if self.tab_item_table then
-                local fm_idx = nil
-                for i, tab in ipairs(self.tab_item_table) do
-                    if tab.id == "filemanager" or (tab.text and tab.text == _("File manager")) then
-                        fm_idx = i
-                        break
-                    end
-                end
-                if fm_idx then
-                    local fm_tab = table.remove(self.tab_item_table, fm_idx)
-                    table.insert(self.tab_item_table, fm_tab)
-                end
-            end
+            -- Do not move the "File manager" tab to the end; keep KOReader's native order
+            -- if self.tab_item_table then
+            --     local fm_idx = nil
+            --     for i, tab in ipairs(self.tab_item_table) do
+            --         if tab.id == "filemanager" or (tab.text and tab.text == _("File manager")) then
+            --             fm_idx = i
+            --             break
+            --         end
+            --     end
+            --     if fm_idx then
+            --         local fm_tab = table.remove(self.tab_item_table, fm_idx)
+            --         table.insert(self.tab_item_table, fm_tab)
+            --     end
+            -- end
         end
     end
 
