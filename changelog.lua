@@ -148,9 +148,10 @@ return {
     "Panel: add Book Switcher to quickly switch to other books",
 },
 ["1.2.6"] = {
-    "Quick Actions: update built-in action pool (ink-away, Page Scrubber, Book plugin)",
+    "Quick Actions: update built-in action pool (ink-away, Page Scrubber, Book, FanQie)",
     "Dispatcher: trim QuickUI's registered system actions",
-    "Defaults: adjust some default settings",
+    "Defaults: adjust default buttons and their order for the top panel, bottom bar and vertical bar",
+    "Reader menu: stop moving the \"File manager\" tab to the end, keep KOReader's native order",
     "Icon Picker: fix Nerd Font glyph overflow on Kindle Scribe",
     "Book Switcher: change max history books to 10",
     "i18n: deduplicate zh_CN.po entries, add Russian translation",
