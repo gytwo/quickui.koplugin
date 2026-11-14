@@ -462,6 +462,10 @@ local function scanAllIconDirs(mode)
         end
     end
 
+    table.sort(all_files, function(a, b)
+        return (a.display_name or a.name or ""):lower() < (b.display_name or b.name or ""):lower()
+    end)
+
     return all_files
 end
 
