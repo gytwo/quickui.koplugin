@@ -1221,6 +1221,16 @@ function QA.registerAllActions()
         end)
     end)
 
+    -- MenuSearch
+    QA.registerAction(
+        "menu_search", _("Search menu entry"),
+        "nerd:E9D5", false, "common",
+        function(ctx)
+            closeTouchMenu(ctx)
+            UIManager:broadcastEvent(Event:new("MenuSearch"))
+        end
+    )
+
     -- Continue Reading
     QA.registerAction("continue", _("Continue Reading"), "nerd:F405", false, "common", function(ctx)
         closeTouchMenu(ctx)
