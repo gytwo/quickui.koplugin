@@ -107,6 +107,9 @@ end
 -- ============================================================
 
 local function stopRecording()
+    if not _pick_state.menu then
+        return
+    end
     local menu = _pick_state.menu
     local action_bar = _pick_state.action_bar
     local bars_span = _pick_state.bars_span
@@ -138,20 +141,30 @@ local function stopRecording()
 
     UIManager:setDirty("all", "flashui")
 
-    -- Restore original TouchMenu methods
+    -- Restore original TouchMenu methods (guard each one individually:
+    -- a previous stopRecording may already have cleared some of them, and
+    -- assigning nil onto TouchMenu.<method> would crash every later call).
     local TouchMenu = require("ui/widget/touchmenu")
     if _orig_onMenuSelect then
         TouchMenu.onMenuSelect = _orig_onMenuSelect
-        TouchMenu.backToUpperMenu = _orig_backToUpperMenu
-        TouchMenu.switchMenuTab = _orig_switchMenuTab
-        TouchMenu.closeMenu = _orig_closeMenu
-        TouchMenu.updateItems = _orig_updateItems
-        _orig_onMenuSelect = nil
-        _orig_backToUpperMenu = nil
-        _orig_switchMenuTab = nil
-        _orig_closeMenu = nil
-        _orig_updateItems = nil
     end
+    if _orig_backToUpperMenu then
+        TouchMenu.backToUpperMenu = _orig_backToUpperMenu
+    end
+    if _orig_switchMenuTab then
+        TouchMenu.switchMenuTab = _orig_switchMenuTab
+    end
+    if _orig_closeMenu then
+        TouchMenu.closeMenu = _orig_closeMenu
+    end
+    if _orig_updateItems then
+        TouchMenu.updateItems = _orig_updateItems
+    end
+    _orig_onMenuSelect = nil
+    _orig_backToUpperMenu = nil
+    _orig_switchMenuTab = nil
+    _orig_closeMenu = nil
+    _orig_updateItems = nil
 end
 
 -- ============================================================
@@ -306,7 +319,9 @@ function MenuRecorder.startRecording(menu, view, on_done, on_cancel)
             stopRecording()
             if cb then cb() end
         end
-        return _orig_closeMenu(self, ...)
+        if _orig_closeMenu then
+            return _orig_closeMenu(self, ...)
+        end
     end
 
     TouchMenu.onMenuSelect = function(self, item, tap_on_checkmark)
