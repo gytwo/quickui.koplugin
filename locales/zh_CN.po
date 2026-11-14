@@ -3,10 +3,10 @@
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: QuickUI 1.0.0\n"
+"Project-Id-Version: QuickUI 1.2.5\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-03\n"
-"PO-Revision-Date: 2026-07-03\n"
+"PO-Revision-Date: 2026-11-14\n"
 "Last-Translator: \n"
 "Language-Team: Chinese (Simplified)\n"
 "Language: zh_CN\n"
@@ -134,7 +134,7 @@ msgid "Please enter a name"
 msgstr "请输入名称"
 
 # ============================================================
-# Module Names (for settings menus)
+# Module Names
 # ============================================================
 
 msgid "Quick Actions Settings"
@@ -381,9 +381,6 @@ msgstr "请输入 1 到 %d 之间的数字"
 msgid "Tap to set action"
 msgstr "点击设置操作"
 
-msgid "Name"
-msgstr "名称"
-
 # ============================================================
 # Quick Actions - Built-in Actions
 # ============================================================
@@ -411,9 +408,6 @@ msgstr "搜索"
 
 msgid "Quit"
 msgstr "退出"
-
-msgid "Restart"
-msgstr "重启"
 
 msgid "Power"
 msgstr "电源"
@@ -463,44 +457,20 @@ msgstr "全部遮盖"
 msgid "Uncover All"
 msgstr "全部取消遮盖"
 
-msgid "New Quick Action"
-msgstr "新建快捷操作"
-
 msgid "QA Add Panel Button"
 msgstr "添加面板按钮"
 
 msgid "QA Add Bottom Bar Tab"
 msgstr "添加底部栏按钮"
-
-msgid "UI Font Switcher"
-msgstr "UI 字体切换"
-
-msgid "QuickUI Settings"
-msgstr "QuickUI 设置"
 
 msgid "QA Settings"
 msgstr "快捷操作设置"
 
-msgid "New Quick Action"
-msgstr "新建快捷操作"
-
-msgid "UI Font Switcher"
-msgstr "界面字体切换"
-
 msgid "QA Panel Settings"
 msgstr "面板设置"
 
-msgid "QA Add Panel Button"
-msgstr "添加面板按钮"
-
 msgid "QA Bottom Bar Settings"
 msgstr "底部栏设置"
-
-msgid "QA Add Bottom Bar Tab"
-msgstr "添加底部栏按钮"
-
-msgid "Cover Visual Settings"
-msgstr "封面视觉设置"
 
 msgid "QuickUI_InterfaceFilter"
 msgstr "QuickUI-界面过滤"
@@ -510,15 +480,6 @@ msgstr "QuickUI- 全部遮盖/全部揭开"
 
 msgid "QuickUI_SystemIconOverride"
 msgstr "QuickUI-系统图标替换"
-
-msgid "Toggle Cloze Mode"
-msgstr "切换遮盖模式"
-
-msgid "Cloze Settings"
-msgstr "遮盖模式设置"
-
-msgid "Header & Footer Settings"
-msgstr "页眉页脚设置"
 
 msgid "QuickUI_CoverSettings"
 msgstr "QuickUI-封面视觉设置"
@@ -560,7 +521,7 @@ msgid "Panel is full (max 66 buttons), cannot auto-add."
 msgstr "面板已满（最多66个按钮），无法自动添加。"
 
 # ============================================================
-# Interface Filter (界面过滤)
+# Interface Filter
 # ============================================================
 
 msgid "Enable Interface Filter"
@@ -584,17 +545,11 @@ msgstr "已恢复默认设置"
 msgid "Dedicated"
 msgstr "专用"
 
-msgid "Select All Dedicated"
-msgstr "全部设为专用"
-
 msgid "locked"
 msgstr "锁定"
 
 msgid "Interface filter"
 msgstr "界面过滤"
-
-msgid "Reset all dedicated view settings to defaults?"
-msgstr "将所有专用界面设置恢复为默认值？"
 
 # ============================================================
 # Cover Module
@@ -935,47 +890,17 @@ msgstr "页脚下边距"
 msgid "Left Offset: %1"
 msgstr "左偏移：%1"
 
-msgid "Left Offset"
-msgstr "左偏移"
-
 msgid "Right Offset: %1"
 msgstr "右偏移：%1"
 
-msgid "Right Offset"
-msgstr "右偏移"
-
 msgid "Progress Decimals: %1"
 msgstr "进度小数位数：%1"
-
-msgid "Progress Decimals"
-msgstr "进度小数位数"
-
-msgid "Enter font size (e.g. 14)"
-msgstr "输入字体大小（例如 14）"
-
-msgid "Enter padding value"
-msgstr "输入边距值"
-
-msgid "Positive moves right, negative moves left"
-msgstr "正数向右移，负数向左移"
-
-msgid "Positive moves left, negative moves right"
-msgstr "正数向左移，负数向右移"
-
-msgid "0, 1, or 2"
-msgstr "0、1 或 2"
 
 msgid "Header Font"
 msgstr "页眉字体"
 
 msgid "Footer Font"
 msgstr "页脚字体"
-
-msgid "Header Top Padding"
-msgstr "页眉上边距"
-
-msgid "Footer Bottom Padding"
-msgstr "页脚下边距"
 
 # ============================================================
 # Updates Module
@@ -1062,50 +987,24 @@ msgstr "GitHub（预发布版）"
 msgid "Gitee (Latest)"
 msgstr "Gitee（最新版）"
 
-# update source dialog
-# 新版确认对话框
-msgid "New version found: %s%s\nCurrent version: %s\n\nDownload and install update?"
-msgstr "发现新版本：%s%s\n当前版本：%s\n\n是否下载并安装更新？"
-
-msgid "Current version is up to date (%s)\n\nDowngrade to a previous version?"
-msgstr "当前版本已是最新（%s）\n\n是否回退到历史版本？"
-
-msgid "Downgrade"
-msgstr "回退"
-
-msgid "Downgrade to %s"
-msgstr "回退到 %s"
-
-msgid "Current version: %s (re-download)"
-msgstr "当前版本：%s（重新下载）"
-
-msgid "Download and install update?"
-msgstr "是否下载并安装更新？"
-
 msgid "New version found: %s%s\nCurrent version: %s"
 msgstr "发现新版本：%s%s\n当前版本：%s"
 
 msgid "New version found: %s%s\nCurrent version: %s\n\nDownload and install update?"
 msgstr "发现新版本：%s%s\n当前版本：%s\n\n是否下载并安装更新？"
 
+msgid "Current version is up to date (%s)\n\nDowngrade to a previous version?"
+msgstr "当前版本已是最新（%s）\n\n是否回退到历史版本？"
+
+msgid "Download and install update?"
+msgstr "是否下载并安装更新？"
+
 msgid "Update installed successfully. KOReader needs to restart to apply changes. Restart now?"
 msgstr "更新安装成功。需要重启 KOReader 才能生效。是否立即重启？"
-
-msgid "Download failed, please check network connection and try again"
-msgstr "下载失败，请检查网络连接后重试"
-
-msgid "Automatic installation failed. Please manually extract %splugins/quickui.koplugin.zip to the plugins directory and restart"
-msgstr "自动安装失败。请手动将 %splugins/quickui.koplugin.zip 解压到插件目录后重启"
-
-msgid "No network connection, cannot check for updates"
-msgstr "无网络连接，无法检查更新"
 
 # ============================================================
 # UI Font Switcher
 # ============================================================
-
-msgid "UI Font Switcher"
-msgstr "UI 字体切换"
 
 msgid "Regular Font"
 msgstr "常规字体"
@@ -1136,9 +1035,6 @@ msgstr "%s 已恢复默认"
 
 msgid "No fonts available"
 msgstr "没有可用的字体"
-
-msgid "UI Font Switcher"
-msgstr "UI 字体切换"
 
 # ============================================================
 # Icon Picker
@@ -1198,9 +1094,6 @@ msgstr "文件图标"
 msgid "Browse"
 msgstr "浏览文件"
 
-msgid "Use Default"
-msgstr "应用默认"
-
 msgid "Apply Replacements (%d)"
 msgstr "应用替换（%d）"
 
@@ -1231,9 +1124,6 @@ msgstr "%s 预设已保存"
 
 msgid "%s preset applied"
 msgstr "%s 预设已应用"
-
-msgid "%s reset to default"
-msgstr "%s 已恢复默认"
 
 msgid "No saved preset"
 msgstr "没有已保存的预设"
@@ -1267,9 +1157,6 @@ msgid "book"
 msgid_plural "books"
 msgstr[0] "本书"
 
-msgid "No matching icons"
-msgstr "没有匹配的图标"
-
 msgid "Unable to get UI instance"
 msgstr "无法获取 UI 实例"
 
@@ -1347,141 +1234,6 @@ msgstr "QuickUI QA：UI 字体模块已加载"
 
 msgid "QuickUI QA: Bottom Bar module loaded"
 msgstr "QuickUI QA：底部栏模块已加载"
-
-msgid "QuickUI QA BottomBar: initialized"
-msgstr "QuickUI QA 底部栏：已初始化"
-
-msgid "QuickUI QA Panel: initialized"
-msgstr "QuickUI QA 面板：已初始化"
-
-msgid "QuickUI Utils: FileChooser patched for bottombar"
-msgstr "QuickUI 工具：FileChooser 已为底部栏打补丁"
-
-msgid "QuickUI i18n: loaded"
-msgstr "QuickUI i18n：已加载"
-
-msgid "QuickUI i18n: installed for lang="
-msgstr "QuickUI i18n：已为语言安装="
-
-msgid "QuickUI Updates: initialized"
-msgstr "QuickUI 更新：已初始化"
-
-msgid "QuickUI Updates: Latest version"
-msgstr "QuickUI 更新：最新版本"
-
-msgid "QuickUI Updates: Using manually uploaded ZIP"
-msgstr "QuickUI 更新：使用手动上传的 ZIP"
-
-msgid "QuickUI Updates: Using auto-generated source ZIP"
-msgstr "QuickUI 更新：使用自动生成的源码 ZIP"
-
-msgid "QuickUI Updates: Auto-install successful"
-msgstr "QuickUI 更新：自动安装成功"
-
-msgid "QuickUI Updates: Auto-install failed"
-msgstr "QuickUI 更新：自动安装失败"
-
-msgid "QuickUI Updates: Update installed successfully"
-msgstr "QuickUI 更新：更新安装成功"
-
-msgid "QuickUI Updates: Update installation failed"
-msgstr "QuickUI 更新：更新安装失败"
-
-msgid "QuickUI Updates: HTTP request failed"
-msgstr "QuickUI 更新：HTTP 请求失败"
-
-msgid "QuickUI Updates: Empty response"
-msgstr "QuickUI 更新：空响应"
-
-msgid "QuickUI Updates: JSON parse failed"
-msgstr "QuickUI 更新：JSON 解析失败"
-
-msgid "No recent book found"
-msgstr "未找到最近阅读的书籍"
-
-msgid "Please open a book first"
-msgstr "请先打开一本书"
-
-msgid "Unable to get UI instance"
-msgstr "无法获取 UI 实例"
-
-msgid "httpinspector plugin not found"
-msgstr "未找到 httpinspector 插件"
-
-msgid "filebrowserplus plugin not found"
-msgstr "未找到 filebrowserplus 插件"
-
-msgid "zlibrary plugin not found"
-msgstr "未找到 zlibrary 插件"
-
-msgid "CloudLibrary plugin not found"
-msgstr "未找到 CloudLibrary 插件"
-
-msgid "annotationsviewer plugin not found"
-msgstr "未找到 annotationsviewer 插件"
-
-msgid "Font set to: %s"
-msgstr "字体已设置为：%s"
-
-msgid "Cannot get MosaicMenuItem"
-msgstr "无法获取 MosaicMenuItem"
-
-msgid "Cannot get ListMenuItem"
-msgstr "无法获取 ListMenuItem"
-
-msgid "QuickUI: Cover enabled"
-msgstr "QuickUI：封面美化已启用"
-
-msgid "QuickUI: Quick Actions enabled"
-msgstr "QuickUI：快捷操作已启用"
-
-msgid "QuickUI: Cloze enabled"
-msgstr "QuickUI：遮盖模式已启用"
-
-msgid "QuickUI: Header/Footer enabled"
-msgstr "QuickUI：页眉页脚已启用"
-
-msgid "QuickUI: Updates module loaded"
-msgstr "QuickUI：更新模块已加载"
-
-msgid "QuickUI: init completed"
-msgstr "QuickUI：初始化完成"
-
-msgid "QuickUI Utils: Config saved"
-msgstr "QuickUI 工具：配置已保存"
-
-msgid "QuickUI QA: initialized"
-msgstr "QuickUI QA：已初始化"
-
-msgid "QuickUI QA BottomBar: initialized"
-msgstr "QuickUI QA 底部栏：已初始化"
-
-msgid "QuickUI Cover: Mosaic patch applied"
-msgstr "QuickUI 封面：Mosaic 补丁已应用"
-
-msgid "QuickUI Cover: List patch applied"
-msgstr "QuickUI 封面：List 补丁已应用"
-
-msgid "QuickUI Cover: Hide up folder patch applied"
-msgstr "QuickUI 封面：隐藏返回上级补丁已应用"
-
-msgid "QuickUI QA: TouchMenu patch applied"
-msgstr "QuickUI QA：TouchMenu 补丁已应用"
-
-msgid "QuickUI QA: Icon picker module loaded"
-msgstr "QuickUI QA：图标选择器模块已加载"
-
-msgid "QuickUI QA: Menu recorder module loaded"
-msgstr "QuickUI QA：菜单录制模块已加载"
-
-msgid "QuickUI QA: UI Font module loaded"
-msgstr "QuickUI QA：UI 字体模块已加载"
-
-msgid "QuickUI QA: Bottom Bar module loaded"
-msgstr "QuickUI QA：底部栏模块已加载"
-
-msgid "QuickUI QA BottomBar: initialized"
-msgstr "QuickUI QA 底部栏：已初始化"
 
 msgid "QuickUI QA Panel: initialized"
 msgstr "QuickUI QA 面板：已初始化"
@@ -1529,50 +1281,23 @@ msgid "QuickUI Updates: JSON parse failed"
 msgstr "QuickUI 更新：JSON 解析失败"
 
 # ============================================================
-# Dispatcher Actions (手势动作)
+# Dispatcher Actions
 # ============================================================
 
 msgid "QuickUI_Settings"
 msgstr "QuickUI-设置"
 
-msgid "QuickUI_CoverSettings"
-msgstr "QuickUI-封面视觉设置"
-
-msgid "QuickUI_ClozeEnable"
-msgstr "QuickUI-启用遮盖模式"
-
 msgid "QuickUI_ClozeToggleAll"
 msgstr "QuickUI-切换全部填空"
 
-msgid "QuickUI_HFSettings"
-msgstr "QuickUI-页眉页脚设置"
-
-msgid "QuickUI_Panel"
-msgstr "QuickUI-顶部面板"
-
-msgid "QuickUI_QASettings"
-msgstr "QuickUI-快捷操作设置"
-
-msgid "QuickUI_NewAction"
-msgstr "QuickUI-新建快捷操作"
-
-msgid "QuickUI_PanelSettings"
-msgstr "QuickUI-顶部面板设置"
-
-msgid "QuickUI_AddPanelButton"
-msgstr "QuickUI-添加顶部面板按钮"
-
-msgid "QuickUI_BottombarToggle"
-msgstr "QuickUI-底部栏开关"
-
-msgid "QuickUI_BottombarSettings"
-msgstr "QuickUI-底部栏设置"
-
-msgid "QuickUI_AddBottomBarTab"
-msgstr "QuickUI-添加底部栏按钮"
+msgid "QuickUI_ReaderSliders"
+msgstr "QuickUI-打开阅读滑块"
 
 msgid "QuickUI_ReaderBottombarToggle"
 msgstr "QuickUI-切换阅读器底部栏"
+
+msgid "QuickUI_VerticalBarToggle"
+msgstr "QuickUI-侧边栏开关"
 
 msgid "Search..."
 msgstr "搜索..."
@@ -1585,9 +1310,6 @@ msgstr "搜索动作"
 
 msgid "Search Tabs"
 msgstr "搜索标签"
-
-msgid "Search"
-msgstr "搜索"
 
 msgid "Enter name or codepoint to filter icons"
 msgstr "输入名称或码点以过滤图标"
@@ -1609,12 +1331,6 @@ msgstr "显示滑块数值"
 
 msgid "Warmth Slider"
 msgstr "色温滑块"
-
-msgid "System Icon Override"
-msgstr "系统图标替换"
-
-msgid "Interface Filter"
-msgstr "界面过滤"
 
 msgid "Allow overlap with content (Reader only)"
 msgstr "允许与内容重叠（仅阅读器）"
@@ -1682,9 +1398,8 @@ msgstr "Sui-标签"
 msgid "Please check that SimpleUI is installed and 'Browse by Author / Series / Tags' is enabled."
 msgstr "请检查是否已安装 SimpleUI 并启用了「按作者/系列/标签浏览」。"
 
-
 # ============================================================
-# Module-not-available messages (all bars)
+# Module-not-available messages
 # ============================================================
 
 msgid "Bottom Bar module not available"
@@ -1723,9 +1438,8 @@ msgstr "面板模块不可用"
 msgid "Bottom Bar module not fully loaded"
 msgstr "底部栏模块尚未完全加载"
 
-
 # ============================================================
-# Vertical Bar (侧边栏)
+# Vertical Bar
 # ============================================================
 
 msgid "Add"
@@ -1736,15 +1450,6 @@ msgstr "侧边栏"
 
 msgid "Vertical Bar Settings"
 msgstr "侧边栏设置"
-
-msgid "Vertical Bar module not available"
-msgstr "侧边栏模块不可用"
-
-msgid "Vertical Bar module not available (enable it first)"
-msgstr "侧边栏模块不可用（请先启用）"
-
-msgid "Vertical Bar module is disabled"
-msgstr "侧边栏模块已禁用"
 
 msgid "Toggle Vertical Bar"
 msgstr "侧边栏开关"
@@ -1761,9 +1466,6 @@ msgstr "位置"
 msgid "Background"
 msgstr "背景"
 
-msgid "Light Gray"
-msgstr "浅灰"
-
 msgid "Animation"
 msgstr "动画"
 
@@ -1776,26 +1478,11 @@ msgstr "中"
 msgid "Slow"
 msgstr "慢"
 
-msgid "Arrange Buttons"
-msgstr "排列按钮"
-
-msgid "Bar Size"
-msgstr "栏大小"
-
-msgid "Icon Size"
-msgstr "图标大小"
-
-msgid "Label Size"
-msgstr "标签大小"
-
 msgid "No buttons configured"
 msgstr "未配置按钮"
 
 msgid "Apply preset (QA vb)"
 msgstr "应用预设（侧边栏）"
-
-msgid "QuickUI_VerticalBarToggle"
-msgstr "QuickUI-侧边栏开关"
 
 msgid "QuickUI_VerticalBarSettings"
 msgstr "QuickUI-侧边栏设置"
@@ -1823,9 +1510,6 @@ msgstr "阅读滑块"
 
 msgid "No reader sliders available for this document"
 msgstr "当前文档没有可用的阅读滑块"
-
-msgid "QuickUI_ReaderSliders"
-msgstr "QuickUI-打开阅读滑块"
 
 msgid "Sui-Homescreen"
 msgstr "Sui-主页"
@@ -1911,7 +1595,9 @@ msgstr "显示翻页行"
 msgid "Rows per Page"
 msgstr "每页行数"
 
+# ============================================================
 # Metadata module
+# ============================================================
 
 msgid "Not set"
 msgstr "未设置"
@@ -1955,14 +1641,8 @@ msgstr "恢复上一版元数据并丢弃未保存的更改？"
 msgid "Restore the previous metadata for this book?"
 msgstr "恢复这本书的上一版元数据？"
 
-msgid "Cancel"
-msgstr "取消"
-
 msgid "Restore"
 msgstr "恢复"
-
-msgid "Save"
-msgstr "保存"
 
 msgid "Saving metadata..."
 msgstr "正在保存元数据..."
@@ -2011,8 +1691,6 @@ msgstr "已应用 %d 个字段"
 
 msgid "Applied %d fields, kept %d manual edits"
 msgstr "已应用 %d 个字段，保留 %d 个手动编辑"
-
-# Provider picker
 
 msgid "Search metadata"
 msgstr "搜索元数据"
@@ -2080,8 +1758,6 @@ msgstr "应用"
 msgid "This result has no usable metadata."
 msgstr "此结果没有可用的元数据。"
 
-# 菜单 / 设置
-
 msgid "Metadata Settings"
 msgstr "元数据设置"
 
@@ -2102,8 +1778,6 @@ msgstr "Open Library：无需 key"
 
 msgid "Metadata module is disabled"
 msgstr "元数据模块已禁用"
-
-# Provider 名称
 
 msgid "Douban"
 msgstr "豆瓣"
@@ -2140,9 +1814,6 @@ msgstr "标签"
 
 msgid "Rating"
 msgstr "评分"
-
-msgid "Description"
-msgstr "简介"
 
 msgid "WeRead"
 msgstr "微信阅读"
@@ -2182,9 +1853,6 @@ msgstr "正在下载封面..."
 
 msgid "This result has no cover."
 msgstr "该结果没有封面。"
-
-msgid "Download failed"
-msgstr "下载失败"
 
 msgid "Invalid cover URL"
 msgstr "封面链接无效"
@@ -2255,9 +1923,8 @@ msgstr "仅当前书籍"
 msgid "Please choose an image file."
 msgstr "请选择一个图片文件。"
 
-
 # ============================================================
-# Book Switcher (qa_panel_bs_*)
+# Book Switcher
 # ============================================================
 
 msgid "Book Switcher"
@@ -2289,6 +1956,10 @@ msgstr "书籍切换器：没有可切换的书籍"
 
 msgid "Book Switcher: Remove"
 msgstr "书籍切换器：移除"
+
+# ============================================================
+# Page Scrubber / YueDu
+# ============================================================
 
 msgid "Page Scrubber: Grid"
 msgstr "Page Scrubber-网格"
