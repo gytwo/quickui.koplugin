@@ -1,0 +1,917 @@
+# QuickUI Russian Translation
+# 
+msgid ""
+msgstr ""
+"Project-Id-Version: QuickUI 1.2.5\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-07-03\n"
+"PO-Revision-Date: 2026-11-14\n"
+"Last-Translator: \n"
+"Language-Team: Russian\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+# ============================================================
+# Main Plugin Strings
+# ============================================================
+
+msgid "QuickUI"
+msgstr "QuickUI"
+
+msgid "Quick Actions · Cover Enhancements · Cloze Mode · Header/Footer"
+msgstr "Быстрые действия · Оформление обложек · Режим Cloze · Колонтитулы"
+
+msgid "QuickUI Settings"
+msgstr "Настройки QuickUI"
+
+# ============================================================
+# Module Enable/Disable
+# ============================================================
+
+msgid "Enable Quick Actions"
+msgstr "Включить быстрые действия"
+
+msgid "Enable Cover"
+msgstr "Включить оформление обложек"
+
+msgid "Enable Cloze Mode"
+msgstr "Включить режим Cloze"
+
+msgid "Enable Header & Footer"
+msgstr "Включить колонтитулы"
+
+msgid "Restart required.\n\nRestart KOReader now?"
+msgstr "Требуется перезапуск.\n\nПерезапустить KOReader сейчас?"
+
+msgid "Restart"
+msgstr "Перезапустить"
+
+msgid "Later"
+msgstr "Позже"
+
+# ============================================================
+# General UI
+# ============================================================
+
+msgid "Plugin Info"
+msgstr "О плагине"
+
+msgid "QuickUI - Plugin Info"
+msgstr "QuickUI - О плагине"
+
+msgid "README file not found"
+msgstr "Файл README не найден"
+
+msgid "Current version"
+msgstr "Текущая версия"
+
+msgid "Check for Updates"
+msgstr "Проверить обновления"
+
+msgid "Save as preset"
+msgstr "Сохранить как профиль"
+
+msgid "Apply preset"
+msgstr "Применить профиль"
+
+msgid "Reset to default"
+msgstr "Сбросить к значениям по умолчанию"
+
+msgid "All"
+msgstr "Все"
+
+msgid "Back"
+msgstr "Назад"
+
+msgid "Back to Root"
+msgstr "В корень"
+
+msgid "Cancel"
+msgstr "Отмена"
+
+msgid "OK"
+msgstr "ОК"
+
+msgid "Close"
+msgstr "Закрыть"
+
+msgid "Delete"
+msgid_plural "Delete"
+msgstr[0] "Удалить"
+msgstr[1] "Удалить"
+msgstr[2] "Удалить"
+
+msgid "Reset"
+msgstr "Сбросить"
+
+msgid "Save"
+msgstr "Сохранить"
+
+msgid "Edit"
+msgstr "Изменить"
+
+msgid "Name"
+msgstr "Название"
+
+msgid "Icon"
+msgstr "Значок"
+
+msgid "View"
+msgstr "Вид"
+
+msgid "Common"
+msgstr "Общее"
+
+msgid "Filemanager"
+msgstr "Файловый менеджер"
+
+msgid "Reader"
+msgstr "Читалка"
+
+msgid "Please enter a name"
+msgstr "Введите название"
+
+# ============================================================
+# Module Names
+# ============================================================
+
+msgid "Quick Actions Settings"
+msgstr "Настройки быстрых действий"
+
+msgid "Cover Visual Settings"
+msgstr "Настройки оформления обложек"
+
+msgid "Cloze Settings"
+msgstr "Настройки режима Cloze"
+
+msgid "Header & Footer Settings"
+msgstr "Настройки колонтитулов"
+
+msgid "Header & Footer"
+msgstr "Колонтитулы"
+
+msgid "Panel Settings"
+msgstr "Настройки верхней панели"
+
+msgid "Bottom Bar Settings"
+msgstr "Настройки нижней панели"
+
+msgid "Cover Settings"
+msgstr "Настройки обложек"
+
+msgid "Quick Actions"
+msgstr "Быстрые действия"
+
+msgid "Panel"
+msgstr "Верхняя панель"
+
+msgid "Bottom Bar"
+msgstr "Нижняя панель"
+
+msgid "Interface Filter"
+msgstr "Фильтр интерфейса"
+
+# ============================================================
+# Quick Actions - General
+# ============================================================
+
+msgid "Enable Panel"
+msgstr "Включить верхнюю панель"
+
+msgid "Enable Bottom Bar"
+msgstr "Включить нижнюю панель"
+
+msgid "System Icon Override"
+msgstr "Замена системных значков"
+
+msgid "UI Font Switcher"
+msgstr "Смена шрифта интерфейса"
+
+msgid "Auto-add to panel on save"
+msgstr "Автоматически добавлять на панель при сохранении"
+
+msgid "Built-in Actions"
+msgstr "Встроенные действия"
+
+msgid "New Quick Action"
+msgstr "Новое быстрое действие"
+
+msgid "Edit Quick Action"
+msgstr "Изменить быстрое действие"
+
+msgid "Edit Bottom Bar Tab"
+msgstr "Изменить вкладку нижней панели"
+
+msgid "Add Button"
+msgstr "Добавить кнопку"
+
+msgid "Add Tab"
+msgstr "Добавить вкладку"
+
+msgid "Arrange Buttons"
+msgstr "Упорядочить кнопки"
+
+msgid "Arrange Tabs"
+msgstr "Упорядочить вкладки"
+
+msgid "Select All"
+msgstr "Выбрать все"
+
+msgid "Deselect All"
+msgstr "Снять выделение"
+
+msgid "Select All Dedicated"
+msgstr "Выбрать все специализированные"
+
+msgid "Button Shape"
+msgstr "Форма кнопки"
+
+msgid "Round"
+msgstr "Круглая"
+
+msgid "Rounded Square"
+msgstr "Скруглённый квадрат"
+
+msgid "Bare"
+msgstr "Без рамки"
+
+msgid "Button Background"
+msgstr "Фон кнопки"
+
+msgid "Transparent"
+msgstr "Прозрачный"
+
+msgid "Solid"
+msgstr "Сплошной"
+
+msgid "Light Gray"
+msgstr "Светло-серый"
+
+msgid "Show Labels"
+msgstr "Показывать подписи"
+
+msgid "Button Size"
+msgstr "Размер кнопки"
+
+msgid "Label Size"
+msgstr "Размер подписи"
+
+msgid "Long-press button to edit"
+msgstr "Долгое нажатие на кнопку — редактирование"
+
+msgid "Long-press panel to open settings"
+msgstr "Долгое нажатие на панель — открыть настройки"
+
+msgid "Long press to edit"
+msgstr "Долгое нажатие — редактировать"
+
+msgid "Long press to open settings"
+msgstr "Долгое нажатие — открыть настройки"
+
+msgid "Show in Reader"
+msgstr "Показывать в читалке"
+
+msgid "Hide in PDF"
+msgstr "Скрывать в PDF"
+
+msgid "Bar Style"
+msgstr "Стиль панели"
+
+msgid "Default"
+msgstr "По умолчанию"
+
+msgid "Framed"
+msgstr "С рамкой"
+
+msgid "Bar Background"
+msgstr "Фон панели"
+
+msgid "Bar Size"
+msgstr "Размер панели"
+
+msgid "Icon Size"
+msgstr "Размер значка"
+
+msgid "Tab Icon"
+msgstr "Значок вкладки"
+
+msgid "No actions configured, tap to add"
+msgstr "Действия не настроены, нажмите, чтобы добавить"
+
+msgid "Action"
+msgstr "Действие"
+
+msgid "Action Type"
+msgstr "Тип действия"
+
+msgid "Select Icon"
+msgstr "Выбрать значок"
+
+msgid "Select Icon File"
+msgstr "Выбрать файл значка"
+
+msgid "Select Font"
+msgstr "Выбрать шрифт"
+
+msgid "Please select an action type"
+msgstr "Выберите тип действия"
+
+msgid "Folder"
+msgstr "Папка"
+
+msgid "Collections"
+msgstr "Коллекции"
+
+msgid "Plugin or Patch"
+msgstr "Плагин или патч"
+
+msgid "System Action"
+msgstr "Системное действие"
+
+msgid "Record Menu Action"
+msgstr "Записать действие меню"
+
+msgid "Tap any menu item to record it as a quick action"
+msgstr "Нажмите на любой пункт меню, чтобы записать его как быстрое действие"
+
+msgid "Save as Quick Action"
+msgstr "Сохранить как быстрое действие"
+
+msgid "Back to Edit"
+msgstr "Назад к редактированию"
+
+msgid "Unable to open menu"
+msgstr "Не удалось открыть меню"
+
+msgid "No actions available"
+msgstr "Нет доступных действий"
+
+msgid "Patch not found"
+msgstr "Патч не найден"
+
+msgid "Plugin not found"
+msgstr "Плагин не найден"
+
+msgid "Cannot execute plugin"
+msgstr "Не удалось выполнить плагин"
+
+msgid "Menu Action"
+msgstr "Действие меню"
+
+msgid "No plugins or patches available"
+msgstr "Нет доступных плагинов или патчей"
+
+msgid "Select Plugin or Patch"
+msgstr "Выбрать плагин или патч"
+
+msgid "System Actions"
+msgstr "Системные действия"
+
+msgid "No system actions available"
+msgstr "Нет доступных системных действий"
+
+msgid "Enter value..."
+msgstr "Введите значение..."
+
+msgid "Please enter a number between 1 and %d"
+msgstr "Введите число от 1 до %d"
+
+msgid "Tap to set action"
+msgstr "Нажмите, чтобы задать действие"
+
+# ============================================================
+# Quick Actions - Built-in Actions
+# ============================================================
+
+msgid "Home"
+msgstr "Домой"
+
+msgid "Wi-Fi"
+msgstr "Wi-Fi"
+
+msgid "Night Mode"
+msgstr "Ночной режим"
+
+msgid "Rotate"
+msgstr "Повернуть"
+
+msgid "Screenshot (4s delay)"
+msgstr "Снимок экрана (задержка 4 с)"
+
+msgid "Continue Reading"
+msgstr "Продолжить чтение"
+
+msgid "Search"
+msgstr "Поиск"
+
+msgid "Quit"
+msgstr "Выйти"
+
+msgid "Power"
+msgstr "Питание"
+
+msgid "Sleep"
+msgstr "Сон"
+
+msgid "Font List"
+msgstr "Список шрифтов"
+
+msgid "HTTP Server"
+msgstr "HTTP-сервер"
+
+msgid "HTTP server started"
+msgstr "HTTP-сервер запущен"
+
+msgid "HTTP server stopped"
+msgstr "HTTP-сервер остановлен"
+
+msgid "Reading Insights"
+msgstr "Статистика чтения"
+
+msgid "FileBrowserPlus"
+msgstr "FileBrowserPlus"
+
+msgid "ZLibrary Search"
+msgstr "Поиск в ZLibrary"
+
+msgid "CloudLibrary - AutoSync"
+msgstr "CloudLibrary - автосинхронизация"
+
+msgid "CloudLibrary - Batch Download"
+msgstr "CloudLibrary - пакетная загрузка"
+
+msgid "CloudLibrary - Settings"
+msgstr "CloudLibrary - настройки"
+
+msgid "Annotations Viewer"
+msgstr "Просмотр аннотаций"
+
+msgid "Toggle Cloze Mode"
+msgstr "Переключить режим Cloze"
+
+msgid "Cover All"
+msgstr "Скрыть всё"
+
+msgid "Uncover All"
+msgstr "Показать всё"
+
+msgid "QA Add Panel Button"
+msgstr "Добавить кнопку на панель"
+
+msgid "QA Add Bottom Bar Tab"
+msgstr "Добавить вкладку нижней панели"
+
+msgid "QA Settings"
+msgstr "Настройки быстрых действий"
+
+msgid "QA Panel Settings"
+msgstr "Настройки панели"
+
+msgid "QA Bottom Bar Settings"
+msgstr "Настройки нижней панели"
+
+msgid "QuickUI_InterfaceFilter"
+msgstr "QuickUI - фильтр интерфейса"
+
+msgid "QuickUI_Cover All/Uncover All"
+msgstr "QuickUI - скрыть/показать всё"
+
+msgid "QuickUI_SystemIconOverride"
+msgstr "QuickUI - замена системных значков"
+
+msgid "QuickUI_CoverSettings"
+msgstr "QuickUI - настройки обложек"
+
+msgid "QuickUI_ClozeSettings"
+msgstr "QuickUI - настройки Cloze"
+
+msgid "QuickUI_HFSettings"
+msgstr "QuickUI - настройки колонтитулов"
+
+msgid "toggle_cloze_mode"
+msgstr "переключить режим Cloze"
+
+msgid "No recent book found"
+msgstr "Не найдено недавних книг"
+
+msgid "WiFi not available"
+msgstr "Wi-Fi недоступен"
+
+msgid "Please open a book first"
+msgstr "Сначала откройте книгу"
+
+msgid "This action can only be executed in the reader. Please open a book first."
+msgstr "Это действие можно выполнить только в читалке. Сначала откройте книгу."
+
+msgid "This action can only be executed in the filemanager."
+msgstr "Это действие можно выполнить только в файловом менеджере."
+
+msgid "This action cannot be executed in the current view."
+msgstr "Это действие нельзя выполнить в текущем представлении."
+
+msgid "Button not found in panel"
+msgstr "Кнопка не найдена на панели"
+
+msgid "Max %d buttons"
+msgstr "Максимум %d кнопок"
+
+msgid "Panel is full (max 66 buttons), cannot auto-add."
+msgstr "Панель заполнена (макс. 66 кнопок), невозможно добавить автоматически."
+
+# ============================================================
+# Interface Filter
+# ============================================================
+
+msgid "Enable Interface Filter"
+msgstr "Включить фильтр интерфейса"
+
+msgid "Filemanager Dedicated (%d)"
+msgstr "Только для файлового менеджера (%d)"
+
+msgid "Reader Dedicated (%d)"
+msgstr "Только для читалки (%d)"
+
+msgid "Reset to Defaults"
+msgstr "Сбросить к значениям по умолчанию"
+
+msgid "Reset all dedicated view settings to defaults?"
+msgstr "Сбросить все настройки специализированных представлений?"
+
+msgid "Reset to defaults"
+msgstr "Сброшено к значениям по умолчанию"
+
+msgid "Dedicated"
+msgstr "Специализированное"
+
+msgid "locked"
+msgstr "заблокировано"
+
+msgid "Interface filter"
+msgstr "Фильтр интерфейса"
+
+# ============================================================
+# Cover Module
+# ============================================================
+
+msgid "Unknown"
+msgstr "Неизвестно"
+
+msgid "Unknown Author"
+msgstr "Неизвестный автор"
+
+msgid "Book Cover"
+msgstr "Обложка книги"
+
+msgid "Placeholder Cover"
+msgstr "Заглушка обложки"
+
+msgid "Simple (white background)"
+msgstr "Простая (белый фон)"
+
+msgid "Gradient"
+msgstr "Градиент"
+
+msgid "Cover Aspect Ratio"
+msgstr "Пропорции обложки"
+
+msgid "3:4 (default)"
+msgstr "3:4 (по умолчанию)"
+
+msgid "2:3"
+msgstr "2:3"
+
+msgid "Rounded Corners"
+msgstr "Скруглённые углы"
+
+msgid "Show Title Below Cover"
+msgstr "Показывать название под обложкой"
+
+msgid "Show Author Below Cover"
+msgstr "Показывать автора под обложкой"
+
+msgid "Hide Underline"
+msgstr "Скрыть подчёркивание"
+
+msgid "Hide Up Folder"
+msgstr "Скрыть переход вверх"
+
+msgid "Badges"
+msgstr "Значки"
+
+msgid "Badge Size"
+msgstr "Размер значка"
+
+msgid "Compact"
+msgstr "Компактный"
+
+msgid "Normal"
+msgstr "Обычный"
+
+msgid "Large"
+msgstr "Большой"
+
+msgid "Extra Large"
+msgstr "Очень большой"
+
+msgid "Badge Color"
+msgstr "Цвет значка"
+
+msgid "Black"
+msgstr "Чёрный"
+
+msgid "White"
+msgstr "Белый"
+
+msgid "Gray"
+msgstr "Серый"
+
+msgid "Blue"
+msgstr "Синий"
+
+msgid "Green"
+msgstr "Зелёный"
+
+msgid "Amber"
+msgstr "Янтарный"
+
+msgid "Red"
+msgstr "Красный"
+
+msgid "Show Favorite Star"
+msgstr "Показывать звезду избранного"
+
+msgid "Show Progress Percentage"
+msgstr "Показывать процент прочитанного"
+
+msgid "Show NEW Banner"
+msgstr "Показывать баннер NEW"
+
+msgid "Dim Finished Books"
+msgstr "Затемнять прочитанные книги"
+
+msgid "Show Page Count"
+msgstr "Показывать количество страниц"
+
+msgid "Show Format Badge"
+msgstr "Показывать значок формата"
+
+msgid "Cover Title Banner"
+msgstr "Баннер названия на обложке"
+
+msgid "Show Banner"
+msgstr "Показывать баннер"
+
+msgid "Centered"
+msgstr "По центру"
+
+msgid "Bottom"
+msgstr "Снизу"
+
+msgid "Opaque Background"
+msgstr "Непрозрачный фон"
+
+msgid "Folder Covers"
+msgstr "Обложки папок"
+
+msgid "Folder Cover Mode"
+msgstr "Режим обложек папок"
+
+msgid "Gallery (4-grid collage)"
+msgstr "Галерея (коллаж 2×2)"
+
+msgid "Stack (stacking effect)"
+msgstr "Стопка (эффект наложения)"
+
+msgid "Normal (first cover)"
+msgstr "Обычный (первая обложка)"
+
+msgid "None (folder name only)"
+msgstr "Нет (только имя папки)"
+
+msgid "Show Spine Decoration Lines"
+msgstr "Показывать декоративные линии корешка"
+
+msgid "Show File Count"
+msgstr "Показывать количество файлов"
+
+msgid "Folder Name"
+msgstr "Имя папки"
+
+msgid "Show Name"
+msgstr "Показывать имя"
+
+msgid "This feature is only available in Filemanager"
+msgstr "Эта функция доступна только в файловом менеджере"
+
+# ============================================================
+# Cloze Module
+# ============================================================
+
+msgid "Cloze Mode"
+msgstr "Режим Cloze"
+
+msgid "Toggle Mode"
+msgstr "Режим переключения"
+
+msgid "Double-tap to toggle"
+msgstr "Двойное нажатие для переключения"
+
+msgid "Single-tap (block menu)"
+msgstr "Одинарное нажатие (блокировать меню)"
+
+msgid "Single-tap (show menu)"
+msgstr "Одинарное нажатие (показать меню)"
+
+msgid "Coverable Styles"
+msgstr "Скрываемые стили"
+
+msgid "Highlight"
+msgstr "Выделение"
+
+msgid "Underline"
+msgstr "Подчёркивание"
+
+msgid "Strikeout"
+msgstr "Зачёркивание"
+
+msgid "Invert"
+msgstr "Инверсия"
+
+# ============================================================
+# Header & Footer Module
+# ============================================================
+
+msgid "Header"
+msgstr "Верхний колонтитул"
+
+msgid "Footer"
+msgstr "Нижний колонтитул"
+
+msgid "Enable Header"
+msgstr "Включить верхний колонтитул"
+
+msgid "Enable Footer"
+msgstr "Включить нижний колонтитул"
+
+msgid "Global Settings"
+msgstr "Глобальные настройки"
+
+msgid "Top Left"
+msgstr "Слева сверху"
+
+msgid "Top Center"
+msgstr "По центру сверху"
+
+msgid "Top Right"
+msgstr "Справа сверху"
+
+msgid "Bottom Left"
+msgstr "Слева снизу"
+
+msgid "Bottom Center"
+msgstr "По центру снизу"
+
+msgid "Bottom Right"
+msgstr "Справа снизу"
+
+msgid "Font"
+msgstr "Шрифт"
+
+msgid "Font Size"
+msgstr "Размер шрифта"
+
+msgid "Bold"
+msgstr "Жирный"
+
+msgid "Top Padding"
+msgstr "Отступ сверху"
+
+msgid "Bottom Padding"
+msgstr "Отступ снизу"
+
+msgid "Left Offset"
+msgstr "Смещение влево"
+
+msgid "Right Offset"
+msgstr "Смещение вправо"
+
+msgid "Time Format"
+msgstr "Формат времени"
+
+msgid "24-hour"
+msgstr "24-часовой"
+
+msgid "12-hour"
+msgstr "12-часовой"
+
+msgid "Progress Decimals"
+msgstr "Знаков после запятой в прогрессе"
+
+msgid "Show in PDF Documents"
+msgstr "Показывать в PDF-документах"
+
+msgid "Positive moves right, negative moves left"
+msgstr "Положительное значение сдвигает вправо, отрицательное — влево"
+
+msgid "Positive moves left, negative moves right"
+msgstr "Положительное значение сдвигает влево, отрицательное — вправо"
+
+msgid "Enter font size (e.g. 14)"
+msgstr "Введите размер шрифта (например, 14)"
+
+msgid "Enter padding value"
+msgstr "Введите значение отступа"
+
+msgid "0, 1, or 2"
+msgstr "0, 1 или 2"
+
+msgid "(None)"
+msgstr "(Нет)"
+
+msgid "Current Time"
+msgstr "Текущее время"
+
+msgid "Page (current/total)"
+msgstr "Страница (текущая/всего)"
+
+msgid "Progress Percentage"
+msgstr "Процент прочитанного"
+
+msgid "Page + Progress"
+msgstr "Страница + прогресс"
+
+msgid "Chapter Page"
+msgstr "Страница главы"
+
+msgid "Book Author"
+msgstr "Автор книги"
+
+msgid "Book Title"
+msgstr "Название книги"
+
+msgid "Chapter Title"
+msgstr "Название главы"
+
+msgid "Battery"
+msgstr "Батарея"
+
+msgid "Frontlight"
+msgstr "Подсветка"
+
+msgid "Warmth"
+msgstr "Тёплый свет"
+
+msgid "Max"
+msgstr "Максимум"
+
+msgid "Font Size: %1"
+msgstr "Размер шрифта: %1"
+
+msgid "Header Font Size"
+msgstr "Размер шрифта верхнего колонтитула"
+
+msgid "Footer Font Size"
+msgstr "Размер шрифта нижнего колонтитула"
+
+msgid "Top Padding: %1"
+msgstr "Отступ сверху: %1"
+
+msgid "Header Top Padding"
+msgstr "Отступ сверху верхнего колонтитула"
+
+msgid "Bottom Padding: %1"
+msgstr "Отступ снизу: %1"
+
+msgid "Footer Bottom Padding"
+msgstr "Отступ снизу нижнего колонтитула"
+
+msgid "Left Offset: %1"
+msgstr "Смещение влево: %1"
+
+msgid "Right Offset: %1"
+msgstr "Смещение вправо: %1"
+
+msgid "Progress Decimals: %1"
+msgstr "Знаков после запятой: %1"
+
+msgid "Header Font"
+msgstr "Шрифт верхнего колонтитула"
+
+msgid "Footer Font"
+msgstr "Шрифт нижнего колонтитула"
+
+# ============================================================
+# Updates Module
+# ============================================================
+
+msgid "No network connection, cannot check for updates"
+msgstr "Нет подключения к сети, невозможно проверить обновления"
+
+msgid "Checking for updates..."
+msgstr "Проверка обновлений..."
+
+msgid "Check for updates failed"
+msgstr "Не удалось проверить об
