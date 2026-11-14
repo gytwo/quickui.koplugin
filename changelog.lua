@@ -148,6 +148,11 @@ return {
     "Panel: add Book Switcher to quickly switch to other books",
 },
 ["1.2.6"] = {
-    "Quick Actions: add two built-in actions for ink-away koplugin (find them in action pools)",
+    "Quick Actions: update built-in action pool (ink-away, Page Scrubber, Book plugin)",
+    "Dispatcher: trim QuickUI's registered system actions",
+    "Defaults: adjust some default settings",
+    "Icon Picker: fix Nerd Font glyph overflow on Kindle Scribe",
+    "Book Switcher: change max history books to 10",
+    "i18n: deduplicate zh_CN.po entries, add Russian translation",
 },
 }
