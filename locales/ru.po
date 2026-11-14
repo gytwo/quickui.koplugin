@@ -914,4 +914,1076 @@ msgid "Checking for updates..."
 msgstr "Проверка обновлений..."
 
 msgid "Check for updates failed"
-msgstr "Не удалось проверить об
+msgstr "Не удалось проверить обновления"
+
+msgid "New version found"
+msgstr "Найдена новая версия"
+
+msgid "Update"
+msgstr "Обновить"
+
+msgid "Current version is up to date"
+msgstr "Установлена последняя версия"
+
+msgid "Downgrade"
+msgstr "Откатить"
+
+msgid "Getting version list..."
+msgstr "Получение списка версий..."
+
+msgid "Failed to get version list"
+msgstr "Не удалось получить список версий"
+
+msgid "Failed to get version information"
+msgstr "Не удалось получить информацию о версии"
+
+msgid "No pre-release found"
+msgstr "Предварительные версии не найдены"
+
+msgid "Download failed"
+msgstr "Загрузка не удалась"
+
+msgid "Downloaded file is invalid"
+msgstr "Загруженный файл повреждён"
+
+msgid "Downloading update"
+msgstr "Загрузка обновления"
+
+msgid "Installing update"
+msgstr "Установка обновления"
+
+msgid "Update installed successfully"
+msgstr "Обновление успешно установлено"
+
+msgid "Update package download URL not found"
+msgstr "Не найден URL для загрузки пакета обновления"
+
+msgid "Download failed, please check network connection and try again"
+msgstr "Загрузка не удалась. Проверьте подключение к сети и повторите попытку"
+
+msgid "Automatic installation failed. Please manually extract %splugins/quickui.koplugin.zip to the plugins directory and restart"
+msgstr "Автоматическая установка не удалась. Распакуйте %splugins/quickui.koplugin.zip вручную в каталог плагинов и перезапустите"
+
+msgid "Installation failed, please update manually"
+msgstr "Установка не удалась, обновите вручную"
+
+msgid "Select version to download"
+msgstr "Выберите версию для загрузки"
+
+msgid "Current version: %s (re-download)"
+msgstr "Текущая версия: %s (загрузить заново)"
+
+msgid "Downgrade to %s"
+msgstr "Откатить до %s"
+
+msgid "Select update source"
+msgstr "Выберите источник обновлений"
+
+msgid "GitHub (Latest)"
+msgstr "GitHub (последняя версия)"
+
+msgid "GitHub (Pre-release)"
+msgstr "GitHub (предварительная версия)"
+
+msgid "Gitee (Latest)"
+msgstr "Gitee (последняя версия)"
+
+msgid "New version found: %s%s\nCurrent version: %s"
+msgstr "Найдена новая версия: %s%s\nТекущая версия: %s"
+
+msgid "New version found: %s%s\nCurrent version: %s\n\nDownload and install update?"
+msgstr "Найдена новая версия: %s%s\nТекущая версия: %s\n\nЗагрузить и установить обновление?"
+
+msgid "Current version is up to date (%s)\n\nDowngrade to a previous version?"
+msgstr "Установлена последняя версия (%s)\n\nОткатить к предыдущей версии?"
+
+msgid "Download and install update?"
+msgstr "Загрузить и установить обновление?"
+
+msgid "Update installed successfully. KOReader needs to restart to apply changes. Restart now?"
+msgstr "Обновление успешно установлено. Для применения изменений требуется перезапуск KOReader. Перезапустить сейчас?"
+
+# ============================================================
+# UI Font Switcher
+# ============================================================
+
+msgid "Regular Font"
+msgstr "Обычный шрифт"
+
+msgid "Bold Font"
+msgstr "Жирный шрифт"
+
+msgid "Monospace Font"
+msgstr "Моноширинный шрифт"
+
+msgid "All UI fonts reset, restart required"
+msgstr "Все шрифты интерфейса сброшены, требуется перезапуск"
+
+msgid "Select %s Font"
+msgstr "Выберите шрифт %s"
+
+msgid "Use Default"
+msgstr "Использовать по умолчанию"
+
+msgid "Reset All (%d/%d)"
+msgstr "Сбросить всё (%d/%d)"
+
+msgid "%s set to: %s"
+msgstr "%s установлен: %s"
+
+msgid "%s reset to default"
+msgstr "%s сброшен к значению по умолчанию"
+
+msgid "No fonts available"
+msgstr "Нет доступных шрифтов"
+
+# ============================================================
+# Icon Picker
+# ============================================================
+
+msgid "Cannot find icons directory"
+msgstr "Не удалось найти каталог значков"
+
+msgid "Filter by name..."
+msgstr "Фильтр по имени..."
+
+msgid "Nerd Font Icon"
+msgstr "Значок Nerd Font"
+
+msgid "Hex codepoint, e.g. E001"
+msgstr "Шестнадцатеричный код, например E001"
+
+msgid "Enter the Unicode codepoint (hex) of a Nerd Font symbol."
+msgstr "Введите код Unicode (hex) символа Nerd Font."
+
+msgid "Invalid Unicode codepoint"
+msgstr "Недопустимый код Unicode"
+
+msgid "Please enter 1-6 hex digits (0-9, A-F)"
+msgstr "Введите 1–6 шестнадцатеричных цифр (0-9, A-F)"
+
+msgid "Use this Nerd Font icon?"
+msgstr "Использовать этот значок Nerd Font?"
+
+msgid "Filter Icons"
+msgstr "Фильтр значков"
+
+msgid "Clear"
+msgstr "Очистить"
+
+msgid "No matching icons"
+msgstr "Нет подходящих значков"
+
+msgid "Enter name or codepoint..."
+msgstr "Введите имя или код..."
+
+msgid "Jump to page"
+msgstr "Перейти к странице"
+
+msgid "Go"
+msgstr "Перейти"
+
+msgid "System Icon Preview"
+msgstr "Предпросмотр системных значков"
+
+msgid "All Icons"
+msgstr "Все значки"
+
+msgid "File Icons"
+msgstr "Файловые значки"
+
+msgid "Browse"
+msgstr "Обзор"
+
+msgid "Apply Replacements (%d)"
+msgstr "Применить замены (%d)"
+
+msgid "Reset All (%d)"
+msgstr "Сбросить всё (%d)"
+
+msgid "No icons to reset"
+msgstr "Нет значков для сброса"
+
+msgid "No icons to apply"
+msgstr "Нет значков для применения"
+
+msgid "Applied %d icon replacements"
+msgstr "Применено %d замен значков"
+
+msgid "All icons reset, restart required"
+msgstr "Все значки сброшены, требуется перезапуск"
+
+msgid "Icon: Default (tap to change)"
+msgstr "Значок: по умолчанию (нажмите, чтобы изменить)"
+
+# ============================================================
+# Preset / Default Management
+# ============================================================
+
+msgid "%s preset saved"
+msgstr "Профиль %s сохранён"
+
+msgid "%s preset applied"
+msgstr "Профиль %s применён"
+
+msgid "No saved preset"
+msgstr "Нет сохранённого профиля"
+
+msgid "No saved %s preset"
+msgstr "Нет сохранённого профиля %s"
+
+msgid "All settings reset to defaults"
+msgstr "Все настройки сброшены к значениям по умолчанию"
+
+msgid "Configuration not loaded"
+msgstr "Конфигурация не загружена"
+
+msgid "No saved preset for: %s.\n\nApply default settings instead?"
+msgstr "Нет сохранённого профиля для: %s.\n\nПрименить настройки по умолчанию?"
+
+msgid "Apply Default"
+msgstr "Применить по умолчанию"
+
+msgid "Apply preset (QA panel)"
+msgstr "Применить профиль (панель)"
+
+msgid "Apply preset (QA bb)"
+msgstr "Применить профиль (нижняя панель)"
+
+# ============================================================
+# Miscellaneous
+# ============================================================
+
+msgid "book"
+msgid_plural "books"
+msgstr[0] "книга"
+msgstr[1] "книги"
+msgstr[2] "книг"
+
+msgid "Unable to get UI instance"
+msgstr "Не удалось получить экземпляр UI"
+
+msgid "httpinspector plugin not found"
+msgstr "Плагин httpinspector не найден"
+
+msgid "filebrowserplus plugin not found"
+msgstr "Плагин filebrowserplus не найден"
+
+msgid "zlibrary plugin not found"
+msgstr "Плагин zlibrary не найден"
+
+msgid "CloudLibrary plugin not found"
+msgstr "Плагин CloudLibrary не найден"
+
+msgid "annotationsviewer plugin not found"
+msgstr "Плагин annotationsviewer не найден"
+
+msgid "Font set to: %s"
+msgstr "Шрифт установлен: %s"
+
+msgid "Cannot get MosaicMenuItem"
+msgstr "Не удалось получить MosaicMenuItem"
+
+msgid "Cannot get ListMenuItem"
+msgstr "Не удалось получить ListMenuItem"
+
+msgid "QuickUI: Cover enabled"
+msgstr "QuickUI: оформление обложек включено"
+
+msgid "QuickUI: Quick Actions enabled"
+msgstr "QuickUI: быстрые действия включены"
+
+msgid "QuickUI: Cloze enabled"
+msgstr "QuickUI: режим Cloze включён"
+
+msgid "QuickUI: Header/Footer enabled"
+msgstr "QuickUI: колонтитулы включены"
+
+msgid "QuickUI: Updates module loaded"
+msgstr "QuickUI: модуль обновлений загружен"
+
+msgid "QuickUI: init completed"
+msgstr "QuickUI: инициализация завершена"
+
+msgid "QuickUI Utils: Config saved"
+msgstr "QuickUI Utils: конфигурация сохранена"
+
+msgid "QuickUI QA: initialized"
+msgstr "QuickUI QA: инициализировано"
+
+msgid "QuickUI QA BottomBar: initialized"
+msgstr "QuickUI QA BottomBar: инициализировано"
+
+msgid "QuickUI Cover: Mosaic patch applied"
+msgstr "QuickUI Cover: патч Mosaic применён"
+
+msgid "QuickUI Cover: List patch applied"
+msgstr "QuickUI Cover: патч List применён"
+
+msgid "QuickUI Cover: Hide up folder patch applied"
+msgstr "QuickUI Cover: патч скрытия перехода вверх применён"
+
+msgid "QuickUI QA: TouchMenu patch applied"
+msgstr "QuickUI QA: патч TouchMenu применён"
+
+msgid "QuickUI QA: Icon picker module loaded"
+msgstr "QuickUI QA: модуль выбора значков загружен"
+
+msgid "QuickUI QA: Menu recorder module loaded"
+msgstr "QuickUI QA: модуль записи меню загружен"
+
+msgid "QuickUI QA: UI Font module loaded"
+msgstr "QuickUI QA: модуль шрифтов интерфейса загружен"
+
+msgid "QuickUI QA: Bottom Bar module loaded"
+msgstr "QuickUI QA: модуль нижней панели загружен"
+
+msgid "QuickUI QA Panel: initialized"
+msgstr "QuickUI QA Panel: инициализировано"
+
+msgid "QuickUI Utils: FileChooser patched for bottombar"
+msgstr "QuickUI Utils: FileChooser пропатчен для нижней панели"
+
+msgid "QuickUI i18n: loaded"
+msgstr "QuickUI i18n: загружено"
+
+msgid "QuickUI i18n: installed for lang="
+msgstr "QuickUI i18n: установлено для языка="
+
+msgid "QuickUI Updates: initialized"
+msgstr "QuickUI Updates: инициализировано"
+
+msgid "QuickUI Updates: Latest version"
+msgstr "QuickUI Updates: последняя версия"
+
+msgid "QuickUI Updates: Using manually uploaded ZIP"
+msgstr "QuickUI Updates: используется вручную загруженный ZIP"
+
+msgid "QuickUI Updates: Using auto-generated source ZIP"
+msgstr "QuickUI Updates: используется автоматически сформированный ZIP исходников"
+
+msgid "QuickUI Updates: Auto-install successful"
+msgstr "QuickUI Updates: автоматическая установка успешна"
+
+msgid "QuickUI Updates: Auto-install failed"
+msgstr "QuickUI Updates: автоматическая установка не удалась"
+
+msgid "QuickUI Updates: Update installed successfully"
+msgstr "QuickUI Updates: обновление успешно установлено"
+
+msgid "QuickUI Updates: Update installation failed"
+msgstr "QuickUI Updates: установка обновления не удалась"
+
+msgid "QuickUI Updates: HTTP request failed"
+msgstr "QuickUI Updates: HTTP-запрос не удался"
+
+msgid "QuickUI Updates: Empty response"
+msgstr "QuickUI Updates: пустой ответ"
+
+msgid "QuickUI Updates: JSON parse failed"
+msgstr "QuickUI Updates: не удалось разобрать JSON"
+
+# ============================================================
+# Dispatcher Actions
+# ============================================================
+
+msgid "QuickUI_Settings"
+msgstr "QuickUI - настройки"
+
+msgid "QuickUI_ClozeToggleAll"
+msgstr "QuickUI - переключить всё"
+
+msgid "QuickUI_ReaderSliders"
+msgstr "QuickUI - открыть ползунки читалки"
+
+msgid "QuickUI_ReaderBottombarToggle"
+msgstr "QuickUI - переключить нижнюю панель в читалке"
+
+msgid "QuickUI_VerticalBarToggle"
+msgstr "QuickUI - переключить боковую панель"
+
+msgid "Search..."
+msgstr "Поиск..."
+
+msgid "Search label, id (e.g. custom), or view"
+msgstr "Поиск по названию, id (например custom) или виду"
+
+msgid "Search Actions"
+msgstr "Поиск действий"
+
+msgid "Search Tabs"
+msgstr "Поиск вкладок"
+
+msgid "Enter name or codepoint to filter icons"
+msgstr "Введите имя или код для фильтрации значков"
+
+msgid "Page %d of %d"
+msgstr "Страница %d из %d"
+
+msgid "Results for: \"%s\""
+msgstr "Результаты для \"%s\""
+
+msgid "No matching actions"
+msgstr "Нет подходящих действий"
+
+msgid "Frontlight Slider"
+msgstr "Ползунок подсветки"
+
+msgid "Show Slider Value"
+msgstr "Показывать значение ползунка"
+
+msgid "Warmth Slider"
+msgstr "Ползунок тёплого света"
+
+msgid "Allow overlap with content (Reader only)"
+msgstr "Разрешить перекрытие с содержимым (только в читалке)"
+
+msgid "Overlap mode changed"
+msgstr "Режим перекрытия изменён"
+
+msgid "Delete quick action \"%s\"?"
+msgstr "Удалить быстрое действие \"%s\"?"
+
+msgid "Max %d tabs, only first %d added"
+msgstr "Максимум %d вкладок, добавлены только первые %d"
+
+msgid "Filter"
+msgstr "Фильтр"
+
+msgid "Select Filter"
+msgstr "Выберите фильтр"
+
+msgid "Filemanager Dedicated"
+msgstr "Только для файлового менеджера"
+
+msgid "Reader Dedicated"
+msgstr "Только для читалки"
+
+msgid "Edit Quick Action - Built-in Action"
+msgstr "Изменить быстрое действие - встроенное"
+
+msgid "Edit Quick Action - Custom Action"
+msgstr "Изменить быстрое действие - пользовательское"
+
+msgid "Action Pool"
+msgstr "Пул действий"
+
+msgid "Remove from Panel"
+msgstr "Убрать с панели"
+
+msgid "Remove from Both"
+msgstr "Убрать отовсюду"
+
+msgid "Remove from Bottom Bar"
+msgstr "Убрать с нижней панели"
+
+msgid "Add to Panel"
+msgstr "Добавить на панель"
+
+msgid "Add to Both"
+msgstr "Добавить везде"
+
+msgid "Add to Bottom Bar"
+msgstr "Добавить на нижнюю панель"
+
+msgid "Action name..."
+msgstr "Название действия..."
+
+msgid "Sui-author"
+msgstr "Sui - автор"
+
+msgid "Sui-series"
+msgstr "Sui - серия"
+
+msgid "Sui-tags"
+msgstr "Sui - теги"
+
+msgid "Please check that SimpleUI is installed and 'Browse by Author / Series / Tags' is enabled."
+msgstr "Убедитесь, что SimpleUI установлен и включён параметр «Просмотр по автору / серии / тегам»."
+
+# ============================================================
+# Module-not-available messages
+# ============================================================
+
+msgid "Bottom Bar module not available"
+msgstr "Модуль нижней панели недоступен"
+
+msgid "Bottom Bar module not available (enable it first)"
+msgstr "Модуль нижней панели недоступен (сначала включите его)"
+
+msgid "Vertical Bar module not available"
+msgstr "Модуль боковой панели недоступен"
+
+msgid "Vertical Bar module not available (enable it first)"
+msgstr "Модуль боковой панели недоступен (сначала включите его)"
+
+msgid "Bottom Bar module is disabled"
+msgstr "Модуль нижней панели отключён"
+
+msgid "Vertical Bar module is disabled"
+msgstr "Модуль боковой панели отключён"
+
+msgid "Quick Actions module is disabled"
+msgstr "Модуль быстрых действий отключён"
+
+msgid "Cover module is disabled"
+msgstr "Модуль оформления обложек отключён"
+
+msgid "Cloze module is disabled"
+msgstr "Модуль Cloze отключён"
+
+msgid "Header/Footer module is disabled"
+msgstr "Модуль колонтитулов отключён"
+
+msgid "Panel module not available"
+msgstr "Модуль верхней панели недоступен"
+
+msgid "Bottom Bar module not fully loaded"
+msgstr "Модуль нижней панели загружен не полностью"
+
+# ============================================================
+# Vertical Bar
+# ============================================================
+
+msgid "Add"
+msgstr "Добавить"
+
+msgid "Vertical Bar"
+msgstr "Боковая панель"
+
+msgid "Vertical Bar Settings"
+msgstr "Настройки боковой панели"
+
+msgid "Toggle Vertical Bar"
+msgstr "Переключить боковую панель"
+
+msgid "Add Vertical Bar Button"
+msgstr "Добавить кнопку на боковую панель"
+
+msgid "Enable Vertical Bar"
+msgstr "Включить боковую панель"
+
+msgid "Side"
+msgstr "Сторона"
+
+msgid "Background"
+msgstr "Фон"
+
+msgid "Animation"
+msgstr "Анимация"
+
+msgid "Fast"
+msgstr "Быстро"
+
+msgid "Medium"
+msgstr "Средне"
+
+msgid "Slow"
+msgstr "Медленно"
+
+msgid "No buttons configured"
+msgstr "Кнопки не настроены"
+
+msgid "Apply preset (QA vb)"
+msgstr "Применить профиль (боковая панель)"
+
+msgid "QuickUI_VerticalBarSettings"
+msgstr "QuickUI - настройки боковой панели"
+
+msgid "QuickUI_AddVerticalBarButton"
+msgstr "QuickUI - добавить кнопку на боковую панель"
+
+msgid "Add to Vertical Bar"
+msgstr "Добавить на боковую панель"
+
+msgid "Remove from Vertical Bar"
+msgstr "Убрать с боковой панели"
+
+msgid "Sliders"
+msgstr "Ползунки (панель)"
+
+msgid "Reset to %s"
+msgstr "Сбросить к %s"
+
+msgid "Swipe to page"
+msgstr "Смахивание для перелистывания"
+
+msgid "Reader Sliders"
+msgstr "Ползунки читалки"
+
+msgid "No reader sliders available for this document"
+msgstr "Для этого документа нет доступных ползунков читалки"
+
+msgid "Sui-Homescreen"
+msgstr "Sui - главный экран"
+
+msgid "Sui-Settings"
+msgstr "Sui - настройки"
+
+msgid "Bookshelf"
+msgstr "Книжная полка"
+
+msgid "Storefront"
+msgstr "Магазин"
+
+msgid "WeRead-Bookshelf"
+msgstr "WeRead - книжная полка"
+
+msgid "WeRead-Search"
+msgstr "WeRead - поиск"
+
+msgid "WeRead-QuickMenu"
+msgstr "WeRead - быстрое меню"
+
+msgid "Weread AL-Fetch Underlines"
+msgstr "WeRead - загрузить подчёркивания"
+
+msgid "Rssreader"
+msgstr "RSS-ридер"
+
+msgid "ArtGallery"
+msgstr "Галерея изображений"
+
+msgid "FanQie-Bookshelf"
+msgstr "FanQie - книжная полка"
+
+msgid "FanQie-SearchBooks"
+msgstr "FanQie - поиск книг"
+
+msgid "FanQie-Toc"
+msgstr "FanQie - оглавление"
+
+msgid "FanQie-Shelf/Toc"
+msgstr "FanQie - полка/оглавление"
+
+msgid "FanQie-FetchLocalReview"
+msgstr "FanQie - загрузить локальные отзывы"
+
+msgid "FingerInk-toolbar"
+msgstr "FingerInk - панель"
+
+msgid "InkAway-Library"
+msgstr "InkAway - библиотека"
+
+msgid "InkAway-Annotate"
+msgstr "InkAway - аннотировать"
+
+msgid "InkAway-BookNotes"
+msgstr "InkAway - заметки к книге"
+
+msgid "SideToc"
+msgstr "Боковое оглавление"
+
+msgid "KOA-quickactions"
+msgstr "KOA - быстрые действия"
+
+msgid "KOA-quicksettings"
+msgstr "KOA - быстрые настройки"
+
+msgid "Style Tweaks"
+msgstr "Настройки стиля"
+
+msgid "Enable style tweaks"
+msgstr "Включить настройки стиля"
+
+msgid "(hold: settings)"
+msgstr "(долгое нажатие: настройки)"
+
+msgid "(hold: add)"
+msgstr "(долгое нажатие: добавить)"
+
+msgid "Show Pager Row"
+msgstr "Показывать строку перелистывания"
+
+msgid "Rows per Page"
+msgstr "Строк на странице"
+
+# ============================================================
+# Metadata module
+# ============================================================
+
+msgid "Not set"
+msgstr "Не задано"
+
+msgid "Title"
+msgstr "Название"
+
+msgid "Authors"
+msgstr "Авторы"
+
+msgid "Series"
+msgstr "Серия"
+
+msgid "Language"
+msgstr "Язык"
+
+msgid "Publisher"
+msgstr "Издатель"
+
+msgid "Description"
+msgstr "Описание"
+
+msgid "Position"
+msgstr "Позиция"
+
+msgid "Genres"
+msgstr "Жанры"
+
+msgid "Edit Metadata"
+msgstr "Изменить метаданные"
+
+msgid "Edit metadata"
+msgstr "Изменить метаданные"
+
+msgid "Restore original metadata"
+msgstr "Восстановить исходные метаданные"
+
+msgid "Restore the previous metadata and discard your unsaved changes?"
+msgstr "Восстановить предыдущие метаданные и отменить несохранённые изменения?"
+
+msgid "Restore the previous metadata for this book?"
+msgstr "Восстановить предыдущие метаданные этой книги?"
+
+msgid "Restore"
+msgstr "Восстановить"
+
+msgid "Saving metadata..."
+msgstr "Сохранение метаданных..."
+
+msgid "Metadata saved"
+msgstr "Метаданные сохранены"
+
+msgid "Failed to read metadata"
+msgstr "Не удалось прочитать метаданные"
+
+msgid "Failed to open editor: "
+msgstr "Не удалось открыть редактор: "
+
+msgid "This book is currently open in the reader.\n\nClose it first, then edit its metadata."
+msgstr "Эта книга сейчас открыта в читалке.\n\nСначала закройте её, затем редактируйте метаданные."
+
+msgid "An EPUB title is required."
+msgstr "Для EPUB требуется название."
+
+msgid "An EPUB language is required."
+msgstr "Для EPUB требуется язык."
+
+msgid "Series position must be a number."
+msgstr "Позиция в серии должна быть числом."
+
+msgid "Saving metadata failed."
+msgstr "Не удалось сохранить метаданные."
+
+msgid "Metadata restored"
+msgstr "Метаданные восстановлены"
+
+msgid "Restoring metadata failed."
+msgstr "Не удалось восстановить метаданные."
+
+msgid "You have unsaved changes."
+msgstr "Есть несохранённые изменения."
+
+msgid "Keep editing"
+msgstr "Продолжить редактирование"
+
+msgid "Discard"
+msgstr "Отменить"
+
+msgid "Applied %d fields"
+msgstr "Применено %d полей"
+
+msgid "Applied %d fields, kept %d manual edits"
+msgstr "Применено %d полей, сохранено %d ручных правок"
+
+msgid "Search metadata"
+msgstr "Поиск метаданных"
+
+msgid "Title or ISBN"
+msgstr "Название или ISBN"
+
+msgid "No match found"
+msgstr "Совпадений не найдено"
+
+msgid "Search failed"
+msgstr "Поиск не удался"
+
+msgid "Searching %s..."
+msgstr "Поиск %s..."
+
+msgid "Enter a title or ISBN first."
+msgstr "Сначала введите название или ISBN."
+
+msgid "API key required"
+msgstr "Требуется API-ключ"
+
+msgid "API key"
+msgstr "API-ключ"
+
+msgid "Paste the key/token here"
+msgstr "Вставьте ключ/токен сюда"
+
+msgid "Save & Search"
+msgstr "Сохранить и искать"
+
+msgid "Please enter the API key first."
+msgstr "Сначала введите API-ключ."
+
+msgid "This provider requires an API key."
+msgstr "Этому источнику требуется API-ключ."
+
+msgid "Configure API keys"
+msgstr "Настроить API-ключи"
+
+msgid "Provider API Keys"
+msgstr "API-ключи источников"
+
+msgid "configured"
+msgstr "настроено"
+
+msgid "not set"
+msgstr "не задано"
+
+msgid "Select a match"
+msgstr "Выберите совпадение"
+
+msgid "Book Details"
+msgstr "Сведения о книге"
+
+msgid "Previous"
+msgstr "Назад"
+
+msgid "Next"
+msgstr "Вперёд"
+
+msgid "Apply"
+msgstr "Применить"
+
+msgid "This result has no usable metadata."
+msgstr "В этом результате нет пригодных метаданных."
+
+msgid "Metadata Settings"
+msgstr "Настройки метаданных"
+
+msgid "Enable Metadata Editor"
+msgstr "Включить редактор метаданных"
+
+msgid "Edit current book's metadata"
+msgstr "Изменить метаданные текущей книги"
+
+msgid "Google Books API key"
+msgstr "API-ключ Google Books"
+
+msgid "Hardcover API token"
+msgstr "API-токен Hardcover"
+
+msgid "Open Library: no key required"
+msgstr "Open Library: ключ не требуется"
+
+msgid "Metadata module is disabled"
+msgstr "Модуль метаданных отключён"
+
+msgid "Douban"
+msgstr "Douban"
+
+msgid "Google Books"
+msgstr "Google Books"
+
+msgid "Hardcover"
+msgstr "Hardcover"
+
+msgid "Open Library"
+msgstr "Open Library"
+
+msgid "Find metadata online"
+msgstr "Найти метаданные в сети"
+
+msgid "QuickUI_EditMetadata"
+msgstr "QuickUI - изменить метаданные"
+
+msgid "Searching "
+msgstr "Поиск "
+
+msgid "Edit which book? (%d selected)"
+msgstr "Какую книгу редактировать? (выбрано %d)"
+
+msgid "No book selected.\n\nLong-press a book and choose \"Edit metadata\", or enable selection mode and check exactly one book first."
+msgstr "Книга не выбрана.\n\nНажмите и удерживайте книгу и выберите «Изменить метаданные», либо включите режим выбора и отметьте ровно одну книгу."
+
+msgid "Published"
+msgstr "Дата публикации"
+
+msgid "Tags"
+msgstr "Теги"
+
+msgid "Rating"
+msgstr "Рейтинг"
+
+msgid "WeRead"
+msgstr "WeRead"
+
+msgid "Enter one value per line."
+msgstr "Вводите по одному значению в строке."
+
+msgid "Edit custom cover"
+msgstr "Изменить пользовательскую обложку"
+
+msgid "Select from device"
+msgstr "Выбрать с устройства"
+
+msgid "Search online"
+msgstr "Искать в сети"
+
+msgid "Remove custom cover"
+msgstr "Удалить пользовательскую обложку"
+
+msgid "No custom cover to remove."
+msgstr "Нет пользовательской обложки для удаления."
+
+msgid "Failed to remove cover."
+msgstr "Не удалось удалить обложку."
+
+msgid "Custom cover removed"
+msgstr "Пользовательская обложка удалена"
+
+msgid "Select a source"
+msgstr "Выберите источник"
+
+msgid "Select a cover"
+msgstr "Выберите обложку"
+
+msgid "Downloading covers..."
+msgstr "Загрузка обложек..."
+
+msgid "This result has no cover."
+msgstr "В этом результате нет обложки."
+
+msgid "Invalid cover URL"
+msgstr "Недопустимый URL обложки"
+
+msgid "Failed to set cover."
+msgstr "Не удалось установить обложку."
+
+msgid "Cover updated"
+msgstr "Обложка обновлена"
+
+msgid "Cover"
+msgstr "Обложка"
+
+msgid "Set"
+msgstr "Задано"
+
+msgid "ToggleReadingOrder"
+msgstr "Переключить порядок чтения"
+
+msgid "Page Scrubber"
+msgstr "Просмотр страниц"
+
+msgid "Profile"
+msgstr "Профиль"
+
+msgid "Delete profile \"%s\"?"
+msgstr "Удалить профиль \"%s\"?"
+
+msgid "Reading Background"
+msgstr "Фон для чтения"
+
+msgid "Enable reading background"
+msgstr "Включить фон для чтения"
+
+msgid "Background image"
+msgstr "Фоновое изображение"
+
+msgid "Background transparency"
+msgstr "Прозрачность фона"
+
+msgid "Global transparency"
+msgstr "Глобальная прозрачность"
+
+msgid "This book transparency"
+msgstr "Прозрачность для этой книги"
+
+msgid "Follow global"
+msgstr "Как глобально"
+
+msgid "Choose image…"
+msgstr "Выбрать изображение…"
+
+msgid "No background"
+msgstr "Без фона"
+
+msgid "Choose background image"
+msgstr "Выбрать фоновое изображение"
+
+msgid "Apply this background image to"
+msgstr "Применить это фоновое изображение к"
+
+msgid "All books"
+msgstr "Все книги"
+
+msgid "This book only"
+msgstr "Только эта книга"
+
+msgid "Please choose an image file."
+msgstr "Выберите файл изображения."
+
+# ============================================================
+# Book Switcher
+# ============================================================
+
+msgid "Book Switcher"
+msgstr "Переключатель книг"
+
+msgid "Show in Panel"
+msgstr "Показывать на панели"
+
+msgid "Count per Page"
+msgstr "Количество на странице"
+
+msgid "Hide Finished Books"
+msgstr "Скрывать прочитанные книги"
+
+msgid "Show Only in Reader"
+msgstr "Показывать только в читалке"
+
+msgid "Clear Hidden Books"
+msgstr "Очистить скрытые книги"
+
+msgid "Book Switcher: Count per Page"
+msgstr "Переключатель книг: количество на странице"
+
+msgid "Book Switcher: Hidden books cleared"
+msgstr "Переключатель книг: скрытые книги очищены"
+
+msgid "Book Switcher: No books to switch to"
+msgstr "Переключатель книг: нет книг для переключения"
+
+msgid "Book Switcher: Remove"
+msgstr "Переключатель книг: убрать"
+
+# ============================================================
+# Page Scrubber / YueDu
+# ============================================================
+
+msgid "Page Scrubber: Grid"
+msgstr "Просмотр страниц - сетка"
+
+msgid "Page Scrubber: Study"
+msgstr "Просмотр страниц - обучение"
+
+msgid "Book - Open Shelf"
+msgstr "Book - открыть полку"
+
+msgid "Book - Close Desktop"
+msgstr "Book - закрыть рабочий стол"
+
+msgid "Book - Remote Management"
+msgstr "Book - удалённое управление"
+
+msgid "Book - Bind Book Source"
+msgstr "Book - привязать источник книги"
+
+msgid "Book - Fetch WeChat Reviews"
+msgstr "Book - загрузить отзывы WeChat"
+
+msgid "Book - Fetch FanQie Reviews"
+msgstr "Book - загрузить отзывы FanQie"
