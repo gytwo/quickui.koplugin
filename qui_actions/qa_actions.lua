@@ -1449,7 +1449,15 @@ function QA.registerAllActions()
     -- Reading Insights
     QA.registerAction("reading_insights", _("Reading Insights"), "nerd:F073", false, "common", function(ctx)
         closeTouchMenu(ctx)
-        UIManager:broadcastEvent(Event:new("ShowReadingInsightsPopup"))
+
+        -- 优先第三方插件
+        if isPluginLoaded("readingstats") or isPluginLoaded("readinginsights") then
+            UIManager:broadcastEvent(Event:new("ShowReadingInsightsPopup"))
+            return
+        end
+
+        -- 回退到 KOReader 内置统计日历视图
+        UIManager:broadcastEvent(Event:new("ShowCalendarView"))
     end)
 
     -- FileBrowserPlus
@@ -1691,6 +1699,16 @@ function QA.registerAllActions()
         pluginAvailable("book")
     )
 
+    QA.registerAction(
+        "book_close_to_desktop", _("Book - Close to Desktop"),
+        "nerd:E855", false, "reader",
+        function(ctx)
+            closeTouchMenu(ctx)
+            UIManager:broadcastEvent(Event:new("BookCloseToDesktop"))
+        end,
+        pluginAvailable("book")
+    )
+
     -- ============================================================
     -- SimpleUI library browse actions (Authors / Series / Tags)
     -- ============================================================
@@ -1925,7 +1943,15 @@ function QA.registerAllActions()
         end,
         pluginAvailable("fanqie")
     )
-
+    QA.registerAction(
+        "fanqie_review_cache_manager", _("FanQie-ReviewCacheManager"),
+        "nerd:F49E", false, "reader",
+        function(ctx)
+            closeTouchMenu(ctx)
+            UIManager:broadcastEvent(Event:new("FanQieReviewCacheManager"))
+        end,
+        pluginAvailable("fanqie")
+    )
     -- ============================================================
     -- FingerInk
     -- ============================================================
