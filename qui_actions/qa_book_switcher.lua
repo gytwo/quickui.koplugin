@@ -25,7 +25,7 @@ local Utils = require("qui_utils")
 
 local M = {}
 
-M.MAX_BOOKS = 20
+M.MAX_BOOKS = 10
 
 local function cfg(key, default) return Utils.get(key, default) end
 local function setCfg(key, value) Utils.set(key, value) end
