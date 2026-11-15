@@ -151,9 +151,14 @@ return {
     "Quick Actions: update built-in action pool (ink-away, Page Scrubber, Book, FanQie)",
     "Dispatcher: trim QuickUI's registered system actions",
     "Defaults: adjust default buttons and their order for the top panel, bottom bar and vertical bar",
-    "Reader menu: stop moving the \"File manager\" tab to the end, keep KOReader's native order",
+    "Reader menu: stop moving the "File manager" tab to the end, keep KOReader's native order",
     "Icon Picker: fix Nerd Font glyph overflow on Kindle Scribe",
     "Book Switcher: change max history books to 10",
     "i18n: deduplicate zh_CN.po entries, add Russian translation",
+},
+["1.2.7"] = {
+    "Reading Background: fix flicker when opening a book",
+    "Reading Background: night mode now blends at least 60% black",
+    "Reading Background: setting per-book transparency to 0 now resets to the global transparency",
 },
 }
