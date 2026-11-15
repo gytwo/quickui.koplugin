@@ -158,8 +158,10 @@ local function rbg_reader()
     return RUI and RUI.instance
 end
 
-local function rbg_doc_settings()
-    local reader = rbg_reader()
+local function rbg_doc_settings(ui)
+    -- 优先用调用方传入的 ui（patch 里的 self.ui），它一定指向当前 reader；
+    -- 兜底用 ReaderUI.instance
+    local reader = ui or rbg_reader()
     return reader and reader.doc_settings, reader
 end
 
@@ -202,12 +204,12 @@ local function rbg_current_label()
     return _("Follow global")
 end
 
-local function rbg_resolve_image()
+local function rbg_resolve_image(ui)
     if rbg_cget(RBG_KEYS.enabled, false) ~= true then
         return nil
     end
 
-    local doc_settings = rbg_doc_settings()
+    local doc_settings = rbg_doc_settings(ui)
     if doc_settings then
         if doc_settings:readSetting(RBG_KEYS.doc_none) == true then
             return nil
@@ -221,8 +223,8 @@ local function rbg_resolve_image()
     return nil
 end
 
-local function rbg_resolve_transparency()
-    local doc_settings = rbg_doc_settings()
+local function rbg_resolve_transparency(ui)
+    local doc_settings = rbg_doc_settings(ui)
     if doc_settings then
         local v = doc_settings:readSetting(RBG_KEYS.doc_transparency)
         if v ~= nil then return tonumber(v) end
@@ -295,6 +297,12 @@ local function rbg_scaled_path(source, transparency)
     local night = (Screen.night_mode == true)
         or G_reader_settings:isTrue("night_mode")
 
+    -- 夜间混合比例下限 50%
+    local mix = transparency
+    if night and mix < 60 then
+        mix = 60
+    end
+
     local source_name = rbg_filename(source)
     source_name = source_name:gsub("%.[^.]+$", "")
     source_name = source_name:gsub("[^%w%-_]", "_")
@@ -303,7 +311,7 @@ local function rbg_scaled_path(source, transparency)
     local cache_name = string.format(
         "%s_%s_%dx%d_%s_t%d.png",
         source_name, rbg_hash(source), sw, sh,
-        night and "night" or "day", transparency
+        night and "night" or "day", mix
     )
     local cache_path = rbg_cache_dir() .. cache_name
     if lfs.attributes(cache_path, "mode") == "file" then
@@ -323,11 +331,11 @@ local function rbg_scaled_path(source, transparency)
         src_bb:free()
         if not final_bb then return nil end
 
-        if transparency > 0 then
+        if mix > 0 then
             if night then
-                rbg_apply_black_overlay(final_bb, sw, sh, transparency / 100)
+                rbg_apply_black_overlay(final_bb, sw, sh, mix / 100)
             else
-                rbg_apply_white_overlay(final_bb, sw, sh, transparency / 100)
+                rbg_apply_white_overlay(final_bb, sw, sh, mix / 100)
             end
         end
 
@@ -347,13 +355,16 @@ local function rbg_scaled_path(source, transparency)
     return source
 end
 
-local function rbg_apply_background(doc)
+local function rbg_apply_background(doc, ui)
     if not doc or type(doc.setBackgroundImage) ~= "function" then
         return
     end
-    local source = rbg_resolve_image()
+    if rbg_cget(RBG_KEYS.enabled, false) ~= true then
+        return
+    end
+    local source = rbg_resolve_image(ui)
     if source then
-        local transparency = rbg_resolve_transparency()
+        local transparency = rbg_resolve_transparency(ui)
         local scaled = rbg_scaled_path(source, transparency)
         if scaled then
             doc:setBackgroundImage(scaled)
@@ -364,7 +375,9 @@ local function rbg_apply_background(doc)
         doc:setBackgroundImage()
     end
     if doc.setBackgroundColor then
-        doc:setBackgroundColor(0xFFFFFF)
+        local night = (Screen.night_mode == true)
+            or G_reader_settings:isTrue("night_mode")
+        doc:setBackgroundColor(night and 0x000000 or 0xFFFFFF)
     end
 end
 
@@ -374,7 +387,7 @@ local function rbg_reapply()
     if type(reader.document.setBackgroundImage) ~= "function" then
         return
     end
-    rbg_apply_background(reader.document)
+    rbg_apply_background(reader.document, reader)
     UIManager:setDirty("all", "full")
 end
 
@@ -516,51 +529,28 @@ local function rbg_install_hook()
     if ReaderRolling._quickui_rbg_patched then return end
     ReaderRolling._quickui_rbg_patched = true
 
-    local orig_read = ReaderRolling.onReadSettings
-    ReaderRolling.onReadSettings = function(self, ...)
-        orig_read(self, ...)
-        pcall(function()
-            local ui = self.ui
-            if ui and ui.document then
-                rbg_apply_background(ui.document)
-                UIManager:scheduleIn(1.0, function()
-                    pcall(function()
-                        local doc = ui and ui.document
-                        if doc then
-                            rbg_apply_background(doc)
-                            UIManager:setDirty("all", "full")
-                        end
-                    end)
-                end)
-            end
-        end)
-    end
-
+    -- 每次渲染前应用背景（首帧、翻页、reflow 都走这里）
+    -- 不 setDirty：设置在渲染前生效，本次渲染自然带上
     local orig_pre = ReaderRolling.onPreRenderDocument
     ReaderRolling.onPreRenderDocument = function(self, ...)
         if orig_pre then orig_pre(self, ...) end
+        if rbg_cget(RBG_KEYS.enabled, false) ~= true then return end
         pcall(function()
             local doc = self.ui and self.ui.document
-            if not doc then return end
-            local night = (Screen.night_mode == true)
-                or G_reader_settings:isTrue("night_mode")
-            if doc._quickui_rbg_night ~= night then
-                doc._quickui_rbg_night = night
-                rbg_apply_background(doc)
-                UIManager:setDirty("all", "full")
-            else
-                rbg_apply_background(doc)
+            if doc then
+                rbg_apply_background(doc, self.ui)
             end
         end)
     end
 
+    -- 切夜间模式时重绘
     local orig_screen_toggle = Screen.toggleNightMode
     if type(orig_screen_toggle) == "function" then
         function Screen:toggleNightMode(...)
             local ret = orig_screen_toggle(self, ...)
-            UIManager:nextTick(function()
-                pcall(rbg_reapply)
-            end)
+            if rbg_cget(RBG_KEYS.enabled, false) == true then
+                UIManager:nextTick(function() pcall(rbg_reapply) end)
+            end
             return ret
         end
     end
@@ -569,7 +559,9 @@ local function rbg_install_hook()
     if orig_SetNightMode then
         function UIManager:SetNightMode(nightmode)
             orig_SetNightMode(self, nightmode)
-            rbg_reapply()
+            if rbg_cget(RBG_KEYS.enabled, false) == true then
+                rbg_reapply()
+            end
         end
     end
 end
@@ -582,7 +574,7 @@ local function rbg_install_footer_transparent()
     local orig = ReaderFooter.updateFooterContainer
     ReaderFooter.updateFooterContainer = function(self, ...)
         orig(self, ...)
-        if self.footer_content then
+        if rbg_cget(RBG_KEYS.enabled, false) == true and self.footer_content then
             self.footer_content.background = nil
         end
     end
@@ -1782,6 +1774,7 @@ function M.init()
     rbg_install_footer_transparent()
 end
 
+-- 兜底：模块加载时立即安装钩子
 pcall(rbg_install_hook)
 pcall(rbg_install_footer_transparent)
 
