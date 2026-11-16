@@ -297,10 +297,10 @@ local function rbg_scaled_path(source, transparency)
     local night = (Screen.night_mode == true)
         or G_reader_settings:isTrue("night_mode")
 
-    -- 夜间混合比例下限 50%
+    -- 夜间混合比例下限 75%
     local mix = transparency
-    if night and mix < 60 then
-        mix = 60
+    if night and mix < 75 then
+        mix = 75
     end
 
     local source_name = rbg_filename(source)
