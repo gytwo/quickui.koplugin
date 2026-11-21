@@ -333,6 +333,30 @@ local function getAllVersionsFromSource(source)
         end
     end
 
+    -- 内嵌语义版本倒序，高版本靠前
+    table.sort(all_versions, function(a, b)
+        local function parseVer(s)
+            local str = s:gsub("^v", "")
+            local parts = {}
+            for p in str:gmatch("[^.]+") do
+                table.insert(parts, tonumber(p) or 0)
+            end
+            return parts
+        end
+        local ap = parseVer(a.tag)
+        local bp = parseVer(b.tag)
+        for i = 1, math.max(#ap, #bp) do
+            local av = ap[i] or 0
+            local bv = bp[i] or 0
+            if av > bv then
+                return true
+            elseif av < bv then
+                return false
+            end
+        end
+        return false
+    end)
+
     return all_versions
 end
 
