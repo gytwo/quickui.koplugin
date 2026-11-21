@@ -161,4 +161,7 @@ return {
     "Reading Background: night mode now blends at least 60% black",
     "Reading Background: setting per-book transparency to 0 now resets to the global transparency",
 },
+["1.2.8"] = {
+    "Rollback list sorted from newest to oldest",
+},
 }
