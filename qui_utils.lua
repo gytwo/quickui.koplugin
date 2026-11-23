@@ -709,15 +709,34 @@
     -- Font Utilities
     -- ============================================================
     
+    -- Faces that are known to resolve on every build. Font:getFace() returns nil
+    -- when the requested font file cannot be found (e.g. the nerd font is missing
+    -- or was renamed), and TextWidget:getSize() then crashes on the nil face.
+    local SAFE_FONT_FALLBACKS = { "cfont", "ffont", "smallinfofont", "tfont" }
+
+    -- Return a guaranteed non-nil face. Tries `name`, then the fallback chain,
+    -- then NotoSans by file name. The last attempt is not pcall'd on purpose:
+    -- if even NotoSans is unavailable the font engine is broken and the error
+    -- should surface instead of being masked by another nil.
+    function Utils.getFontFaceSafe(name, size)
+        size = math.max(1, math.floor(size or 14))
+        local candidates = { name }
+        for _i, fallback in ipairs(SAFE_FONT_FALLBACKS) do
+            candidates[#candidates + 1] = fallback
+        end
+        for _i, candidate in ipairs(candidates) do
+            if type(candidate) == "string" and candidate ~= "" then
+                local ok, face = pcall(Font.getFace, Font, candidate, size)
+                if ok and face then
+                    return face
+                end
+            end
+        end
+        return Font:getFace("NotoSans-Regular.ttf", size)
+    end
+
     function Utils.getFontFace(name, size)
-        if not name or name == "" then
-            name = "cfont"
-        end
-        local ok, face = pcall(Font.getFace, Font, name, math.max(1, math.floor(size or 14)))
-        if ok and face then
-            return face
-        end
-        return Font:getFace("cfont", math.max(1, math.floor(size or 14)))
+        return Utils.getFontFaceSafe(name, size)
     end
     
     function Utils.scaleBySize(val)
