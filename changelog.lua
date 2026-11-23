@@ -162,6 +162,7 @@ return {
     "Reading Background: setting per-book transparency to 0 now resets to the global transparency",
 },
 ["1.2.8"] = {
-    "Rollback list sorted from newest to oldest",
+    "Update：rollback list sorted from newest to oldest",
+    "Icons：prevent crash on nil font face, add fallback chain for Nerd icons",
 },
 }
