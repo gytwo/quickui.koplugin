@@ -495,27 +495,36 @@ function QA.getIconWidget(icon_path, size)
 
             -- 先按目标尺寸估一个字号，测量 TextWidget 的真实行高（包含字形墨迹），
             -- 再按"目标尺寸 / 实测高度"反推字号，保证墨迹塞进容器。
+            -- 注意：字体文件缺失时 Font:getFace() 会返回 nil，必须走
+            -- Utils.getFontFace 兜底，否则 TextWidget:getSize() 会直接崩溃。
             local probe_size = math.max(1, math.floor(target))
-            local probe = TextWidget:new{
-                text = nerd_char,
-                face = Font:getFace("symbols", probe_size),
-                fgcolor = Blitbuffer.COLOR_BLACK,
-                padding = 0,
-            }
-            local h = probe:getSize().h
-            probe:free()
+            local ok, widget = pcall(function()
+                local probe = TextWidget:new{
+                    text = nerd_char,
+                    face = Utils.getFontFace("symbols", probe_size),
+                    fgcolor = Blitbuffer.COLOR_BLACK,
+                    padding = 0,
+                }
+                local h = probe:getSize().h
+                probe:free()
 
-            local final_size = probe_size
-            if h > 0 and h > target then
-                final_size = math.max(1, math.floor(probe_size * (target / h)))
+                local final_size = probe_size
+                if h > 0 and h > target then
+                    final_size = math.max(1, math.floor(probe_size * (target / h)))
+                end
+
+                return TextWidget:new{
+                    text = nerd_char,
+                    face = Utils.getFontFace("symbols", final_size),
+                    fgcolor = Blitbuffer.COLOR_BLACK,
+                    padding = 0,
+                }
+            end)
+            if ok and widget then
+                return widget
             end
-
-            return TextWidget:new{
-                text = nerd_char,
-                face = Font:getFace("symbols", final_size),
-                fgcolor = Blitbuffer.COLOR_BLACK,
-                padding = 0,
-            }
+            -- 字体不可用时继续往下走：有图片图标就用图片，否则返回 nil，
+            -- 由调用方用文字首字兜底。
         end
     end
 
@@ -908,24 +917,36 @@ function QA.showIconPicker(on_select, saved_icon, filter, mode, parent_mode)
                         local nerd_char = QA.nerdIconChar(icon.value) or "?"
                         local target = math.max(1, math.floor(glyph_max_h * 1.18))
                         local probe_size = math.max(1, math.floor(target))
-                        local probe = TextWidget:new{
-                            text = nerd_char,
-                            face = Font:getFace("symbols", probe_size),
-                            fgcolor = Blitbuffer.COLOR_BLACK,
-                            padding = 0,
-                        }
-                        local h = probe:getSize().h
-                        probe:free()
-                        local final_size = probe_size
-                        if h > 0 and h > target then
-                            final_size = math.max(1, math.floor(probe_size * (target / h)))
+                        local ok_w, built = pcall(function()
+                            local probe = TextWidget:new{
+                                text = nerd_char,
+                                face = Utils.getFontFace("symbols", probe_size),
+                                fgcolor = Blitbuffer.COLOR_BLACK,
+                                padding = 0,
+                            }
+                            local h = probe:getSize().h
+                            probe:free()
+                            local final_size = probe_size
+                            if h > 0 and h > target then
+                                final_size = math.max(1, math.floor(probe_size * (target / h)))
+                            end
+                            return TextWidget:new{
+                                text = nerd_char,
+                                face = Utils.getFontFace("symbols", final_size),
+                                fgcolor = Blitbuffer.COLOR_BLACK,
+                                padding = 0,
+                            }
+                        end)
+                        if ok_w and built then
+                            icon_widget = built
+                        else
+                            -- 符号字体不可用时用文字占位，避免单个图标让整个面板崩溃
+                            icon_widget = TextWidget:new{
+                                text = "?",
+                                face = Utils.getFontFace("cfont", math.floor(glyph_max_h * 0.5)),
+                                fgcolor = Blitbuffer.COLOR_BLACK,
+                            }
                         end
-                        icon_widget = TextWidget:new{
-                            text = nerd_char,
-                            face = Font:getFace("symbols", final_size),
-                            fgcolor = Blitbuffer.COLOR_BLACK,
-                            padding = 0,
-                        }
                     else
                         local icon_path = icon.path
                         if mode == "system" and icon.is_overridden and icon.override_path then
@@ -1341,7 +1362,7 @@ function QA.showIconPicker(on_select, saved_icon, filter, mode, parent_mode)
 
     label_icon_widget = TextWidget:new{
         text = (show_labels and (QA.nerdIconChar("nerd:E907") or "◉") or (QA.nerdIconChar("nerd:E908") or "◎")),
-        face = Font:getFace("symbols", 22),
+        face = Utils.getFontFace("symbols", 22),
         fgcolor = show_labels and Blitbuffer.COLOR_BLACK or Blitbuffer.gray(0.5),
     }
     local label_btn = InputContainer:new{
