@@ -156,7 +156,7 @@ local function makeIconWidget(icon_path, size, fgcolor)
     if nerd_char then
         local tw = TextWidget:new{
             text = nerd_char,
-            face = Font:getFace("symbols", math.floor(size * 0.75)),
+            face = Utils.getFontFace("symbols", math.floor(size * 0.75)),
             fgcolor = fgcolor,
             padding = 0,
         }
