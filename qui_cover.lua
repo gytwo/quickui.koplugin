@@ -559,8 +559,8 @@ local function drawProgressBadge(bb, cover_left, cover_top, cover_w, percent_fin
     local tw = TextWidget:new{
         text    = label,
         face    = is_icon
-                    and Font:getFace("symbols", math.floor(eff_size * 0.4))
-                    or  Font:getFace("cfont",   math.max(7, math.floor(eff_size * 0.24))),
+                    and Utils.getFontFace("symbols", math.floor(eff_size * 0.4))
+                    or  Utils.getFontFace("cfont",   math.max(7, math.floor(eff_size * 0.24))),
         bold    = not is_icon,
         fgcolor = fg_color,
         padding = 0,
