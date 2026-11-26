@@ -51,7 +51,8 @@ local SOURCES = {
         api_url = "https://gitee.com/api/v5/repos/%s/%s/releases/latest",
         list_url = "https://gitee.com/api/v5/repos/%s/%s/releases",
         type = "gitee",
-        prerelease = false,
+        -- 不设 prerelease：Gitee 没有独立的 Pre-release 通道，设成 false 会把
+        -- 标注为 prerelease 的版本过滤掉。留空即不参与过滤，正式版与预发布混排。
     },
 }
 
@@ -234,6 +235,41 @@ local function getLatestVersionFromSource(source)
     end
 end
 
+-- 解析版本号：v1.4.9-beta1 / v1.4.9-beta.1 / v1.4.9 都取主体 {1,4,9}。
+-- 预发布后缀必须先用 "-" 剥掉再按点切分：tonumber("9-beta1") 是 nil，
+-- 原来直接把整段喂给 tonumber 会让 v1.4.9-beta1 变成 {1,4,0}，
+-- 排在 v1.4.8 后面，且与其它预发布无法区分。
+local function parseVer(s)
+    local str = tostring(s):gsub("^v", "")
+    local core, pre = str:match("^([^-]+)%-?(.*)$")
+    core = core or str
+    local parts = {}
+    for p in core:gmatch("[^.]+") do
+        table.insert(parts, tonumber(p) or 0)
+    end
+    return parts, (pre ~= "" and pre or nil)
+end
+
+-- 语义版本比较：a 比 b 新返回正数，旧返回负数，等价返回 0。
+-- 主体号相同则正式版优先于预发布（v1.4.9 > v1.4.9-beta1）；
+-- 同为预发布按后缀里的数字比（beta10 > beta9，而不是字典序）。
+local function compareVer(a, b)
+    local ap, apre = parseVer(a)
+    local bp, bpre = parseVer(b)
+    for i = 1, math.max(#ap, #bp) do
+        local av, bv = ap[i] or 0, bp[i] or 0
+        if av ~= bv then return av - bv end
+    end
+    if apre == bpre then return 0 end
+    if apre == nil then return 1 end   -- a 是正式版
+    if bpre == nil then return -1 end  -- b 是正式版
+    local an = tonumber(apre:match("(%d+)$") or "")
+    local bn = tonumber(bpre:match("(%d+)$") or "")
+    if an and bn and an ~= bn then return an - bn end
+    if apre == bpre then return 0 end
+    return apre > bpre and 1 or -1
+end
+
 -- Get all versions for downgrade
 local function getAllVersionsFromSource(source)
     local all_versions = {}
@@ -333,28 +369,9 @@ local function getAllVersionsFromSource(source)
         end
     end
 
-    -- 内嵌语义版本倒序，高版本靠前
+    -- 语义版本倒序：高版本靠前（v1.4.9 > v1.4.9-beta1 > v1.4.8）
     table.sort(all_versions, function(a, b)
-        local function parseVer(s)
-            local str = s:gsub("^v", "")
-            local parts = {}
-            for p in str:gmatch("[^.]+") do
-                table.insert(parts, tonumber(p) or 0)
-            end
-            return parts
-        end
-        local ap = parseVer(a.tag)
-        local bp = parseVer(b.tag)
-        for i = 1, math.max(#ap, #bp) do
-            local av = ap[i] or 0
-            local bv = bp[i] or 0
-            if av > bv then
-                return true
-            elseif av < bv then
-                return false
-            end
-        end
-        return false
+        return compareVer(a.tag, b.tag) > 0
     end)
 
     return all_versions
@@ -362,30 +379,7 @@ end
 
 -- Compare versions
 local function isNewerVersion(current, latest)
-    if current == latest then return false end
-
-    local cur = current:gsub("^v", "")
-    local lat = latest:gsub("^v", "")
-
-    local cur_parts = {}
-    for part in cur:gmatch("[^.]+") do
-        table.insert(cur_parts, tonumber(part) or 0)
-    end
-    local lat_parts = {}
-    for part in lat:gmatch("[^.]+") do
-        table.insert(lat_parts, tonumber(part) or 0)
-    end
-
-    for i = 1, math.max(#cur_parts, #lat_parts) do
-        local cur_part = cur_parts[i] or 0
-        local lat_part = lat_parts[i] or 0
-        if lat_part > cur_part then
-            return true
-        elseif lat_part < cur_part then
-            return false
-        end
-    end
-    return false
+    return compareVer(latest, current) > 0
 end
 
 -- Show notification
